@@ -12,8 +12,8 @@ This milestone delivers the five core skills (dc:init, dc:explore, dc:validate, 
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Templates** - Create and verify all template files against the Domain Context spec
-- [ ] **Phase 2: Init Core** - dc:init creates .context/ structure on fresh projects
+- [x] **Phase 1: Templates** - Create and verify all template files against the Domain Context spec
+- [x] **Phase 2: Init Core** - dc:init creates .context/ structure on fresh projects
 - [ ] **Phase 3: Init Idempotency** - dc:init handles existing projects safely
 - [ ] **Phase 4: Explore** - dc:explore parses and displays domain context
 - [ ] **Phase 5: Validate Core** - dc:validate checks structural integrity
@@ -150,8 +150,8 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Templates | 1/2 | In Progress|  |
-| 2. Init Core | 1/2 | In Progress|  |
+| 1. Templates | 2/2 | Complete | 2026-03-12 |
+| 2. Init Core | 2/2 | Complete | 2026-03-12 |
 | 3. Init Idempotency | 0/1 | Not started | - |
 | 4. Explore | 0/2 | Not started | - |
 | 5. Validate Core | 0/1 | Not started | - |
