@@ -151,7 +151,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Templates | 1/2 | In Progress|  |
-| 2. Init Core | 0/2 | Not started | - |
+| 2. Init Core | 1/2 | In Progress|  |
 | 3. Init Idempotency | 0/1 | Not started | - |
 | 4. Explore | 0/2 | Not started | - |
 | 5. Validate Core | 0/1 | Not started | - |

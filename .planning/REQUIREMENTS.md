@@ -15,12 +15,12 @@ Requirements for Milestone 1 (Core Skills). Each maps to roadmap phases.
 
 ### Init
 
-- [ ] **INIT-01**: User can run /dc:init to create .context/ directory with MANIFEST.md
-- [ ] **INIT-02**: Init creates domain/, decisions/, constraints/ subdirectories with .gitkeep
-- [ ] **INIT-03**: Init scaffolds ARCHITECTURE.md skeleton if file doesn't already exist
-- [ ] **INIT-04**: Init appends AGENTS.md snippet idempotently (sentinel comment prevents duplicate injection)
-- [ ] **INIT-05**: Init creates thin CLAUDE.md with @AGENTS.md pointer if file doesn't already exist
-- [ ] **INIT-06**: Init adds .context.local/ to .gitignore (append if not already present)
+- [x] **INIT-01**: User can run /dc:init to create .context/ directory with MANIFEST.md
+- [x] **INIT-02**: Init creates domain/, decisions/, constraints/ subdirectories with .gitkeep
+- [x] **INIT-03**: Init scaffolds ARCHITECTURE.md skeleton if file doesn't already exist
+- [x] **INIT-04**: Init appends AGENTS.md snippet idempotently (sentinel comment prevents duplicate injection)
+- [x] **INIT-05**: Init creates thin CLAUDE.md with @AGENTS.md pointer if file doesn't already exist
+- [x] **INIT-06**: Init adds .context.local/ to .gitignore (append if not already present)
 - [ ] **INIT-07**: Init detects existing .context/ and warns user before proceeding
 - [ ] **INIT-08**: Init resolves templates from global (~/.claude/domain-context/templates/) or local (.claude/domain-context/templates/) install
 - [ ] **INIT-09**: Init prints summary showing each file with created/skipped/updated status
@@ -103,12 +103,12 @@ Deferred to future milestones. Tracked but not in current roadmap.
 | TMPL-01 | Phase 1 | Complete |
 | TMPL-02 | Phase 1 | Complete |
 | TMPL-03 | Phase 1 | Complete |
-| INIT-01 | Phase 2 | Pending |
-| INIT-02 | Phase 2 | Pending |
-| INIT-03 | Phase 2 | Pending |
-| INIT-04 | Phase 2 | Pending |
-| INIT-05 | Phase 2 | Pending |
-| INIT-06 | Phase 2 | Pending |
+| INIT-01 | Phase 2 | Complete |
+| INIT-02 | Phase 2 | Complete |
+| INIT-03 | Phase 2 | Complete |
+| INIT-04 | Phase 2 | Complete |
+| INIT-05 | Phase 2 | Complete |
+| INIT-06 | Phase 2 | Complete |
 | INIT-07 | Phase 3 | Pending |
 | INIT-08 | Phase 3 | Pending |
 | INIT-09 | Phase 3 | Pending |
