@@ -48,11 +48,11 @@ Plans:
   4. AGENTS.md contains the domain context snippet with sentinel comment after init
   5. CLAUDE.md exists with @AGENTS.md pointer after init (created if absent)
   6. .gitignore contains .context.local/ entry after init
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 02-01: TBD
-- [ ] 02-02: TBD
+- [ ] 02-01-PLAN.md — Create dc:init skill file with template resolution, metadata inference, and file scaffolding
+- [ ] 02-02-PLAN.md — End-to-end test of dc:init on fresh project with human verification
 
 ### Phase 3: Init Idempotency
 **Goal**: Running /dc:init on an existing project is safe and informative -- nothing is overwritten, the user sees what happened
