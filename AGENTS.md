@@ -15,6 +15,7 @@
 - Templates: plain markdown with `{placeholder}` tokens
 - Naming: kebab-case for all files, `dc:` prefix for all skill names
 - No runtime dependencies — Node.js built-ins only
+- When creating dc:* skills, use the /skill-creator skill
 
 ## Workflow
 
