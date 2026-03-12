@@ -31,11 +31,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   1. Template files exist for MANIFEST.md, CONTEXT.md, domain-concept.md, decision.md, constraint.md, and AGENTS.md.snippet in the templates/ directory
   2. Each template's required sections match the Domain Context spec at ~/code/domain-context/SPEC.md
   3. All dynamic content positions use `{placeholder}` tokens that skills can fill at runtime
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
+- [ ] 01-01-PLAN.md — Create all 8 template files matching Domain Context spec
+- [ ] 01-02-PLAN.md — Create validation script and verify templates are spec-compliant
 
 ### Phase 2: Init Core
 **Goal**: User can run /dc:init on a fresh project and get a complete, correct .context/ setup
