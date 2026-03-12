@@ -9,9 +9,9 @@ Requirements for Milestone 1 (Core Skills). Each maps to roadmap phases.
 
 ### Templates
 
-- [ ] **TMPL-01**: Template files exist for MANIFEST.md, CONTEXT.md, domain-concept.md, decision.md, constraint.md, and AGENTS.md.snippet
-- [ ] **TMPL-02**: Templates match the Domain Context spec's required sections exactly
-- [ ] **TMPL-03**: Templates use `{placeholder}` tokens for dynamic content
+- [x] **TMPL-01**: Template files exist for MANIFEST.md, CONTEXT.md, domain-concept.md, decision.md, constraint.md, and AGENTS.md.snippet
+- [x] **TMPL-02**: Templates match the Domain Context spec's required sections exactly
+- [x] **TMPL-03**: Templates use `{placeholder}` tokens for dynamic content
 
 ### Init
 
@@ -100,9 +100,9 @@ Deferred to future milestones. Tracked but not in current roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TMPL-01 | Phase 1 | Pending |
-| TMPL-02 | Phase 1 | Pending |
-| TMPL-03 | Phase 1 | Pending |
+| TMPL-01 | Phase 1 | Complete |
+| TMPL-02 | Phase 1 | Complete |
+| TMPL-03 | Phase 1 | Complete |
 | INIT-01 | Phase 2 | Pending |
 | INIT-02 | Phase 2 | Pending |
 | INIT-03 | Phase 2 | Pending |
