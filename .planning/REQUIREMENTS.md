@@ -103,46 +103,46 @@ Deferred to future milestones. Tracked but not in current roadmap.
 | TMPL-01 | Phase 1 | Pending |
 | TMPL-02 | Phase 1 | Pending |
 | TMPL-03 | Phase 1 | Pending |
-| INIT-01 | Phase 1 | Pending |
-| INIT-02 | Phase 1 | Pending |
-| INIT-03 | Phase 1 | Pending |
-| INIT-04 | Phase 1 | Pending |
-| INIT-05 | Phase 1 | Pending |
-| INIT-06 | Phase 1 | Pending |
-| INIT-07 | Phase 1 | Pending |
-| INIT-08 | Phase 1 | Pending |
-| INIT-09 | Phase 1 | Pending |
-| INIT-10 | Phase 1 | Pending |
-| EXPL-01 | Phase 2 | Pending |
-| EXPL-02 | Phase 2 | Pending |
-| EXPL-03 | Phase 2 | Pending |
-| EXPL-04 | Phase 2 | Pending |
-| EXPL-05 | Phase 2 | Pending |
-| EXPL-06 | Phase 2 | Pending |
-| VALD-01 | Phase 3 | Pending |
-| VALD-02 | Phase 3 | Pending |
-| VALD-03 | Phase 3 | Pending |
-| VALD-04 | Phase 3 | Pending |
-| VALD-05 | Phase 3 | Pending |
-| VALD-06 | Phase 3 | Pending |
-| ADDC-01 | Phase 4 | Pending |
-| ADDC-02 | Phase 4 | Pending |
-| ADDC-03 | Phase 4 | Pending |
-| ADDC-04 | Phase 4 | Pending |
-| ADDC-05 | Phase 4 | Pending |
-| ADDC-06 | Phase 4 | Pending |
-| ADDC-07 | Phase 4 | Pending |
-| REFR-01 | Phase 5 | Pending |
-| REFR-02 | Phase 5 | Pending |
-| REFR-03 | Phase 5 | Pending |
-| REFR-04 | Phase 5 | Pending |
-| REFR-05 | Phase 5 | Pending |
+| INIT-01 | Phase 2 | Pending |
+| INIT-02 | Phase 2 | Pending |
+| INIT-03 | Phase 2 | Pending |
+| INIT-04 | Phase 2 | Pending |
+| INIT-05 | Phase 2 | Pending |
+| INIT-06 | Phase 2 | Pending |
+| INIT-07 | Phase 3 | Pending |
+| INIT-08 | Phase 3 | Pending |
+| INIT-09 | Phase 3 | Pending |
+| INIT-10 | Phase 3 | Pending |
+| EXPL-01 | Phase 4 | Pending |
+| EXPL-02 | Phase 4 | Pending |
+| EXPL-03 | Phase 4 | Pending |
+| EXPL-04 | Phase 4 | Pending |
+| EXPL-05 | Phase 4 | Pending |
+| EXPL-06 | Phase 4 | Pending |
+| VALD-01 | Phase 5 | Pending |
+| VALD-02 | Phase 5 | Pending |
+| VALD-03 | Phase 5 | Pending |
+| VALD-04 | Phase 6 | Pending |
+| VALD-05 | Phase 6 | Pending |
+| VALD-06 | Phase 6 | Pending |
+| ADDC-01 | Phase 7 | Pending |
+| ADDC-02 | Phase 7 | Pending |
+| ADDC-03 | Phase 7 | Pending |
+| ADDC-04 | Phase 7 | Pending |
+| ADDC-05 | Phase 7 | Pending |
+| ADDC-06 | Phase 7 | Pending |
+| ADDC-07 | Phase 7 | Pending |
+| REFR-01 | Phase 8 | Pending |
+| REFR-02 | Phase 8 | Pending |
+| REFR-03 | Phase 8 | Pending |
+| REFR-04 | Phase 8 | Pending |
+| REFR-05 | Phase 8 | Pending |
 
 **Coverage:**
 - v1 requirements: 36 total
 - Mapped to phases: 36
-- Unmapped: 0 ✓
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-11*
-*Last updated: 2026-03-11 after initial definition*
+*Last updated: 2026-03-11 after roadmap creation (fine granularity, 8 phases)*
