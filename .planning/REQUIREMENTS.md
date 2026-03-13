@@ -21,10 +21,10 @@ Requirements for Milestone 1 (Core Skills). Each maps to roadmap phases.
 - [x] **INIT-04**: Init appends AGENTS.md snippet idempotently (sentinel comment prevents duplicate injection)
 - [x] **INIT-05**: Init creates thin CLAUDE.md with @AGENTS.md pointer if file doesn't already exist
 - [x] **INIT-06**: Init adds .context.local/ to .gitignore (append if not already present)
-- [ ] **INIT-07**: Init detects existing .context/ and warns user before proceeding
-- [ ] **INIT-08**: Init resolves templates from global (~/.claude/domain-context/templates/) or local (.claude/domain-context/templates/) install
-- [ ] **INIT-09**: Init prints summary showing each file with created/skipped/updated status
-- [ ] **INIT-10**: Running /dc:init twice on the same project is safe — only creates what's missing
+- [x] **INIT-07**: Init detects existing .context/ and warns user before proceeding
+- [x] **INIT-08**: Init resolves templates from global (~/.claude/domain-context/templates/) or local (.claude/domain-context/templates/) install
+- [x] **INIT-09**: Init prints summary showing each file with created/skipped/updated status
+- [x] **INIT-10**: Running /dc:init twice on the same project is safe — only creates what's missing
 
 ### Explore
 
@@ -109,10 +109,10 @@ Deferred to future milestones. Tracked but not in current roadmap.
 | INIT-04 | Phase 2 | Complete |
 | INIT-05 | Phase 2 | Complete |
 | INIT-06 | Phase 2 | Complete |
-| INIT-07 | Phase 3 | Pending |
-| INIT-08 | Phase 3 | Pending |
-| INIT-09 | Phase 3 | Pending |
-| INIT-10 | Phase 3 | Pending |
+| INIT-07 | Phase 3 | Complete |
+| INIT-08 | Phase 3 | Complete |
+| INIT-09 | Phase 3 | Complete |
+| INIT-10 | Phase 3 | Complete |
 | EXPL-01 | Phase 4 | Pending |
 | EXPL-02 | Phase 4 | Pending |
 | EXPL-03 | Phase 4 | Pending |
