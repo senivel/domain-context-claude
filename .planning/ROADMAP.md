@@ -63,10 +63,10 @@ Plans:
   2. dc:init resolves templates from either global (~/.claude/domain-context/templates/) or local (.claude/domain-context/templates/) install location
   3. dc:init prints a summary showing each file with created/skipped/updated status
   4. Running /dc:init twice produces identical results -- second run reports all files as skipped
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 03-01: TBD
+- [ ] 03-01-PLAN.md — Rewrite dc:init for idempotent behavior with summary output
 
 ### Phase 4: Explore
 **Goal**: User can browse and search domain context from within Claude Code
