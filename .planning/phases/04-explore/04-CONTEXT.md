@@ -1,6 +1,6 @@
 # Phase 4: Explore - Context
 
-**Gathered:** 2026-03-14
+**Gathered:** 2026-03-14 (updated 2026-03-14 for gap closure)
 **Status:** Ready for planning
 
 <domain>
@@ -42,7 +42,10 @@ dc:explore is a read-only skill that parses and displays domain context from wit
 - This handles projects with many entries by staying within AskUserQuestion's 4-option limit
 
 ### Module CONTEXT.md discovery
-- Module CONTEXT.md files sourced from MANIFEST.md's "Module Context Files" section only — no filesystem glob/discovery
+- Use Glob to discover all CONTEXT.md files throughout the codebase (e.g., `src/**/CONTEXT.md`, `**/CONTEXT.md`)
+- Cross-reference discovered files against MANIFEST.md's "Module Context Files" section
+- Unregistered CONTEXT.md files (found on disk but not in MANIFEST.md) shown with a note: "[not in manifest]"
+- MANIFEST.md entries still shown even if the file doesn't exist on disk (with "[file missing]" warning)
 - Shown as a separate section at the bottom of the summary
 - Browseable in the drill-in flow — same as other entry types
 
