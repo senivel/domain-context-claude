@@ -61,6 +61,15 @@ If no keyword was provided, continue to Step 3.
    - If more than 90 days old: mark as stale with the day count.
    - If no verified date is found on the entry line: mark as `[no date]`.
 
+## Step 3.5: Discover Module Context Files on Disk
+
+1. Use Glob to find all `**/CONTEXT.md` files in the project.
+2. Exclude results inside `.context/`, `node_modules/`, `.git/`, and `.planning/` directories.
+3. Cross-reference discovered files against the Module Context Files already parsed from MANIFEST.md in Step 3:
+   - If a discovered file is already listed in MANIFEST.md: keep the MANIFEST.md entry as-is (with its verified date and freshness).
+   - If a discovered file is NOT in MANIFEST.md: add it to the Module Context Files list with a `[not in manifest]` tag instead of a freshness date.
+4. For each MANIFEST.md Module Context File entry, check whether the file actually exists on disk. If it does not exist, add a `[file missing]` tag alongside any existing freshness tag.
+
 ## Step 4: Display Summary
 
 Format the output exactly as follows:
@@ -78,7 +87,9 @@ Domain Context:
   Constraints (N)
 
   Module Context Files (N)
-    - path/to/CONTEXT.md            [verified: YYYY-MM-DD]
+    - src/auth/CONTEXT.md           [verified: YYYY-MM-DD]
+    - src/api/CONTEXT.md            [file missing]
+    - src/billing/CONTEXT.md        [not in manifest]
 ```
 
 Rules:
@@ -87,6 +98,9 @@ Rules:
 - Entry names are left-aligned, freshness tags are right-aligned with consistent spacing.
 - Show names and freshness only -- no descriptions in the summary.
 - Stale entries (>90 days) display `[STALE - N days]` instead of the verified date.
+- Module Context Files count includes both registered (from MANIFEST.md) and discovered (from Glob) entries.
+- Unregistered entries display `[not in manifest]`.
+- Entries whose file is missing on disk display `[file missing]`.
 
 ## Step 5: Progressive Disclosure
 
@@ -107,15 +121,16 @@ After showing the summary, use AskUserQuestion to offer drill-in navigation.
 - Set the recommended option to the first entry.
 
 **Viewing an entry:**
-- Resolve the entry's path relative to the `.context/` directory.
-- Read the full file content.
-- Display the content with the file path as a header.
+- For MANIFEST.md entries: resolve the path relative to the `.context/` directory.
+- For discovered-but-unregistered entries (`[not in manifest]`): resolve the path relative to the project root.
+- For entries marked `[file missing]`: display "File not found at {path}" instead of trying to read it.
+- Otherwise: read the full file content and display it with the file path as a header.
 - After displaying, loop back: prompt "Explore another entry?" and return to section selection.
 
 ## Step 6: Keyword Search
 
-1. Read `.context/MANIFEST.md` and parse all entries (same as Step 3).
-2. For each entry, check if the keyword matches as a case-insensitive substring in:
+1. Read `.context/MANIFEST.md` and parse all entries (same as Step 3). Also discover CONTEXT.md files on disk (same as Step 3.5) so that unregistered module context files are included in the search scope.
+2. For each entry (including discovered-but-unregistered ones), check if the keyword matches as a case-insensitive substring in:
    - The entry name
    - The entry description (text after the em dash in the MANIFEST.md line)
    - The file content (read each entry's file and search within it)
