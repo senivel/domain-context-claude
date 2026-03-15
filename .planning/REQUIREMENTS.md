@@ -28,12 +28,12 @@ Requirements for Milestone 1 (Core Skills). Each maps to roadmap phases.
 
 ### Explore
 
-- [ ] **EXPL-01**: User can run /dc:explore to see a summary of domain context (counts by type: domain concepts, decisions, constraints)
-- [ ] **EXPL-02**: Explore shows freshness status per entry (flags entries with verified date >90 days old)
-- [ ] **EXPL-03**: User can run /dc:explore [keyword] to find and read a specific entry by name
-- [ ] **EXPL-04**: Explore suggests /dc:init when no .context/ directory exists
-- [ ] **EXPL-05**: Explore uses progressive disclosure — shows manifest summary first, drills into specific entries on demand
-- [ ] **EXPL-06**: Explore discovers and lists per-module CONTEXT.md files found throughout the codebase
+- [x] **EXPL-01**: User can run /dc:explore to see a summary of domain context (counts by type: domain concepts, decisions, constraints)
+- [x] **EXPL-02**: Explore shows freshness status per entry (flags entries with verified date >90 days old)
+- [x] **EXPL-03**: User can run /dc:explore [keyword] to find and read a specific entry by name
+- [x] **EXPL-04**: Explore suggests /dc:init when no .context/ directory exists
+- [x] **EXPL-05**: Explore uses progressive disclosure — shows manifest summary first, drills into specific entries on demand
+- [x] **EXPL-06**: Explore discovers and lists per-module CONTEXT.md files found throughout the codebase
 
 ### Validate
 
@@ -113,12 +113,12 @@ Deferred to future milestones. Tracked but not in current roadmap.
 | INIT-08 | Phase 3 | Complete |
 | INIT-09 | Phase 3 | Complete |
 | INIT-10 | Phase 3 | Complete |
-| EXPL-01 | Phase 4 | Pending |
-| EXPL-02 | Phase 4 | Pending |
-| EXPL-03 | Phase 4 | Pending |
-| EXPL-04 | Phase 4 | Pending |
-| EXPL-05 | Phase 4 | Pending |
-| EXPL-06 | Phase 4 | Pending |
+| EXPL-01 | Phase 4 | Complete |
+| EXPL-02 | Phase 4 | Complete |
+| EXPL-03 | Phase 4 | Complete |
+| EXPL-04 | Phase 4 | Complete |
+| EXPL-05 | Phase 4 | Complete |
+| EXPL-06 | Phase 4 | Complete |
 | VALD-01 | Phase 5 | Pending |
 | VALD-02 | Phase 5 | Pending |
 | VALD-03 | Phase 5 | Pending |
