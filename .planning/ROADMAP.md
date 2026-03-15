@@ -79,11 +79,11 @@ Plans:
   4. Running /dc:explore on a project without .context/ suggests running /dc:init
   5. Explore shows the manifest summary first, then drills into specific entries only when the user asks
   6. Explore discovers and lists per-module CONTEXT.md files found in the codebase
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 04-01: TBD
-- [ ] 04-02: TBD
+- [ ] 04-01-PLAN.md — Create dc:explore skill file with manifest parsing, freshness display, keyword search, and progressive disclosure
+- [ ] 04-02-PLAN.md — Human verification of dc:explore on this project's .context/
 
 ### Phase 5: Validate Core
 **Goal**: User can check the structural integrity of their domain context
