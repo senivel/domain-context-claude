@@ -1,10 +1,10 @@
 ---
 gsd_state_version: 1.0
-milestone: null
-milestone_name: null
+milestone: v1.1
+milestone_name: Hooks, Rules & Agent
 current_phase: null
-status: between_milestones
-last_updated: "2026-03-16T23:45:00.000Z"
+status: defining_requirements
+last_updated: "2026-03-16T00:00:00.000Z"
 progress:
   total_phases: 0
   completed_phases: 0
@@ -19,17 +19,20 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-16)
 
 **Core value:** Developers can codify and maintain domain knowledge alongside code so AI assistants always have accurate business context
-**Current focus:** Planning next milestone
+**Current focus:** Milestone v1.1 — Hooks, Rules & Agent
 
 ## Position
 
-**Last milestone:** v1.0 Core Skills (shipped 2026-03-16)
-**Status:** Between milestones
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-16 — Milestone v1.1 started
 
 ## Decisions
 
-(Cleared — v1.0 decisions archived to .planning/milestones/v1.0-ROADMAP.md)
+(None yet)
 
 ## Session Log
 
 - 2026-03-16: v1.0 milestone completed and archived
+- 2026-03-16: Milestone v1.1 started — Hooks, Rules & Agent

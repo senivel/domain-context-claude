@@ -22,11 +22,14 @@ Developers can codify and maintain domain knowledge alongside code so that AI as
 
 ### Active
 
-(None — next milestone not yet planned)
+- [ ] SessionStart hook warns about stale domain context entries
+- [ ] PostToolUse hook reminds about CONTEXT.md updates when editing nearby files
+- [ ] Path-specific rule guides .context/ file editing
+- [ ] Domain validator agent checks code against documented business rules
 
 ### Out of Scope
 
-- Hooks and passive integrations — future milestone
+- Hooks and passive integrations — v1.1 milestone (active)
 - GSD `/dc:extract` skill — future milestone
 - npm packaging and installer — future milestone
 - MCP server — deferred post-MVP per ADR-003
@@ -61,5 +64,15 @@ Developers can codify and maintain domain knowledge alongside code so that AI as
 | Template-first build order | All skills consume templates; building them first prevents circular deps | ✓ Good |
 | Dual-location verified date | Both MANIFEST.md and inline comment updated — dc:refresh can find dates in either | ✓ Good |
 
+## Current Milestone: v1.1 Hooks, Rules & Agent
+
+**Goal:** Add passive integrations that make Claude Code domain-context-aware without explicit commands.
+
+**Target features:**
+- SessionStart hook for freshness warnings
+- PostToolUse hook for CONTEXT.md reminders
+- Path-specific rule for .context/ editing guidance
+- Domain validator agent for business rule checking
+
 ---
-*Last updated: 2026-03-16 after v1.0 milestone*
+*Last updated: 2026-03-16 after v1.1 milestone start*
