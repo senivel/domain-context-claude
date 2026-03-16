@@ -89,8 +89,8 @@ From the user's freeform description:
 3. Map the user's description to the template sections. For each section:
    - If the user mentioned relevant content, fill that section with the extracted information.
    - If the user did not mention it, fill with "Not yet documented."
-4. Strip all HTML comments (`<!-- ... -->`) from the filled content.
-5. Replace `{verified_date}` with today's date in YYYY-MM-DD format.
+4. Replace `{verified_date}` with today's date in YYYY-MM-DD format.
+5. Strip HTML comments from the filled content, except for `<!-- verified: ... -->` lines (these are functional metadata, not guidance comments).
 6. For decisions: set `{status}` to "accepted".
 7. Auto-derive a kebab-case filename from the title:
    - Lowercase the title.
