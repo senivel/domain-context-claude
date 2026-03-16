@@ -60,28 +60,28 @@ Requirements for passive integrations milestone. Each maps to roadmap phases.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| HOOK-01 | — | Pending |
-| HOOK-02 | — | Pending |
-| HOOK-03 | — | Pending |
-| HOOK-04 | — | Pending |
-| HOOK-05 | — | Pending |
-| HOOK-06 | — | Pending |
-| HOOK-07 | — | Pending |
-| HOOK-08 | — | Pending |
-| RULE-01 | — | Pending |
-| RULE-02 | — | Pending |
-| RULE-03 | — | Pending |
-| AGNT-01 | — | Pending |
-| AGNT-02 | — | Pending |
-| AGNT-03 | — | Pending |
-| AGNT-04 | — | Pending |
-| AGNT-05 | — | Pending |
+| HOOK-01 | Phase 10 | Pending |
+| HOOK-02 | Phase 10 | Pending |
+| HOOK-03 | Phase 11 | Pending |
+| HOOK-04 | Phase 11 | Pending |
+| HOOK-05 | Phase 11 | Pending |
+| HOOK-06 | Phase 11 | Pending |
+| HOOK-07 | Phase 10 | Pending |
+| HOOK-08 | Phase 11 | Pending |
+| RULE-01 | Phase 12 | Pending |
+| RULE-02 | Phase 12 | Pending |
+| RULE-03 | Phase 12 | Pending |
+| AGNT-01 | Phase 13 | Pending |
+| AGNT-02 | Phase 13 | Pending |
+| AGNT-03 | Phase 13 | Pending |
+| AGNT-04 | Phase 13 | Pending |
+| AGNT-05 | Phase 13 | Pending |
 
 **Coverage:**
 - v1.1 requirements: 16 total
-- Mapped to phases: 0
-- Unmapped: 16
+- Mapped to phases: 16
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-16*
-*Last updated: 2026-03-16 after initial definition*
+*Last updated: 2026-03-16 after roadmap creation*
