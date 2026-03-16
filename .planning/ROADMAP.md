@@ -154,7 +154,7 @@ Plans:
   1. Files created by dc:add include `<!-- verified: YYYY-MM-DD -->` inline comment (INT-01 fix: swap token replacement and comment stripping order)
   2. dc:validate orphan registration writes ` — ` (em dash) not ` -- ` in MANIFEST.md entries (INT-02 fix)
   3. dc:validate broken link fix creates target directories before writing files (INT-03 fix: add mkdir -p guard)
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
 - [ ] 09-01-PLAN.md — Fix all 3 integration issues in dc:add and dc:validate skills
