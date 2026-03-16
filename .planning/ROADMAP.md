@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Init Idempotency** - dc:init handles existing projects safely
 - [ ] **Phase 4: Explore** - dc:explore parses and displays domain context (gap closure in progress)
 - [x] **Phase 5: Validate Core** - dc:validate checks structural integrity (completed 2026-03-16)
-- [ ] **Phase 6: Validate UX** - dc:validate presents results conversationally and offers fixes
+- [x] **Phase 6: Validate UX** - dc:validate presents results conversationally and offers fixes (completed 2026-03-16)
 - [ ] **Phase 7: Add** - dc:add creates new domain entries from conversation
 - [ ] **Phase 8: Refresh** - dc:refresh reviews and updates stale entries
 
@@ -156,6 +156,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 3. Init Idempotency | 1/1 | Complete | 2026-03-13 |
 | 4. Explore | 2/3 | Gap closure | - |
 | 5. Validate Core | 1/1 | Complete   | 2026-03-16 |
-| 6. Validate UX | 0/1 | Not started | - |
+| 6. Validate UX | 1/1 | Complete   | 2026-03-16 |
 | 7. Add | 0/2 | Not started | - |
 | 8. Refresh | 0/2 | Not started | - |
