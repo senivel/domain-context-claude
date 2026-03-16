@@ -1,8 +1,21 @@
 # Stack Research
 
-**Domain:** Claude Code skill development (file scaffolding, manifest parsing, validation)
-**Researched:** 2026-03-11
-**Confidence:** HIGH
+**Domain:** Claude Code extension development — hooks, path-specific rules, subagent
+**Researched:** 2026-03-16
+**Confidence:** HIGH (hooks/agents verified against official docs; rules format verified; Node.js patterns verified against working GSD hooks in this repo)
+
+---
+
+## What Changed in v1.1
+
+This is a focused delta from the v1.0 research (skills, templates, validator). The v1.0 content remains valid. This document adds what is needed for the NEW milestone features:
+
+1. SessionStart hook — warns about stale domain context entries
+2. PostToolUse hook — reminds about CONTEXT.md updates when editing nearby files
+3. Path-specific rule — guides `.context/` file editing
+4. Domain validator agent — checks code against documented business rules
+
+---
 
 ## Recommended Stack
 
@@ -10,190 +23,307 @@
 
 | Technology | Version | Purpose | Why Recommended |
 |------------|---------|---------|-----------------|
-| Claude Code Skill Format | current | Skill definition via markdown + YAML frontmatter | Only format Claude Code supports. YAML frontmatter (`name`, `description`, `allowed-tools`, `argument-hint`) + `<objective>`, `<execution_context>`, `<process>` body sections. |
-| Node.js | >= 20 LTS | Hooks, validation tooling, installer | Project constraint: no runtime deps. Node 20+ gives stable `fs/promises`, `path`, `readline` built-ins. Already on v24.14.0 locally. |
-| Bash | 3.2+ (macOS default) | validate-context.sh validation script | Shell-based validation matches the upstream Domain Context spec's existing tooling pattern. Must work on macOS default bash (no bash 5+ features). |
-| Markdown | n/a | All skill files, templates, rules, agents | Claude Code's native configuration format. No alternatives exist. |
+| Node.js | >= 20 LTS | Hook scripts (SessionStart, PostToolUse) | Project constraint: no runtime deps; all built-ins. Verified: hooks in this repo use `fs`, `path`, `os`, `child_process`. |
+| Claude Code hooks contract | current (2026) | Communication protocol for hooks | Verified against official docs: JSON on stdin, JSON `hookSpecificOutput.additionalContext` on stdout, exit 0 on all errors. |
+| Claude Code agents format | current (2026) | Domain validator subagent | Verified: YAML frontmatter (`name`, `description`, `tools`, `model`) + markdown body as system prompt. Lives in `.claude/agents/`. |
+| Claude Code rules format | current (2026) | Path-specific editing guidance | Verified: markdown with `paths:` YAML frontmatter using glob patterns. Lives in `.claude/rules/`. Loaded lazily when matching files accessed. |
 
-### Supporting Libraries
+### Node.js Built-in APIs (Hooks Only)
 
-None. This project has a hard constraint of zero runtime dependencies (Node.js built-ins only), matching GSD's pattern. Everything below describes built-in Node.js APIs used directly.
+No external packages. These built-ins are sufficient:
 
-| Built-in API | Purpose | When to Use |
-|--------------|---------|-------------|
-| `fs` (sync) | Read/write templates, manifest files in hooks | Hooks and install scripts where async is unnecessary overhead |
-| `fs/promises` | Async file operations in longer-running scripts | Installer, validation tooling |
-| `path` | Cross-platform path resolution for template locations | Every skill that resolves template paths (global vs local install) |
-| `process.stdin` | Read JSON input in hooks | All hooks (SessionStart, PostToolUse) |
-| `process.stdout` | Write JSON output from hooks | All hooks returning `additionalContext` or `decision` |
+| Built-in API | Hook Where Used | Purpose |
+|--------------|-----------------|---------|
+| `fs` (sync) | Both hooks | Read MANIFEST.md, read/write debounce state files |
+| `path` | Both hooks | Resolve MANIFEST.md path relative to `data.cwd` |
+| `os` | PostToolUse only | `os.tmpdir()` for session-scoped debounce files (matches GSD pattern) |
+| `process.stdin` | Both hooks | Read JSON input event |
+| `process.stdout` | Both hooks | Write JSON `hookSpecificOutput` response |
 
-### Development Tools
+### Development Tools (Unchanged from v1.0)
 
 | Tool | Purpose | Notes |
 |------|---------|-------|
-| `npm pack` | Test package before publishing | Run `npm pack && npx ./domain-context-cc-*.tgz` to test full install flow |
-| `bash tools/validate-context.sh .` | Validate this project's own .context/ | Dogfooding: project validates itself |
+| `bash tools/validate-context.sh .` | Validate this project's own .context/ | Dogfooding |
+| `npm pack` | Test package before publishing | `npm pack && npx ./domain-context-cc-*.tgz` |
 
-## Skill Authoring Patterns
+---
 
-This section is the most critical for the milestone. Skills in this project are NOT Node.js programs -- they are markdown instruction files that tell Claude Code what to do. Claude Code's LLM executes the instructions using the allowed tools.
+## Hook Authoring Pattern (Verified)
 
-### Skill File Anatomy
+Both hooks follow the established GSD pattern exactly (verified from `.claude/hooks/gsd-context-monitor.js` in this repo).
+
+### stdin/stdout Contract
+
+**stdin — SessionStart:**
+```json
+{
+  "session_id": "abc123",
+  "transcript_path": "/Users/.../.claude/projects/.../session.jsonl",
+  "cwd": "/Users/...",
+  "permission_mode": "default",
+  "hook_event_name": "SessionStart",
+  "source": "startup",
+  "model": "claude-sonnet-4-6"
+}
+```
+
+**stdin — PostToolUse:**
+```json
+{
+  "session_id": "abc123",
+  "cwd": "/Users/...",
+  "hook_event_name": "PostToolUse",
+  "tool_name": "Write",
+  "tool_input": { "file_path": "/path/to/file.ts", "content": "..." },
+  "tool_response": { "filePath": "/path/to/file.ts", "success": true },
+  "tool_use_id": "toolu_01..."
+}
+```
+
+**stdout — both hooks:**
+```json
+{
+  "hookSpecificOutput": {
+    "hookEventName": "SessionStart",
+    "additionalContext": "Message injected into Claude's context"
+  }
+}
+```
+
+### Mandatory Constraints
+
+```javascript
+// REQUIRED pattern — every hook must have this structure:
+const stdinTimeout = setTimeout(() => process.exit(0), 3000);
+process.stdin.setEncoding('utf8');
+let input = '';
+process.stdin.on('data', chunk => input += chunk);
+process.stdin.on('end', () => {
+  clearTimeout(stdinTimeout);
+  try {
+    const data = JSON.parse(input);
+    // ... work ...
+    process.stdout.write(JSON.stringify({ hookSpecificOutput: { ... } }));
+  } catch (e) {
+    process.exit(0); // MUST exit 0 on any error
+  }
+});
+```
+
+- **3-second stdin timeout guard** — prevents hanging on pipe issues (Windows/Git Bash). Used by all GSD hooks.
+- **exit 0 on any error** — hooks must never block tool execution (project constraint).
+- **`data.cwd`** — always use `data.cwd`, never `process.cwd()`, for the project root. GSD hooks verify this.
+- **No async/await at top level** — stdin reading is event-driven; async inside the callback is fine.
+
+### Debounce Pattern (PostToolUse)
+
+PostToolUse fires on every tool use. For CONTEXT.md reminders, debounce is required to avoid spam. GSD uses session-scoped tmp files:
+
+```javascript
+const debounceFile = path.join(os.tmpdir(), `dc-ctx-${data.session_id}.json`);
+// Read debounce state, check call count, reset and warn, or increment and exit
+```
+
+This pattern is already proven in `gsd-context-monitor.js`. Use the same approach.
+
+### MANIFEST.md Parsing in Hooks (JS Regex, Not LLM)
+
+Hooks run outside of LLM context — they are Node.js scripts. Parse MANIFEST.md with regex:
+
+```javascript
+const verifiedDateRe = /\[verified:\s*(\d{4}-\d{2}-\d{2})\]/g;
+```
+
+This is the only place in the project where JS-based MANIFEST.md parsing is appropriate. Skills let the LLM parse it natively.
+
+---
+
+## Hook Registration Pattern (settings.json)
+
+Hooks register in `.claude/settings.json`. The domain-context hooks install at the project or global level alongside GSD's existing hooks.
+
+**PostToolUse with tool matcher:**
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/dc-context-reminder.js"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+- `matcher` is a regex matched against `tool_name`. `Write|Edit` covers both file modification tools.
+- For SessionStart, omit `matcher` (runs on every session start).
+- The installed hook command path must be relative to the project root or use an absolute path. The installer must handle this.
+
+---
+
+## Rules Authoring Pattern (Verified)
+
+Rules live in `.claude/rules/` as markdown files with `paths:` YAML frontmatter. They are loaded lazily when Claude accesses files matching the globs.
 
 ```markdown
 ---
-name: dc:skill-name
-description: One-line description shown in command palette
-argument-hint: "[optional-arg]"
-allowed-tools:
-  - Read
-  - Write
-  - Bash
-  - Glob
-  - Grep
-  - AskUserQuestion
+paths:
+  - .context/**/*.md
+  - .context/MANIFEST.md
 ---
-<objective>
-What this skill accomplishes. What files it creates/modifies.
-After this command: what the user should do next.
-</objective>
 
-<execution_context>
-@path/to/template.md          (loaded automatically)
-@path/to/reference.md         (loaded automatically)
-</execution_context>
+# Editing .context/ Files
 
-<process>
-Step-by-step instructions the LLM follows.
-These are natural language, not code.
-</process>
+[Guidance for Claude when editing domain context files...]
 ```
 
-### Key Pattern: Skill = Thin Router vs Inline Logic
+**Key facts (verified against official docs):**
+- The `paths:` key takes an array of glob patterns.
+- Rules are loaded automatically when a matching file is accessed — no explicit skill invocation needed.
+- Multiple rules files can match the same path. All matching rules load.
+- Rule files live in `.claude/rules/` at project level (committable) or `~/.claude/rules/` at user level.
+- No `name` field required — rules are path-triggered, not command-triggered.
 
-GSD establishes a pattern: skill `.md` is a thin entry point referencing a workflow file via `@path` in `<execution_context>`. The workflow file contains the actual step-by-step logic.
+**For this project:** One rule file covering `.context/**/*.md` is sufficient. It should include:
+- Spec compliance requirements for MANIFEST.md format
+- Verified date format (`[verified: YYYY-MM-DD]`)
+- Entry format for domain concepts, ADRs, constraints
+- When to update MANIFEST.md vs individual files
 
-**For dc: skills, adopt a simpler variant.** GSD needs separate workflows because it has a JS tooling layer (`gsd-tools.cjs`). The dc: skills have no JS tooling -- they instruct the LLM to use Read/Write/Bash/Glob directly. This means the process logic can live directly in the skill file.
+---
 
-**Recommended approach:** Inline the process in the skill file. Extract to a workflow file only if a skill exceeds ~100 lines or shares logic with another skill.
+## Agent Authoring Pattern (Verified)
 
-### Tool Selection Per Skill
+The domain validator agent is a custom subagent. Subagents live in `.claude/agents/` as markdown files with YAML frontmatter.
 
-| Skill | Tools Needed | Rationale |
-|-------|-------------|-----------|
-| dc:init | Read, Write, Bash, Glob, AskUserQuestion | Reads templates, writes scaffolded files, creates directories, checks existing files, asks about overwrite |
-| dc:explore | Read, Glob, Grep | Read-only: parses MANIFEST.md, searches for matching entries, reads context files |
-| dc:validate | Read, Bash, Glob, Grep | Runs validate-context.sh via Bash, reads results, reads files to diagnose issues |
-| dc:add | Read, Write, Glob, AskUserQuestion | Reads templates, asks user for content, writes new files, updates MANIFEST.md |
-| dc:refresh | Read, Write, Glob, Grep | Reads MANIFEST.md for dates, reads context files, reads source code, updates verified dates |
+**Minimal verified format:**
+```markdown
+---
+name: dc-validator
+description: Validates code against documented business rules in .context/. Use when checking if implementation matches domain constraints.
+tools: Read, Grep, Glob
+model: inherit
+---
 
-### Template Resolution Pattern
+You are a domain context validator. When invoked, you check whether the
+code being discussed matches the business rules documented in `.context/`.
 
-Skills that read templates must check two locations (global install, then local install):
-
+[System prompt instructions here...]
 ```
-1. ~/.claude/domain-context/templates/{template-name}.md
-2. ./.claude/domain-context/templates/{template-name}.md
-```
 
-The skill's `<process>` should instruct the LLM to check both paths and use whichever exists. This is a Read + Glob operation, not a Node.js operation.
+**Supported frontmatter fields (relevant subset):**
 
-### MANIFEST.md Parsing Pattern
+| Field | Required | Value for This Agent |
+|-------|----------|----------------------|
+| `name` | Yes | `dc-validator` |
+| `description` | Yes | When Claude should delegate to this agent |
+| `tools` | No | `Read, Grep, Glob` (read-only — validator, not fixer) |
+| `model` | No | `inherit` (same as main conversation) |
+| `disallowedTools` | No | Omit — `tools` allowlist is cleaner |
 
-MANIFEST.md is structured markdown with a predictable format. Skills parse it by reading the file and interpreting its sections:
+**Tools for the domain validator:**
+- `Read` — read domain context files and code
+- `Grep` — search for rule violations in code
+- `Glob` — find relevant files
+- Do NOT include `Write` or `Edit` — the agent validates, it does not change code
 
-- **Domain Concepts** section: entries like `- [Name](domain/file.md) -- description [access] [verified: YYYY-MM-DD]`
-- **Architecture Decisions** section: entries like `- [NNN: Title](decisions/NNN-slug.md) -- description [verified: YYYY-MM-DD]`
-- **Constraints** section: same pattern
+**The markdown body becomes the agent's system prompt.** It receives only this prompt plus basic environment (cwd, session info). It does NOT inherit the parent conversation's history.
 
-Skills should use Grep to find entries matching a search term, or Read to load the entire MANIFEST.md for full parsing (it is intentionally small, ~300 tokens).
+**Scope:** `.claude/agents/dc-validator.md` at project level. This makes it available in this repo and committable — users who install the package will get it via the installer.
 
-### File Naming Convention
+---
 
-All generated files must use kebab-case. ADR files use zero-padded three-digit numbering: `001-slug.md`, `002-slug.md`. The dc:add skill must scan existing decision files to determine the next number.
+## What NOT to Add
 
-## What NOT to Build
+| Avoid | Why | Use Instead |
+|-------|-----|-------------|
+| `node-cron`, `chokidar`, any npm package | Hard constraint: zero runtime deps | Node.js built-ins only |
+| MCP server | ADR-003 explicitly defers this | File-based hooks |
+| Top-level async/await in hook scripts | Hooks use event-driven stdin pattern; top-level async is incompatible | Put async code inside the `stdin.on('end')` callback |
+| `process.cwd()` in hooks | Returns Claude Code process cwd, not the project root | Always use `data.cwd` from stdin JSON |
+| Dynamic code execution | Security risk in hook scripts | Direct logic only — parse JSON, do file I/O, exit |
+| Write/Edit tools in dc-validator agent | Validator should not modify files; scope creep | Read-only tools: Read, Grep, Glob |
+| Path rules with overly broad recursion | Every file access triggers rule loading; over-broad rules add latency | Scope to `.context/**/*.md` specifically |
+| Single monolithic hook for all concerns | Harder to debug, harder to disable individually | Separate hooks for freshness (SessionStart) and CONTEXT.md reminder (PostToolUse) |
 
-| Avoid | Why | Do Instead |
-|-------|-----|------------|
-| Node.js CLI for skills | Skills are markdown instructions, not programs. Claude Code's LLM is the runtime. | Write clear `<process>` instructions using allowed tools |
-| Custom markdown parser in JS | Unnecessary complexity. The LLM reads and understands markdown natively. | Let the LLM parse MANIFEST.md directly via Read tool |
-| Workflow files for every skill | Over-engineering for simple skills. GSD needs workflows because it has a JS tooling layer. | Inline process in skill file; extract only if >100 lines or shared logic |
-| Template engine / variable substitution in JS | Templates use `{placeholder}` tokens, but the LLM fills them directly when creating files. | Let the LLM read the template and write the filled version |
-| Interactive menus / TUI | Claude Code skills use `AskUserQuestion` for user input, not readline or inquirer. | Use `AskUserQuestion` tool in allowed-tools list |
-| MCP server | ADR-003 explicitly defers this. File-based approach is simpler for MVP. | File-based skills + hooks |
+---
 
 ## Alternatives Considered
 
 | Recommended | Alternative | When to Use Alternative |
 |-------------|-------------|-------------------------|
-| Inline process in skill files | Separate workflow .md files (GSD pattern) | If a skill exceeds ~100 lines or two skills share identical logic |
-| Bash for validate-context.sh | Node.js validation script | If validation needs complex logic beyond shell capabilities (unlikely for file checks) |
-| LLM-native markdown parsing | Custom JS parser for MANIFEST.md | Never for skills. Only if hooks need to parse MANIFEST.md (freshness hook does -- uses simple regex in JS) |
-| `AskUserQuestion` tool | Multi-step conversation flow | AskUserQuestion is the only mechanism. No alternative exists in Claude Code. |
+| Separate `dc-freshness-check.js` and `dc-context-reminder.js` | Single combined hook | If hooks share significant state (they don't here) |
+| `paths:` frontmatter in rules | `globs:` key | `paths:` is the current (2026) verified format. `globs:` appears in some older examples — do not use it. |
+| Agent with `tools: Read, Grep, Glob` | Agent with all tools | Validator is read-only; granting write access violates principle of least privilege |
+| `model: inherit` for agent | `model: haiku` | Use haiku if cost is a concern at scale; inherit is simpler for a validation-only agent |
+| `matcher: "Write|Edit"` for PostToolUse | No matcher (runs on every tool) | Matcher prevents unnecessary invocations on Read/Grep/etc. |
 
-## Hook Authoring Patterns
-
-Hooks are the one area where actual Node.js code is written. They follow a strict contract:
-
-```javascript
-// Read JSON from stdin
-const chunks = [];
-process.stdin.on('data', chunk => chunks.push(chunk));
-process.stdin.on('end', () => {
-  try {
-    const input = JSON.parse(Buffer.concat(chunks).toString());
-    // Do work here
-    const result = { additionalContext: "Message for conversation" };
-    process.stdout.write(JSON.stringify(result));
-  } catch (e) {
-    // MUST exit 0 on any error
-    process.exit(0);
-  }
-});
-```
-
-**Critical constraints:**
-- MUST exit 0 on any error (wrap everything in try/catch)
-- MUST complete within timeout (5000ms for SessionStart)
-- stdin JSON shape varies by event (SessionStart vs PostToolUse)
-- stdout JSON fields: `additionalContext` (string, optional), `decision` ("block" or "allow", optional)
-
-### Hook Pattern: Freshness Check (SessionStart)
-
-The freshness hook is the one place where JS regex parsing of MANIFEST.md is appropriate (hooks cannot use the LLM). Parse verified dates with a regex like `/\[verified: (\d{4}-\d{2}-\d{2})\]/g`, calculate days since each date, and warn if any exceed 90 days.
+---
 
 ## Version Compatibility
 
-| Component | Requires | Notes |
-|-----------|----------|-------|
-| Node.js | >= 20.x LTS | For `fs/promises`, stable `readline`, modern `path` APIs |
-| Bash | >= 3.2 | macOS ships 3.2. Avoid bash 4+ features (associative arrays, lowercase expansion) |
-| Claude Code | current | Skills format is stable. No version pinning needed. |
-| GSD | any installed version | dc:extract reads .planning/ structure, which is GSD's stable interface |
+| Component | Version | Notes |
+|-----------|---------|-------|
+| Node.js | >= 20 LTS | Stable `fs`, `path`, `os` built-ins. v24.14.0 verified locally. |
+| Bash | >= 3.2 | For validate-context.sh only. No Bash additions in this milestone. |
+| Claude Code | current (2026) | Hooks format, agents format, rules `paths:` frontmatter all verified against live docs. |
+| GSD | any | Hooks must not conflict with GSD's `gsd-check-update.js` (SessionStart) or `gsd-context-monitor.js` (PostToolUse). Both can coexist in the same `hooks` array. |
 
-## Architecture Implications for Skills
+---
 
-### Each Skill is Self-Contained
+## Integration Points
 
-A skill file contains everything the LLM needs to execute. The `<execution_context>` section loads reference files (templates, specs) at invocation time. The `<process>` section provides step-by-step instructions. There is no shared state between skill invocations.
+### Coexistence with GSD Hooks
 
-### The Spec is the Source of Truth
+GSD already registers hooks in `.claude/settings.json`. The domain-context hooks must be ADDED to the existing arrays, not replace them. The installer must merge, not overwrite:
 
-Templates in `templates/` are derived from the Domain Context spec. Skills reference these templates when creating files. If the spec changes, templates change, and skills automatically use the new versions (they read templates at runtime, not at build time).
+```json
+{
+  "hooks": {
+    "SessionStart": [
+      { "hooks": [{ "type": "command", "command": "node .claude/hooks/gsd-check-update.js" }] },
+      { "hooks": [{ "type": "command", "command": "node .claude/hooks/dc-freshness-check.js" }] }
+    ],
+    "PostToolUse": [
+      { "hooks": [{ "type": "command", "command": "node .claude/hooks/gsd-context-monitor.js" }] },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [{ "type": "command", "command": "node .claude/hooks/dc-context-reminder.js" }]
+      }
+    ]
+  }
+}
+```
 
-### No Build Step
+Both hooks arrays are processed in order. All hooks run independently — one hook failure does not block others (each exits 0 on error).
 
-Skills are deployed as-is. The installer copies markdown files to `.claude/commands/dc/`. There is no compilation, transpilation, or bundling. This is a strength -- skills are readable, editable, and debuggable by users.
+### Hook File Locations (Install Path)
+
+The installer copies hooks to the target project's `.claude/hooks/` directory. This mirrors the GSD pattern (`.claude/hooks/gsd-*.js`). The domain-context hooks use the `dc-` prefix:
+- `.claude/hooks/dc-freshness-check.js`
+- `.claude/hooks/dc-context-reminder.js`
+
+The rule file installs to `.claude/rules/dc-context-files.md`.
+
+The agent file installs to `.claude/agents/dc-validator.md`.
+
+---
 
 ## Sources
 
-- GSD skill files at `~/.claude/commands/gsd/` -- examined `new-project.md`, `health.md`, `new-milestone.md`, `add-phase.md` for established patterns (HIGH confidence)
-- Claude Code extensions taxonomy at `.context/domain/claude-code-extensions.md` -- project's own documented extension model (HIGH confidence)
-- PLAN.md Phase 2 specification -- authoritative skill requirements (HIGH confidence)
-- AGENTS.md project conventions -- constraints and naming rules (HIGH confidence)
-- Node.js v24.14.0 runtime verified locally (HIGH confidence)
+- Official Claude Code Hooks docs at `https://code.claude.com/docs/en/hooks` — stdin/stdout format, `hookSpecificOutput`, `additionalContext`, matcher regex format, settings.json structure (HIGH confidence, fetched 2026-03-16)
+- Official Claude Code Sub-agents docs at `https://code.claude.com/docs/en/sub-agents` — frontmatter fields (`name`, `description`, `tools`, `model`, `disallowedTools`), agent file location, system prompt as body (HIGH confidence, fetched 2026-03-16)
+- Official Claude Code Skills docs at `https://code.claude.com/docs/en/skills` — `paths:` frontmatter for rules, `.claude/rules/` location (HIGH confidence, fetched 2026-03-16)
+- GSD hooks in this repo (`.claude/hooks/gsd-context-monitor.js`, `gsd-check-update.js`, `gsd-statusline.js`) — stdin timeout pattern, `data.cwd`, `hookSpecificOutput` format, debounce via tmp files (HIGH confidence, read from working code)
+- GSD agents in this repo (`.claude/agents/gsd-verifier.md`) — agent file format, tools list as comma-separated string (HIGH confidence, read from working code)
 
 ---
-*Stack research for: Claude Code skill development (domain-context-cc)*
-*Researched: 2026-03-11*
+*Stack research for: Claude Code hooks, rules, and agent (domain-context-cc v1.1)*
+*Researched: 2026-03-16*
