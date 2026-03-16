@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Templates** - Create and verify all template files against the Domain Context spec
 - [x] **Phase 2: Init Core** - dc:init creates .context/ structure on fresh projects
 - [x] **Phase 3: Init Idempotency** - dc:init handles existing projects safely
-- [ ] **Phase 4: Explore** - dc:explore parses and displays domain context (gap closure in progress)
+- [x] **Phase 4: Explore** - dc:explore parses and displays domain context (completed 2026-03-16)
 - [x] **Phase 5: Validate Core** - dc:validate checks structural integrity (completed 2026-03-16)
 - [x] **Phase 6: Validate UX** - dc:validate presents results conversationally and offers fixes (completed 2026-03-16)
 - [ ] **Phase 7: Add** - dc:add creates new domain entries from conversation
@@ -78,7 +78,7 @@ Plans:
   3. Running /dc:explore [keyword] finds and displays the content of matching entries
   4. Running /dc:explore on a project without .context/ suggests running /dc:init
   5. Explore shows the manifest summary first, then drills into specific entries only when the user asks
-  6. Explore discovers and lists per-module CONTEXT.md files found in the codebase
+  6. Explore discovers and lists per-module CONTEXT.md files found throughout the codebase
 **Plans**: 3 plans
 
 Plans:
@@ -123,11 +123,11 @@ Plans:
   4. dc:add extracts structured template sections from freeform user description
   5. Created files use kebab-case naming and MANIFEST.md is updated with the new entry and today's verified date
   6. dc:add respects access levels -- private entries go to .context.local/, public to .context/
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 07-01: TBD
-- [ ] 07-02: TBD
+- [ ] 07-01-PLAN.md — Create dc:add skill file with type selection, freeform extraction, ADR numbering, and MANIFEST.md integration
+- [ ] 07-02-PLAN.md — Human verification of dc:add end-to-end on this project
 
 ### Phase 8: Refresh
 **Goal**: User can review stale domain context entries and update them based on current code reality
@@ -154,7 +154,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 1. Templates | 2/2 | Complete | 2026-03-12 |
 | 2. Init Core | 2/2 | Complete | 2026-03-12 |
 | 3. Init Idempotency | 1/1 | Complete | 2026-03-13 |
-| 4. Explore | 2/3 | Gap closure | - |
+| 4. Explore | 3/3 | Complete | 2026-03-16 |
 | 5. Validate Core | 1/1 | Complete   | 2026-03-16 |
 | 6. Validate UX | 1/1 | Complete   | 2026-03-16 |
 | 7. Add | 0/2 | Not started | - |
