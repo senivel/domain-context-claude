@@ -56,11 +56,11 @@ Requirements for Milestone 1 (Core Skills). Each maps to roadmap phases.
 
 ### Refresh
 
-- [ ] **REFR-01**: User can run /dc:refresh to review stale domain context entries
-- [ ] **REFR-02**: Refresh parses MANIFEST.md for verified dates and identifies entries older than 90 days
-- [ ] **REFR-03**: Refresh reads each stale entry alongside relevant source code to assess accuracy (code-aware review)
-- [ ] **REFR-04**: Refresh updates verified date in both context file and MANIFEST.md if content is still accurate
-- [ ] **REFR-05**: Refresh proposes content updates with specific diffs when context has drifted from code
+- [x] **REFR-01**: User can run /dc:refresh to review stale domain context entries
+- [x] **REFR-02**: Refresh parses MANIFEST.md for verified dates and identifies entries older than 90 days
+- [x] **REFR-03**: Refresh reads each stale entry alongside relevant source code to assess accuracy (code-aware review)
+- [x] **REFR-04**: Refresh updates verified date in both context file and MANIFEST.md if content is still accurate
+- [x] **REFR-05**: Refresh proposes content updates with specific diffs when context has drifted from code
 
 ## v2 Requirements
 
@@ -132,11 +132,11 @@ Deferred to future milestones. Tracked but not in current roadmap.
 | ADDC-05 | Phase 7 | Complete |
 | ADDC-06 | Phase 7 | Complete |
 | ADDC-07 | Phase 7 | Complete |
-| REFR-01 | Phase 8 | Pending |
-| REFR-02 | Phase 8 | Pending |
-| REFR-03 | Phase 8 | Pending |
-| REFR-04 | Phase 8 | Pending |
-| REFR-05 | Phase 8 | Pending |
+| REFR-01 | Phase 8 | Complete |
+| REFR-02 | Phase 8 | Complete |
+| REFR-03 | Phase 8 | Complete |
+| REFR-04 | Phase 8 | Complete |
+| REFR-05 | Phase 8 | Complete |
 
 **Coverage:**
 - v1 requirements: 36 total
