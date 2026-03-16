@@ -107,10 +107,10 @@ Plans:
   1. Validation results are presented in plain language (not raw script output or file paths alone)
   2. After showing issues, dc:validate offers to fix them (update MANIFEST.md, create missing files, update dates)
   3. dc:validate checks that AGENTS.md imports @.context/MANIFEST.md and @ARCHITECTURE.md
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 06-01: TBD
+- [ ] 06-01-PLAN.md — Enhance dc:validate with conversational output, AGENTS.md import check, and per-group fix offers
 
 ### Phase 7: Add
 **Goal**: User can create new domain concepts, decisions, or constraints from a conversation without manually editing files
