@@ -20,6 +20,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 6: Validate UX** - dc:validate presents results conversationally and offers fixes (completed 2026-03-16)
 - [x] **Phase 7: Add** - dc:add creates new domain entries from conversation (completed 2026-03-16)
 - [ ] **Phase 8: Refresh** - dc:refresh reviews and updates stale entries
+- [ ] **Phase 9: Integration Bug Fixes** - Fix 3 minor cross-phase integration issues from audit
 
 ## Phase Details
 
@@ -144,6 +145,20 @@ Plans:
 - [ ] 08-01-PLAN.md — Create dc:refresh skill file with staleness detection, code-aware assessment, and per-entry update workflow
 - [ ] 08-02-PLAN.md — Human verification of dc:refresh end-to-end on this project
 
+### Phase 9: Integration Bug Fixes
+**Goal**: Fix 3 minor cross-phase integration issues identified by milestone audit — no requirements are unsatisfied, but integration quality is degraded
+**Depends on**: Phase 7, Phase 6
+**Requirements**: ADDC-04, REFR-04, EXPL-03, VALD-05 (integration quality fixes)
+**Gap Closure:** Closes INT-01, INT-02, INT-03 from v1.0 audit
+**Success Criteria** (what must be TRUE):
+  1. Files created by dc:add include `<!-- verified: YYYY-MM-DD -->` inline comment (INT-01 fix: swap token replacement and comment stripping order)
+  2. dc:validate orphan registration writes ` — ` (em dash) not ` -- ` in MANIFEST.md entries (INT-02 fix)
+  3. dc:validate broken link fix creates target directories before writing files (INT-03 fix: add mkdir -p guard)
+**Plans**: TBD
+
+Plans:
+- [ ] 09-01-PLAN.md — Fix all 3 integration issues in dc:add and dc:validate skills
+
 ## Progress
 
 **Execution Order:**
@@ -159,3 +174,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 6. Validate UX | 1/1 | Complete   | 2026-03-16 |
 | 7. Add | 0/2 | Not started | - |
 | 8. Refresh | 0/2 | Not started | - |
+| 9. Integration Bug Fixes | 0/1 | Not started | - |
