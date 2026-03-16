@@ -25,9 +25,9 @@ Template files used:
 - `constraint.md` -- sections: Source, Requirements, Impact on Code, Verification
 
 MANIFEST.md section headers and entry line formats:
-- `## Domain Concepts` -- `- [{Name}]({path}) -- {description} [public] [verified: {YYYY-MM-DD}]`
-- `## Architecture Decisions` -- `- [{NNN}: {Title}]({path}) -- {description} [verified: {YYYY-MM-DD}]`
-- `## Constraints` -- `- [{Name}]({path}) -- {description} [public] [verified: {YYYY-MM-DD}]`
+- `## Domain Concepts` — `- [{Name}]({path}) — {description} [public] [verified: {YYYY-MM-DD}]`
+- `## Architecture Decisions` — `- [{NNN}: {Title}]({path}) — {description} [verified: {YYYY-MM-DD}]`
+- `## Constraints` — `- [{Name}]({path}) — {description} [public] [verified: {YYYY-MM-DD}]`
 
 Path-to-section mapping:
 | Subdirectory | MANIFEST.md section |
