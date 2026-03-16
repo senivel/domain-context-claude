@@ -37,9 +37,9 @@ Requirements for Milestone 1 (Core Skills). Each maps to roadmap phases.
 
 ### Validate
 
-- [ ] **VALD-01**: User can run /dc:validate to check MANIFEST.md entries point to existing files
-- [ ] **VALD-02**: Validate detects orphan files in .context/ subdirs not referenced in MANIFEST.md
-- [ ] **VALD-03**: Validate checks freshness (flags entries with verified date >90 days old)
+- [x] **VALD-01**: User can run /dc:validate to check MANIFEST.md entries point to existing files
+- [x] **VALD-02**: Validate detects orphan files in .context/ subdirs not referenced in MANIFEST.md
+- [x] **VALD-03**: Validate checks freshness (flags entries with verified date >90 days old)
 - [ ] **VALD-04**: Validate presents results conversationally (plain language, not raw script output)
 - [ ] **VALD-05**: Validate offers to fix issues found (update MANIFEST.md, create missing files, update dates)
 - [ ] **VALD-06**: Validate cross-references AGENTS.md to confirm it imports @.context/MANIFEST.md and @ARCHITECTURE.md
@@ -119,9 +119,9 @@ Deferred to future milestones. Tracked but not in current roadmap.
 | EXPL-04 | Phase 4 | Complete |
 | EXPL-05 | Phase 4 | Complete |
 | EXPL-06 | Phase 4 | Complete |
-| VALD-01 | Phase 5 | Pending |
-| VALD-02 | Phase 5 | Pending |
-| VALD-03 | Phase 5 | Pending |
+| VALD-01 | Phase 5 | Complete |
+| VALD-02 | Phase 5 | Complete |
+| VALD-03 | Phase 5 | Complete |
 | VALD-04 | Phase 6 | Pending |
 | VALD-05 | Phase 6 | Pending |
 | VALD-06 | Phase 6 | Pending |
