@@ -94,10 +94,10 @@ Plans:
   1. Running /dc:validate reports any MANIFEST.md entries that point to nonexistent files
   2. Running /dc:validate reports orphan files in .context/ subdirectories not referenced in MANIFEST.md
   3. Running /dc:validate flags entries with verified dates older than 90 days
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 05-01: TBD
+- [ ] 05-01-PLAN.md — Create dc:validate skill file with broken link, orphan, and stale entry checks plus human verification
 
 ### Phase 6: Validate UX
 **Goal**: Validation results are conversational and actionable -- the user understands issues and can fix them in-place
