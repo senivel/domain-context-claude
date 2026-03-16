@@ -59,9 +59,9 @@ Path-to-template mapping for broken link file creation:
 | Constraints | `templates/constraint.md` |
 
 Entry formats for orphan registration:
-- Domain concepts: `- [{Name}]({relative-path}) -- {placeholder description} [public] [verified: {today}]`
-- Decisions: `- [{NNN}: {Title}]({relative-path}) -- {placeholder description} [verified: {today}]`
-- Constraints: `- [{Name}]({relative-path}) -- {placeholder description} [public] [verified: {today}]`
+- Domain concepts: `- [{Name}]({relative-path}) — {placeholder description} [public] [verified: {today}]`
+- Decisions: `- [{NNN}: {Title}]({relative-path}) — {placeholder description} [verified: {today}]`
+- Constraints: `- [{Name}]({relative-path}) — {placeholder description} [public] [verified: {today}]`
 - Module context: `- {project-root-relative-path} [verified: {today}]`
 
 Name derivation for orphan registration:
@@ -210,8 +210,9 @@ For each group with issues, in order (Broken Links, Orphan Files, Stale Entries,
   4. Read the template file.
   5. Replace `{placeholder}` tokens with reasonable defaults: use the entry name for `{concept_name}`, `{decision_title}`, or `{constraint_area}`; use today's date for `{verified_date}`. Replace remaining `{placeholder}` tokens with `TODO: Add content`.
   6. Strip HTML comments (`<!-- ... -->`) from the template content.
-  7. Write the file to the expected path (`.context/` + the entry's relative path).
-  8. Record count of files created.
+  7. Ensure the target directory exists by running `mkdir -p` on the parent directory of the file path.
+  8. Write the file to the expected path (`.context/` + the entry's relative path).
+  9. Record count of files created.
 
 **Orphan Files fix:**
 - Use AskUserQuestion with prompt: "Orphan Files: {N} file(s) not referenced in MANIFEST.md."
