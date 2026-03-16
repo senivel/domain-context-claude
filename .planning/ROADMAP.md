@@ -18,7 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 4: Explore** - dc:explore parses and displays domain context (completed 2026-03-16)
 - [x] **Phase 5: Validate Core** - dc:validate checks structural integrity (completed 2026-03-16)
 - [x] **Phase 6: Validate UX** - dc:validate presents results conversationally and offers fixes (completed 2026-03-16)
-- [ ] **Phase 7: Add** - dc:add creates new domain entries from conversation
+- [x] **Phase 7: Add** - dc:add creates new domain entries from conversation (completed 2026-03-16)
 - [ ] **Phase 8: Refresh** - dc:refresh reviews and updates stale entries
 
 ## Phase Details
@@ -138,11 +138,11 @@ Plans:
   2. For each stale entry, dc:refresh reads the entry alongside relevant source code to assess whether it is still accurate
   3. If an entry is still accurate, dc:refresh updates the verified date in both the context file and MANIFEST.md
   4. If an entry has drifted from the code, dc:refresh proposes specific content updates with diffs before writing
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 08-01: TBD
-- [ ] 08-02: TBD
+- [ ] 08-01-PLAN.md — Create dc:refresh skill file with staleness detection, code-aware assessment, and per-entry update workflow
+- [ ] 08-02-PLAN.md — Human verification of dc:refresh end-to-end on this project
 
 ## Progress
 
