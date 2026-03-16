@@ -46,13 +46,13 @@ Requirements for Milestone 1 (Core Skills). Each maps to roadmap phases.
 
 ### Add
 
-- [ ] **ADDC-01**: User can run /dc:add to create a new domain concept, decision, or constraint
-- [ ] **ADDC-02**: Add accepts type as argument or prompts user interactively
-- [ ] **ADDC-03**: Add auto-detects next ADR number for decisions by scanning existing files
-- [ ] **ADDC-04**: Add fills template sections from user's freeform description (conversational extraction)
-- [ ] **ADDC-05**: Add creates file with kebab-case naming convention
-- [ ] **ADDC-06**: Add updates MANIFEST.md with new entry in correct section, verified date = today
-- [ ] **ADDC-07**: Add respects access levels (public → .context/, private → .context.local/)
+- [x] **ADDC-01**: User can run /dc:add to create a new domain concept, decision, or constraint
+- [x] **ADDC-02**: Add accepts type as argument or prompts user interactively
+- [x] **ADDC-03**: Add auto-detects next ADR number for decisions by scanning existing files
+- [x] **ADDC-04**: Add fills template sections from user's freeform description (conversational extraction)
+- [x] **ADDC-05**: Add creates file with kebab-case naming convention
+- [x] **ADDC-06**: Add updates MANIFEST.md with new entry in correct section, verified date = today
+- [x] **ADDC-07**: Add respects access levels (public → .context/, private → .context.local/)
 
 ### Refresh
 
@@ -125,13 +125,13 @@ Deferred to future milestones. Tracked but not in current roadmap.
 | VALD-04 | Phase 6 | Complete |
 | VALD-05 | Phase 6 | Complete |
 | VALD-06 | Phase 6 | Complete |
-| ADDC-01 | Phase 7 | Pending |
-| ADDC-02 | Phase 7 | Pending |
-| ADDC-03 | Phase 7 | Pending |
-| ADDC-04 | Phase 7 | Pending |
-| ADDC-05 | Phase 7 | Pending |
-| ADDC-06 | Phase 7 | Pending |
-| ADDC-07 | Phase 7 | Pending |
+| ADDC-01 | Phase 7 | Complete |
+| ADDC-02 | Phase 7 | Complete |
+| ADDC-03 | Phase 7 | Complete |
+| ADDC-04 | Phase 7 | Complete |
+| ADDC-05 | Phase 7 | Complete |
+| ADDC-06 | Phase 7 | Complete |
+| ADDC-07 | Phase 7 | Complete |
 | REFR-01 | Phase 8 | Pending |
 | REFR-02 | Phase 8 | Pending |
 | REFR-03 | Phase 8 | Pending |
