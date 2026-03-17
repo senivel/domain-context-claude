@@ -32,7 +32,9 @@ Developers can codify and maintain domain knowledge alongside code so that AI as
 
 ### Active
 
-(None — planning next milestone)
+- [ ] npm packaging (package.json, files list, bin entry)
+- [ ] Node.js installer (--global, --local, --uninstall, settings.json merge)
+- [ ] Final README.md (install, quick start, command reference, GSD integration)
 
 ### Future
 
@@ -44,9 +46,18 @@ Developers can codify and maintain domain knowledge alongside code so that AI as
 - MCP server — deferred post-MVP per ADR-003
 - Auto-generate domain context from code — domain context captures WHY, not WHAT
 
+## Current Milestone: v1.3 Installation & Distribution
+
+**Goal:** Package domain-context-cc for npm distribution so users can install with `npx domain-context-cc`.
+
+**Target features:**
+- npm package configuration (package.json with bin entry, files list)
+- Node.js installer script (--global, --local, --uninstall flags, settings.json hook merge)
+- Final README.md with install instructions, quick start, command reference
+
 ## Current State
 
-v1.2 shipped. All 3 milestones complete.
+v1.2 shipped. All 3 milestones complete. v1.3 in progress.
 
 ## Context
 
@@ -88,4 +99,4 @@ v1.2 shipped. All 3 milestones complete.
 | SUMMARY.md as completion signal | Detect completed phases by SUMMARY.md presence rather than ROADMAP.md status — more reliable | ✓ Good |
 
 ---
-*Last updated: 2026-03-17 after v1.2 milestone completed*
+*Last updated: 2026-03-17 after v1.3 milestone started*
