@@ -57,10 +57,10 @@ Plans:
   1. dc:init detects GSD presence (via .planning/PROJECT.md or user confirmation) and appends GSD bridge snippet to AGENTS.md
   2. Re-running dc:init on an existing project updates GSD bridge content via sentinel replacement without duplicating it
   3. Projects without GSD (.planning/ absent and user declines) receive no GSD bridge text
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 15-01: TBD
+- [ ] 15-01-PLAN.md — Add Step 7.5 GSD bridge injection to dc:init skill
 
 ### Phase 16: dc:extract Skill
 **Goal**: Users can extract durable domain knowledge from completed GSD phases into permanent .context/ entries
@@ -85,5 +85,5 @@ Phases execute in numeric order: 14 → 15 → 16
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 14. GSD Bridge Template | 1/1 | Complete    | 2026-03-17 | - |
-| 15. dc:init GSD Detection | v1.2 | 0/? | Not started | - |
+| 15. dc:init GSD Detection | v1.2 | 0/1 | Not started | - |
 | 16. dc:extract Skill | v1.2 | 0/? | Not started | - |
