@@ -28,6 +28,10 @@ Developers can codify and maintain domain knowledge alongside code so that AI as
 ### Active
 
 - [ ] GSD `/dc:extract` skill — extract domain knowledge from completed phases
+- [ ] AGENTS.md.snippet template — GSD bridge text appended by dc:init
+
+### Future
+
 - [ ] npm packaging and installer — distribute as npx package
 - [ ] Installer merges hook config into settings.json
 
@@ -35,6 +39,14 @@ Developers can codify and maintain domain knowledge alongside code so that AI as
 
 - MCP server — deferred post-MVP per ADR-003
 - Auto-generate domain context from code — domain context captures WHY, not WHAT
+
+## Current Milestone: v1.2 GSD Integration
+
+**Goal:** Enable bidirectional relationship between GSD's .planning/ artifacts and domain context.
+
+**Target features:**
+- dc:extract skill — extract domain knowledge from completed GSD phases into .context/
+- AGENTS.md.snippet template — GSD bridge text appended by dc:init
 
 ## Context
 
@@ -72,4 +84,4 @@ Developers can codify and maintain domain knowledge alongside code so that AI as
 | Matcher + in-code allowlist for PostToolUse | Defense-in-depth: settings.json matcher prevents spawn, code allowlist is fallback | ✓ Good |
 
 ---
-*Last updated: 2026-03-17 after v1.1 milestone complete*
+*Last updated: 2026-03-16 after v1.2 milestone started*

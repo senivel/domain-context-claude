@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: Hooks, Rules & Agent
-status: completed
-last_updated: "2026-03-17T03:04:54.045Z"
-last_activity: 2026-03-16 -- Completed 13-01 domain validator agent
+milestone: v1.2
+milestone_name: GSD Integration
+status: active
+last_updated: "2026-03-16"
+last_activity: 2026-03-16 -- Milestone v1.2 started
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 4
-  completed_plans: 4
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Session State
@@ -20,52 +20,29 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-16)
 
 **Core value:** Developers can codify and maintain domain knowledge alongside code so AI assistants always have accurate business context
-**Current focus:** Phase 13 -- Domain Validator Agent
+**Current focus:** Defining requirements
 
 ## Position
 
-Phase: 13 of 13 (Domain Validator Agent)
-Plan: 1 of 1 (Complete)
-Status: Phase 13 complete
-Last activity: 2026-03-16 -- Completed 13-01 domain validator agent
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-16 — Milestone v1.2 started
 
-Progress: [██████████] 100%
+## Accumulated Context
 
-## Performance Metrics
+### From v1.1
+- 3-second stdin timeout for hooks prevents UI error warnings
+- globs: (not paths:) for rules due to Claude Code parser bug (GitHub #17204)
+- Defense-in-depth: tool scoping via settings.json matcher AND in-hook allowlist
+- Read-only domain validator agent — report-only, never modifies files
 
-**Velocity:**
-- Total plans completed: 1
-- Average duration: 2min
-- Total execution time: 0.03 hours
-
-**By Phase:**
-
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 10 | 1 | 2min | 2min |
-| Phase 11 P01 | 2min | 2 tasks | 2 files |
-| Phase 12-path-scoped-rule P01 | 1min | 1 tasks | 1 files |
-| Phase 13-domain-validator-agent P01 | 2min | 2 tasks | 1 files |
-
-## Decisions
-
-- Phase 10: Entries without verified dates flagged as "never verified" rather than silently ignored
-- Phase 10: Overdue count shows days past threshold (daysSince - 90) not total days since verified
-- Phase 10: Uses local midnight Date constructor to avoid UTC timezone edge cases
-- [Phase 11]: MD5 hash (first 8 chars) of directory path for debounce file naming
-- [Phase 11]: Defense-in-depth: tool scoping via settings.json matcher AND in-hook allowlist
-- [Phase 11]: os.tmpdir() for debounce files -- auto-cleans on reboot
-- [Phase 12]: Used globs: (not paths:) due to Claude Code parser bug (GitHub #17204)
-- [Phase 12]: Organized rule by file type with terse bullets for minimal token cost
-- [Phase 12]: Referenced authoritative spec rather than duplicating edge cases
-- [Phase 13]: Prohibition language in agent prompt to reinforce report-only constraint
-- [Phase 13]: Rule classification (code-enforceable vs human-judgment) left to agent discretion with conservative bias
+### From v1.0
+- Template-first build order prevents circular deps
+- Dual-location verified date (MANIFEST.md + inline comment)
+- Per-group fix offers in validate for better UX
+- AGENTS.md import check as warning (optional per spec)
 
 ## Session Log
 
-- 2026-03-16: v1.0 milestone completed and archived
-- 2026-03-16: Milestone v1.1 started -- Hooks, Rules & Agent
-- 2026-03-16: Roadmap created -- 4 phases, 16 requirements mapped
-- 2026-03-16: Phase 10 Plan 01 complete -- SessionStart freshness hook
-- 2026-03-16: Phase 12 Plan 01 complete -- Path-scoped rule for Domain Context formatting
-- 2026-03-16: Phase 13 Plan 01 complete -- Domain validator agent
+- 2026-03-16: Milestone v1.2 started — GSD Integration
