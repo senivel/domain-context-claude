@@ -29,11 +29,11 @@ Requirements for Installation & Distribution milestone. Each maps to roadmap pha
 
 ### Documentation
 
-- [ ] **DOC-01**: README has install command (`npx domain-context-cc`)
-- [ ] **DOC-02**: README has quick start section (install → `/dc:init` → start working)
-- [ ] **DOC-03**: README has command reference for all 6 dc:* skills
-- [ ] **DOC-04**: README has GSD integration section explaining the bridge pattern
-- [ ] **DOC-05**: README has uninstall instructions
+- [x] **DOC-01**: README has install command (`npx domain-context-cc`)
+- [x] **DOC-02**: README has quick start section (install → `/dc:init` → start working)
+- [x] **DOC-03**: README has command reference for all 6 dc:* skills
+- [x] **DOC-04**: README has GSD integration section explaining the bridge pattern
+- [x] **DOC-05**: README has uninstall instructions
 
 ## Future Requirements
 
@@ -71,11 +71,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INST-07 | Phase 18 | Complete |
 | INST-08 | Phase 18 | Complete |
 | INST-09 | Phase 18 | Complete |
-| DOC-01 | Phase 19 | Pending |
-| DOC-02 | Phase 19 | Pending |
-| DOC-03 | Phase 19 | Pending |
-| DOC-04 | Phase 19 | Pending |
-| DOC-05 | Phase 19 | Pending |
+| DOC-01 | Phase 19 | Complete |
+| DOC-02 | Phase 19 | Complete |
+| DOC-03 | Phase 19 | Complete |
+| DOC-04 | Phase 19 | Complete |
+| DOC-05 | Phase 19 | Complete |
 
 **Coverage:**
 - v1.3 requirements: 19 total
