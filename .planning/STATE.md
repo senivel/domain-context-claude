@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Installation & Distribution
 status: in-progress
-last_updated: "2026-03-17T16:11:43Z"
-last_activity: 2026-03-17 — Completed 18-01 core installer (TDD)
+last_updated: "2026-03-17T16:19:56Z"
+last_activity: 2026-03-17 — Completed 18-02 uninstall mode and success messages
 progress:
   total_phases: 3
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 3
-  completed_plans: 2
-  percent: 67
+  completed_plans: 3
+  percent: 100
 ---
 
 # Session State
@@ -25,11 +25,11 @@ See: .planning/PROJECT.md (updated 2026-03-17)
 ## Position
 
 Phase: 18 of 19 (Installer Logic)
-Plan: 1 of 2 in current phase (complete)
-Status: 18-01 complete, 18-02 next
-Last activity: 2026-03-17 — Completed 18-01 core installer (TDD)
+Plan: 2 of 2 in current phase (complete)
+Status: Phase 18 complete, Phase 19 next
+Last activity: 2026-03-17 — Completed 18-02 uninstall mode and success messages
 
-Progress: [██████░░░░] 67%
+Progress: [██████████] 100%
 
 ## Accumulated Context
 
@@ -58,6 +58,9 @@ Progress: [██████░░░░] 67%
 - isDcHook matches dc- substring in command strings
 - Filter-then-append for idempotent hook merging
 - node:test for test framework (built-in, no dependencies)
+- removeDcFiles iterates INSTALL_MAP for symmetric install/uninstall
+- removeHooks filters isDcHook entries, removes empty arrays from settings.json
+- commands/dc/ subdirectory removed entirely (dc-owned), parent dirs preserved
 
 ### Pending Todos
 
