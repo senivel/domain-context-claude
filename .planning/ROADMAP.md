@@ -101,5 +101,5 @@ Phases execute in numeric order: 17 → 18 → 19
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 17. Package Configuration | 1/1 | Complete    | 2026-03-17 | - |
-| 18. Installer Logic | 2/2 | Complete   | 2026-03-17 | - |
+| 18. Installer Logic | 2/2 | Complete    | 2026-03-17 | - |
 | 19. README & Publishing | v1.3 | 0/? | Not started | - |
