@@ -71,10 +71,10 @@ See .planning/milestones/ for archived phase details.
   2. Sidebar navigation, full-text search, dark/light mode toggle, code highlighting with copy button, and responsive layout all function using framework defaults (no custom code)
   3. The `docs/` directory has its own `package.json` with Astro/Starlight dependencies, and the root `package.json` is unchanged
   4. Running `npm pack --dry-run` from the project root confirms docs/ is excluded from the npm tarball
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 20-01: TBD
+- [ ] 20-01-PLAN.md — Scaffold Starlight site in docs/ with gitignore and npm pack isolation
 
 ### Phase 21: CI/CD and GitHub Pages
 **Goal**: The documentation site auto-deploys to GitHub Pages on pushes to docs/ with link validation in CI
@@ -138,7 +138,7 @@ Plans:
 | 10-13 | v1.1 | 4/4 | Complete | 2026-03-17 |
 | 14-16 | v1.2 | 4/4 | Complete | 2026-03-17 |
 | 17-19 | v1.3 | 4/4 | Complete | 2026-03-17 |
-| 20. Scaffold Starlight Site | v1.4 | 0/? | Not started | - |
+| 20. Scaffold Starlight Site | v1.4 | 0/1 | Not started | - |
 | 21. CI/CD and GitHub Pages | v1.4 | 0/? | Not started | - |
 | 22. User-Facing Content | v1.4 | 0/? | Not started | - |
 | 23. Conceptual and Contributor Content | v1.4 | 0/? | Not started | - |
