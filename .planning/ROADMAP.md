@@ -54,7 +54,7 @@ See .planning/milestones/ for archived phase details.
 
 **Milestone Goal:** Create a polished documentation site with comprehensive guides, published on GitHub Pages with automated builds.
 
-- [ ] **Phase 20: Scaffold Starlight Site** - Initialize docs/ with Astro/Starlight, verify framework defaults, confirm npm tarball isolation
+- [x] **Phase 20: Scaffold Starlight Site** - Initialize docs/ with Astro/Starlight, verify framework defaults, confirm npm tarball isolation (completed 2026-03-17)
 - [ ] **Phase 21: CI/CD and GitHub Pages** - Deploy pipeline with GitHub Action, link checker, live placeholder site
 - [ ] **Phase 22: User-Facing Content** - Landing page, quickstart, user guide, CLI command reference
 - [ ] **Phase 23: Conceptual and Contributor Content** - Architecture/concepts, spec overview, contributing guide
@@ -138,7 +138,7 @@ Plans:
 | 10-13 | v1.1 | 4/4 | Complete | 2026-03-17 |
 | 14-16 | v1.2 | 4/4 | Complete | 2026-03-17 |
 | 17-19 | v1.3 | 4/4 | Complete | 2026-03-17 |
-| 20. Scaffold Starlight Site | v1.4 | 0/1 | Not started | - |
+| 20. Scaffold Starlight Site | 1/1 | Complete   | 2026-03-17 | - |
 | 21. CI/CD and GitHub Pages | v1.4 | 0/? | Not started | - |
 | 22. User-Facing Content | v1.4 | 0/? | Not started | - |
 | 23. Conceptual and Contributor Content | v1.4 | 0/? | Not started | - |
