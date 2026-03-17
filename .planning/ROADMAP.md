@@ -41,10 +41,10 @@
   1. When a session starts in a project with stale .context/ entries (>90 days), Claude's context includes a warning listing which entries are stale
   2. When a session starts in a project without .context/, the hook exits silently with no error or warning
   3. When stdin is delayed or malformed, the hook times out after 3 seconds and exits 0 without producing a UI error
-**Plans**: TBD
+**Plans:** 1 plan
 
 Plans:
-- [ ] 10-01: TBD
+- [ ] 10-01-PLAN.md -- Create SessionStart freshness hook and register in settings.json
 
 ### Phase 11: PostToolUse Reminder Hook
 **Goal**: Users are reminded to update CONTEXT.md when they edit files near one, with debouncing to prevent noise
@@ -103,7 +103,7 @@ Phases execute in numeric order: 10 -> 11 -> 12 -> 13
 | 7. Add | v1.0 | 2/2 | Complete | 2026-03-16 |
 | 8. Refresh | v1.0 | 2/2 | Complete | 2026-03-16 |
 | 9. Integration Fixes | v1.0 | 1/1 | Complete | 2026-03-16 |
-| 10. SessionStart Freshness Hook | v1.1 | 0/? | Not started | - |
+| 10. SessionStart Freshness Hook | v1.1 | 0/1 | Not started | - |
 | 11. PostToolUse Reminder Hook | v1.1 | 0/? | Not started | - |
 | 12. Path-Scoped Rule | v1.1 | 0/? | Not started | - |
 | 13. Domain Validator Agent | v1.1 | 0/? | Not started | - |
