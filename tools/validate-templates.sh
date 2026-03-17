@@ -163,6 +163,38 @@ for f in "${FILES[@]}"; do
   fi
 done
 
+# ── 6. Skill file existence ──────────────────────────────────────────────────
+
+echo -e "\n${BOLD}=== Skill Files ===${RESET}\n"
+
+SKILL_FILES=(add.md explore.md init.md refresh.md validate.md extract.md)
+SKILLS_DIR="${SCRIPT_DIR}/../commands/dc"
+
+for f in "${SKILL_FILES[@]}"; do
+  if [ -f "${SKILLS_DIR}/${f}" ]; then
+    pass "${f} exists"
+  else
+    fail "${f} missing"
+  fi
+done
+
+# Check skill frontmatter and sections
+for f in "${SKILL_FILES[@]}"; do
+  filepath="${SKILLS_DIR}/${f}"
+  if [ -f "$filepath" ]; then
+    if grep -q "^name:" "$filepath"; then
+      pass "${f} has name: frontmatter"
+    else
+      fail "${f} missing name: frontmatter"
+    fi
+    if grep -q "<process>" "$filepath"; then
+      pass "${f} has process section"
+    else
+      fail "${f} missing process section"
+    fi
+  fi
+done
+
 # ── Summary ──────────────────────────────────────────────────────────────────
 
 echo -e "\n${BOLD}=== Summary ===${RESET}\n"
