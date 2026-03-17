@@ -55,10 +55,10 @@ Plans:
   2. After the first reminder for a directory, subsequent edits in that same directory during the same session do not produce additional reminders
   3. Tool calls other than Edit, Write, and MultiEdit do not trigger the reminder
   4. Hook registration in settings.json preserves all existing GSD hooks (appends to arrays, never replaces)
-**Plans**: TBD
+**Plans:** 1 plan
 
 Plans:
-- [ ] 11-01: TBD
+- [ ] 11-01-PLAN.md -- Create PostToolUse reminder hook and register in settings.json
 
 ### Phase 12: Path-Scoped Rule
 **Goal**: Claude receives Domain Context spec formatting guidance automatically when reading .context/ files
@@ -103,7 +103,7 @@ Phases execute in numeric order: 10 -> 11 -> 12 -> 13
 | 7. Add | v1.0 | 2/2 | Complete | 2026-03-16 |
 | 8. Refresh | v1.0 | 2/2 | Complete | 2026-03-16 |
 | 9. Integration Fixes | v1.0 | 1/1 | Complete | 2026-03-16 |
-| 10. SessionStart Freshness Hook | 1/1 | Complete    | 2026-03-17 | - |
-| 11. PostToolUse Reminder Hook | v1.1 | 0/? | Not started | - |
+| 10. SessionStart Freshness Hook | v1.1 | 1/1 | Complete | 2026-03-17 |
+| 11. PostToolUse Reminder Hook | v1.1 | 0/1 | Not started | - |
 | 12. Path-Scoped Rule | v1.1 | 0/? | Not started | - |
 | 13. Domain Validator Agent | v1.1 | 0/? | Not started | - |
