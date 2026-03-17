@@ -142,3 +142,8 @@ dist
 
 # SvelteKit build / generate output
 .svelte-kit
+
+### Astro (docs site) ###
+docs/dist/
+docs/.astro/
+docs/node_modules/
