@@ -72,10 +72,11 @@ Plans:
   3. After install, `~/.claude/settings.json` contains SessionStart and PostToolUse hook entries for dc hooks, and any pre-existing hooks (e.g., GSD) are preserved
   4. Running install a second time produces the same result as the first time (no duplicate hooks, files overwritten cleanly)
   5. Running `npx domain-context-cc --uninstall` removes dc-prefixed files and dc hook entries from settings.json, leaving other hooks intact
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 18-01: TBD
+- [ ] 18-01-PLAN.md — TDD: Core installer with file copying, hook merging, CLI parsing (global + local)
+- [ ] 18-02-PLAN.md — Uninstall mode, success messages, and end-to-end verification
 
 ### Phase 19: README & Publishing
 **Goal**: A new user can discover, install, and start using domain-context-cc from the README alone
@@ -100,5 +101,5 @@ Phases execute in numeric order: 17 → 18 → 19
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 17. Package Configuration | 1/1 | Complete    | 2026-03-17 | - |
-| 18. Installer Logic | v1.3 | 0/? | Not started | - |
+| 18. Installer Logic | v1.3 | 0/2 | Not started | - |
 | 19. README & Publishing | v1.3 | 0/? | Not started | - |
