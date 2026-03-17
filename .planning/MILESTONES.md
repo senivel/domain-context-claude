@@ -1,5 +1,20 @@
 # Milestones
 
+## v1.3 Installation & Distribution (Shipped: 2026-03-17)
+
+**Phases:** 3 | **Plans:** 4 | **Requirements:** 19/19
+**Timeline:** 1 day (2026-03-17)
+**Delivered:** npm package with installer, uninstall, 52-test suite, and production README (1,615 LOC JS)
+
+**Key accomplishments:**
+- npm package configured with bin entry, 7-directory files whitelist, zero dependencies
+- TDD-built installer with global/local modes and idempotent settings.json hook merging
+- Uninstall mode with symmetric INSTALL_MAP-driven file removal and hook cleanup
+- 52-test suite covering install, reinstall, and uninstall scenarios
+- Production README with badges, per-command reference, and quick start guide
+
+---
+
 ## v1.2 GSD Integration (Shipped: 2026-03-17)
 
 **Phases completed:** 3 phases, 4 plans, 0 tasks

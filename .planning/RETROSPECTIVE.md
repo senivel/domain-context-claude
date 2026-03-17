@@ -121,6 +121,47 @@
 
 ---
 
+## Milestone: v1.3 — Installation & Distribution
+
+**Shipped:** 2026-03-17
+**Phases:** 3 | **Plans:** 4
+
+### What Was Built
+- npm package configuration (package.json with bin entry, 7-directory files whitelist, zero dependencies)
+- Node.js installer (bin/install.js, 241 lines) with global, local, and uninstall modes
+- Idempotent settings.json hook merging with filter-then-append strategy
+- 52-test suite (node:test) covering install, reinstall, and uninstall scenarios
+- Production README with badges, per-command reference, quick start, and MIT LICENSE
+
+### What Worked
+- TDD approach for Phase 18 caught edge cases early — 31 failing tests written before implementation, all passing on first green run
+- INSTALL_MAP as single source of truth for both install and uninstall — symmetric design eliminated an entire class of bugs
+- Phase 17 stub pattern (shebang + message + exit 0) allowed npm pack verification before installer existed
+- node:test required zero configuration — aligned perfectly with zero-dependency constraint
+
+### What Was Inefficient
+- VALIDATION.md nyquist_compliant frontmatter still not flipped — 4th consecutive milestone with this gap
+- Phase summaries recorded 0 tasks despite having 2+ tasks each — CLI task counting underreports
+- Human verification deferred again (end-to-end install/uninstall on real filesystem) — same pattern as v1.0-v1.2
+
+### Patterns Established
+- INSTALL_MAP manifest pattern for file operations (reusable for future update/migration scripts)
+- Module dual-mode: `module.exports` for testing + `require.main` guard for CLI execution
+- isDcHook substring matcher for separating dc hooks from other hook systems (GSD, etc.)
+- Integration tests with `fs.mkdtempSync` for isolated filesystem testing
+
+### Key Lessons
+1. TDD is high-ROI for installer code — filesystem operations have many edge cases that tests surface before manual QA
+2. Symmetric install/uninstall via shared manifest is cleaner than separate codepaths — single source of truth reduces maintenance
+3. Stub entry points enable incremental delivery — Phase 17 shipped a working npm package before the installer existed
+
+### Cost Observations
+- Model mix: ~50% opus (orchestration, execution), ~35% sonnet (verification, plan checking), ~15% sonnet (research)
+- Single-session execution for entire milestone (3rd consecutive)
+- Notable: Fastest milestone yet — 3 phases completed in ~15 minutes of execution time
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -130,6 +171,7 @@
 | v1.0 | 9 | 15 | Established template-first build order and gap closure cycle |
 | v1.1 | 4 | 4 | Autonomous execution mode; pattern reuse across phases |
 | v1.2 | 3 | 4 | Lean scoping; smart discuss with prior-decision seeding |
+| v1.3 | 3 | 4 | TDD for installer; symmetric install/uninstall via shared manifest |
 
 ### Top Lessons (Verified Across Milestones)
 
@@ -137,4 +179,5 @@
 2. Integration verification at milestone boundary catches cross-phase wiring issues that per-phase verification misses
 3. Pattern reuse between phases accelerates both planning and execution — establish patterns early in a milestone
 4. Human verification of Claude Code skills remains the primary gap — a testable environment is needed (3 milestones running)
-5. Nyquist VALIDATION.md sign-off should be automated — manual frontmatter updates are consistently missed
+5. Nyquist VALIDATION.md sign-off should be automated — manual frontmatter updates are consistently missed (4 milestones running)
+6. Stub/incremental delivery enables early verification — ship the shape before the implementation (v1.3 Phase 17 validated this)

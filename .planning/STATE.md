@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Installation & Distribution
-status: completed
-last_updated: "2026-03-17T16:58:22.213Z"
-last_activity: 2026-03-17 — Completed 19-01 README and LICENSE
+status: milestone_complete
+last_updated: "2026-03-17T22:45:50.731Z"
+last_activity: 2026-03-17 — Milestone v1.3 archived
 progress:
   total_phases: 3
   completed_phases: 3
@@ -20,18 +20,24 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-17)
 
 **Core value:** Developers can codify and maintain domain knowledge alongside code so AI assistants always have accurate business context
-**Current focus:** Phase 19 — README & Publishing
+**Current focus:** Planning next milestone
 
 ## Position
 
-Phase: 19 of 19 (README & Publishing)
-Plan: 1 of 1 in current phase (complete)
-Status: Phase 19 complete — all phases done
-Last activity: 2026-03-17 — Completed 19-01 README and LICENSE
+Milestone v1.3 complete. All 19 phases across 4 milestones shipped.
+Last activity: 2026-03-17 — Milestone v1.3 archived
 
 Progress: [██████████] 100%
 
 ## Accumulated Context
+
+### From v1.3
+- Single CommonJS file for installer — no benefit to module splitting
+- isDcHook matches dc- substring in command strings
+- Filter-then-append for idempotent hook merging
+- node:test for test framework (built-in, no dependencies)
+- INSTALL_MAP-driven symmetric install/uninstall
+- commands/dc/ subdirectory removed entirely (dc-owned), parent dirs preserved
 
 ### From v1.2
 - Sentinel pattern (<!-- prefix:start/end -->) reused for GSD bridge template
@@ -51,21 +57,10 @@ Progress: [██████████] 100%
 - Per-group fix offers in validate for better UX
 - AGENTS.md import check as warning (optional per spec)
 
-### Decisions (v1.3)
-- Research recommends >=20.0.0 engine constraint (resolves STACK.md vs ARCHITECTURE.md discrepancy)
-- Template preservation on re-install: exact UX deferred to Phase 18 implementation
-- Single CommonJS file for installer -- no benefit to module splitting
-- isDcHook matches dc- substring in command strings
-- Filter-then-append for idempotent hook merging
-- node:test for test framework (built-in, no dependencies)
-- removeDcFiles iterates INSTALL_MAP for symmetric install/uninstall
-- removeHooks filters isDcHook entries, removes empty arrays from settings.json
-- commands/dc/ subdirectory removed entirely (dc-owned), parent dirs preserved
-
 ### Pending Todos
 
-None yet.
+None.
 
 ### Blockers/Concerns
 
-None yet.
+None.

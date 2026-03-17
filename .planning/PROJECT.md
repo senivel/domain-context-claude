@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A Claude Code extension (`domain-context-cc`) that makes Claude Code natively aware of the Domain Context specification. Provides 6 slash commands, 2 lifecycle hooks, 1 path-scoped rule, and 1 domain validator agent for initializing, browsing, validating, creating, refreshing, extracting, and passively maintaining domain knowledge as `.context/` directories in any project. Includes GSD integration for bridging planning artifacts with domain context. Distributed as markdown skill files and Node.js hooks with no runtime dependencies.
+A Claude Code extension (`domain-context-cc`) that makes Claude Code natively aware of the Domain Context specification. Provides 6 slash commands, 2 lifecycle hooks, 1 path-scoped rule, and 1 domain validator agent for initializing, browsing, validating, creating, refreshing, extracting, and passively maintaining domain knowledge as `.context/` directories in any project. Includes GSD integration for bridging planning artifacts with domain context. Installable via `npx domain-context-cc` with global/local modes and clean uninstall. Zero runtime dependencies.
 
 ## Core Value
 
@@ -30,40 +30,40 @@ Developers can codify and maintain domain knowledge alongside code so that AI as
 - ✓ dc:init GSD detection — Auto-detects GSD projects and injects bridge via sentinels — v1.2
 - ✓ Template validation expanded to 91 checks covering all 6 dc:* skills — v1.2
 
+- ✓ npm package with bin entry, 7-directory files whitelist, zero dependencies — v1.3
+- ✓ Node.js installer with global/local/uninstall modes and idempotent settings.json merge — v1.3
+- ✓ Production README with badges, command reference, quick start, and uninstall docs — v1.3
+- ✓ 52-test suite covering install, reinstall, and uninstall — v1.3
+
 ### Active
 
-- [ ] npm packaging (package.json, files list, bin entry)
-- [ ] Node.js installer (--global, --local, --uninstall, settings.json merge)
-- [ ] Final README.md (install, quick start, command reference, GSD integration)
+(None — all current requirements shipped)
 
 ### Future
 
-- [ ] npm packaging and installer — distribute as npx package
-- [ ] Installer merges hook config into settings.json
+- [ ] Auto-update check on session start (DIST-01)
+- [ ] `--check` inspection flag to show what's installed (DIST-02)
 
 ### Out of Scope
 
 - MCP server — deferred post-MVP per ADR-003
 - Auto-generate domain context from code — domain context captures WHY, not WHAT
 
-## Current Milestone: v1.3 Installation & Distribution
-
-**Goal:** Package domain-context-cc for npm distribution so users can install with `npx domain-context-cc`.
-
-**Target features:**
-- npm package configuration (package.json with bin entry, files list)
-- Node.js installer script (--global, --local, --uninstall flags, settings.json hook merge)
-- Final README.md with install instructions, quick start, command reference
-
 ## Current State
 
-v1.2 shipped. All 3 milestones complete. v1.3 in progress.
+v1.3 shipped. All 4 milestones complete. Project is feature-complete for initial release.
+
+- v1.0: 5 skills, 8 templates, 1 validation script
+- v1.1: 2 hooks, 1 rule, 1 agent
+- v1.2: dc:extract skill, GSD bridge template, dc:init GSD detection
+- v1.3: npm installer (global/local/uninstall), 52-test suite, production README
 
 ## Context
 
 - v1.0 shipped: 5 skills, 8 templates, 1 validation script (1,342 LOC markdown + shell)
 - v1.1 shipped: 2 hooks, 1 rule, 1 agent (318 LOC JS + markdown)
 - v1.2 shipped: dc:extract skill, GSD bridge template, dc:init GSD detection (675 LOC markdown + shell)
+- v1.3 shipped: npm package, Node.js installer (241 LOC), 52-test suite, production README + LICENSE
 - The Domain Context spec lives at ~/code/domain-context/SPEC.md
 - Skills follow Claude Code format: YAML frontmatter + `<objective>`, `<execution_context>`, `<process>` sections
 - Hooks follow Claude Code format: Node.js scripts reading JSON stdin, writing JSON stdout
@@ -97,6 +97,10 @@ v1.2 shipped. All 3 milestones complete. v1.3 in progress.
 | Sentinel-based GSD bridge injection | Reuse existing domain-context sentinel pattern for GSD bridge — idempotent updates on re-run | ✓ Good |
 | Implicit template placeholder filling | dc:extract and dc:add both rely on Claude's judgment to fill template tokens — explicit enumeration unnecessary | ✓ Good |
 | SUMMARY.md as completion signal | Detect completed phases by SUMMARY.md presence rather than ROADMAP.md status — more reliable | ✓ Good |
+| Single CommonJS installer file | Installer is self-contained; no benefit to module splitting | ✓ Good |
+| Filter-then-append hook merging | Guarantees idempotency by removing old dc entries before adding fresh ones | ✓ Good |
+| INSTALL_MAP-driven install/uninstall | Same directory manifest drives both directions for symmetric behavior | ✓ Good |
+| node:test for test framework | Built-in, zero dependencies, aligns with project constraints | ✓ Good |
 
 ---
-*Last updated: 2026-03-17 after v1.3 milestone started*
+*Last updated: 2026-03-17 after v1.3 milestone completed*
