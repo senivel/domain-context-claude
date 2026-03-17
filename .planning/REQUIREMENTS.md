@@ -17,14 +17,14 @@ Requirements for Installation & Distribution milestone. Each maps to roadmap pha
 
 ### Installation
 
-- [ ] **INST-01**: User can run `npx domain-context-cc` to install globally to `~/.claude/`
-- [ ] **INST-02**: User can run `npx domain-context-cc --local` to install to `./.claude/`
+- [x] **INST-01**: User can run `npx domain-context-cc` to install globally to `~/.claude/`
+- [x] **INST-02**: User can run `npx domain-context-cc --local` to install to `./.claude/`
 - [ ] **INST-03**: User can run `npx domain-context-cc --uninstall` to remove dc-prefixed files and hook entries
-- [ ] **INST-04**: Installer merges hook entries into settings.json without clobbering existing hooks
-- [ ] **INST-05**: Re-running install is idempotent (no duplicate hook entries, files safely overwritten)
-- [ ] **INST-06**: Global install uses absolute paths in settings.json hook commands
-- [ ] **INST-07**: Installer uses `__dirname` (not `process.cwd()`) to locate bundled files
-- [ ] **INST-08**: bin/install.js has `#!/usr/bin/env node` shebang
+- [x] **INST-04**: Installer merges hook entries into settings.json without clobbering existing hooks
+- [x] **INST-05**: Re-running install is idempotent (no duplicate hook entries, files safely overwritten)
+- [x] **INST-06**: Global install uses absolute paths in settings.json hook commands
+- [x] **INST-07**: Installer uses `__dirname` (not `process.cwd()`) to locate bundled files
+- [x] **INST-08**: bin/install.js has `#!/usr/bin/env node` shebang
 - [ ] **INST-09**: Installer prints success message with next steps after install
 
 ### Documentation
@@ -62,14 +62,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PKG-03 | Phase 17 | Complete |
 | PKG-04 | Phase 17 | Complete |
 | PKG-05 | Phase 17 | Complete |
-| INST-01 | Phase 18 | Pending |
-| INST-02 | Phase 18 | Pending |
+| INST-01 | Phase 18 | Complete |
+| INST-02 | Phase 18 | Complete |
 | INST-03 | Phase 18 | Pending |
-| INST-04 | Phase 18 | Pending |
-| INST-05 | Phase 18 | Pending |
-| INST-06 | Phase 18 | Pending |
-| INST-07 | Phase 18 | Pending |
-| INST-08 | Phase 18 | Pending |
+| INST-04 | Phase 18 | Complete |
+| INST-05 | Phase 18 | Complete |
+| INST-06 | Phase 18 | Complete |
+| INST-07 | Phase 18 | Complete |
+| INST-08 | Phase 18 | Complete |
 | INST-09 | Phase 18 | Pending |
 | DOC-01 | Phase 19 | Pending |
 | DOC-02 | Phase 19 | Pending |

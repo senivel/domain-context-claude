@@ -75,7 +75,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 18-01-PLAN.md — TDD: Core installer with file copying, hook merging, CLI parsing (global + local)
+- [x] 18-01-PLAN.md — TDD: Core installer with file copying, hook merging, CLI parsing (global + local)
 - [ ] 18-02-PLAN.md — Uninstall mode, success messages, and end-to-end verification
 
 ### Phase 19: README & Publishing
@@ -101,5 +101,5 @@ Phases execute in numeric order: 17 → 18 → 19
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 17. Package Configuration | 1/1 | Complete    | 2026-03-17 | - |
-| 18. Installer Logic | v1.3 | 0/2 | Not started | - |
+| 18. Installer Logic | v1.3 | 1/2 | In progress | - |
 | 19. README & Publishing | v1.3 | 0/? | Not started | - |

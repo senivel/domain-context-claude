@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Installation & Distribution
-status: completed
-last_updated: "2026-03-17T15:35:25.966Z"
-last_activity: 2026-03-17 — Completed 17-01 package configuration
+status: in-progress
+last_updated: "2026-03-17T16:11:43Z"
+last_activity: 2026-03-17 — Completed 18-01 core installer (TDD)
 progress:
   total_phases: 3
   completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
-  percent: 100
+  total_plans: 3
+  completed_plans: 2
+  percent: 67
 ---
 
 # Session State
@@ -20,16 +20,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-17)
 
 **Core value:** Developers can codify and maintain domain knowledge alongside code so AI assistants always have accurate business context
-**Current focus:** Phase 17 — Package Configuration
+**Current focus:** Phase 18 — Installer Logic
 
 ## Position
 
-Phase: 17 of 19 (Package Configuration)
-Plan: 1 of 1 in current phase (complete)
-Status: Phase 17 complete
-Last activity: 2026-03-17 — Completed 17-01 package configuration
+Phase: 18 of 19 (Installer Logic)
+Plan: 1 of 2 in current phase (complete)
+Status: 18-01 complete, 18-02 next
+Last activity: 2026-03-17 — Completed 18-01 core installer (TDD)
 
-Progress: [██████████] 100%
+Progress: [██████░░░░] 67%
 
 ## Accumulated Context
 
@@ -54,6 +54,10 @@ Progress: [██████████] 100%
 ### Decisions (v1.3)
 - Research recommends >=20.0.0 engine constraint (resolves STACK.md vs ARCHITECTURE.md discrepancy)
 - Template preservation on re-install: exact UX deferred to Phase 18 implementation
+- Single CommonJS file for installer -- no benefit to module splitting
+- isDcHook matches dc- substring in command strings
+- Filter-then-append for idempotent hook merging
+- node:test for test framework (built-in, no dependencies)
 
 ### Pending Todos
 
