@@ -88,10 +88,10 @@ Plans:
   3. README documents all 6 dc:* skills with what each does and when to use it
   4. README explains the GSD bridge pattern for users who also use get-shit-done-cc
   5. README contains uninstall instructions matching the `--uninstall` flag behavior
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 19-01: TBD
+- [ ] 19-01-PLAN.md — Production README with badges, prerequisites, per-command paragraphs, and LICENSE file
 
 ## Progress
 
@@ -102,4 +102,4 @@ Phases execute in numeric order: 17 → 18 → 19
 |-------|-----------|----------------|--------|-----------|
 | 17. Package Configuration | 1/1 | Complete    | 2026-03-17 | - |
 | 18. Installer Logic | 2/2 | Complete    | 2026-03-17 | - |
-| 19. README & Publishing | v1.3 | 0/? | Not started | - |
+| 19. README & Publishing | v1.3 | 0/1 | Not started | - |
