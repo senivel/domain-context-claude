@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A Claude Code extension (`domain-context-cc`) that makes Claude Code natively aware of the Domain Context specification. Provides 5 slash commands for initializing, browsing, validating, creating, and refreshing domain knowledge as `.context/` directories in any project. Distributed as markdown skill files with no runtime dependencies.
+A Claude Code extension (`domain-context-cc`) that makes Claude Code natively aware of the Domain Context specification. Provides 5 slash commands, 2 lifecycle hooks, 1 path-scoped rule, and 1 domain validator agent for initializing, browsing, validating, creating, refreshing, and passively maintaining domain knowledge as `.context/` directories in any project. Distributed as markdown skill files and Node.js hooks with no runtime dependencies.
 
 ## Core Value
 
@@ -20,29 +20,32 @@ Developers can codify and maintain domain knowledge alongside code so that AI as
 - ✓ 8 spec-compliant templates for all Domain Context file types — v1.0
 - ✓ Template validation script (67 checks) — v1.0
 
+- ✓ SessionStart hook warns about stale domain context entries — v1.1
+- ✓ PostToolUse hook reminds about CONTEXT.md updates when editing nearby files — v1.1
+- ✓ Path-scoped rule guides .context/ file editing — v1.1
+- ✓ Domain validator agent checks code against documented business rules — v1.1
+
 ### Active
 
-- [ ] SessionStart hook warns about stale domain context entries
-- [ ] PostToolUse hook reminds about CONTEXT.md updates when editing nearby files
-- [ ] Path-specific rule guides .context/ file editing
-- [ ] Domain validator agent checks code against documented business rules
+- [ ] GSD `/dc:extract` skill — extract domain knowledge from completed phases
+- [ ] npm packaging and installer — distribute as npx package
+- [ ] Installer merges hook config into settings.json
 
 ### Out of Scope
 
-- Hooks and passive integrations — v1.1 milestone (active)
-- GSD `/dc:extract` skill — future milestone
-- npm packaging and installer — future milestone
 - MCP server — deferred post-MVP per ADR-003
 - Auto-generate domain context from code — domain context captures WHY, not WHAT
 
 ## Context
 
 - v1.0 shipped: 5 skills, 8 templates, 1 validation script (1,342 LOC markdown + shell)
+- v1.1 shipped: 2 hooks, 1 rule, 1 agent (318 LOC JS + markdown)
 - The Domain Context spec lives at ~/code/domain-context/SPEC.md
 - Skills follow Claude Code format: YAML frontmatter + `<objective>`, `<execution_context>`, `<process>` sections
+- Hooks follow Claude Code format: Node.js scripts reading JSON stdin, writing JSON stdout
 - Templates read from install location (`~/.claude/domain-context/templates/` or `.claude/domain-context/templates/`)
 - No runtime dependencies — Node.js built-ins only for hooks/installer
-- All files use kebab-case naming, `dc:` prefix for skill names
+- All files use kebab-case naming, `dc:` prefix for skill/hook/agent names
 
 ## Constraints
 
@@ -63,16 +66,10 @@ Developers can codify and maintain domain knowledge alongside code so that AI as
 | AGENTS.md import check as warning | AGENTS.md is optional per spec — error would block valid projects | ✓ Good |
 | Template-first build order | All skills consume templates; building them first prevents circular deps | ✓ Good |
 | Dual-location verified date | Both MANIFEST.md and inline comment updated — dc:refresh can find dates in either | ✓ Good |
-
-## Current Milestone: v1.1 Hooks, Rules & Agent
-
-**Goal:** Add passive integrations that make Claude Code domain-context-aware without explicit commands.
-
-**Target features:**
-- SessionStart hook for freshness warnings
-- PostToolUse hook for CONTEXT.md reminders
-- Path-specific rule for .context/ editing guidance
-- Domain validator agent for business rule checking
+| 3-second stdin timeout for hooks | Prevents UI error warnings when stdin pipe is delayed or broken | ✓ Good |
+| globs: not paths: for rules | Avoids Claude Code parser bug with paths: frontmatter (GitHub #17204) | ✓ Good |
+| Read-only domain validator | Agent reports violations but never modifies files — separation of concerns | ✓ Good |
+| Matcher + in-code allowlist for PostToolUse | Defense-in-depth: settings.json matcher prevents spawn, code allowlist is fallback | ✓ Good |
 
 ---
-*Last updated: 2026-03-16 after v1.1 milestone start*
+*Last updated: 2026-03-17 after v1.1 milestone complete*

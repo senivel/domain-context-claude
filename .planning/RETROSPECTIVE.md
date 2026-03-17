@@ -42,6 +42,46 @@
 
 ---
 
+## Milestone: v1.1 — Hooks, Rules & Agent
+
+**Shipped:** 2026-03-17
+**Phases:** 4 | **Plans:** 4
+
+### What Was Built
+- SessionStart hook (`dc-freshness-check.js`, 91 lines) — warns about stale domain context entries >90 days
+- PostToolUse hook (`dc-context-reminder.js`, 97 lines) — reminds to update CONTEXT.md when editing nearby files
+- Path-scoped rule (`dc-context-editing.md`, 44 lines) — auto-injects formatting guidance for .context/ files
+- Domain validator agent (`dc-domain-validator.md`, 86 lines) — checks code against documented business rules
+
+### What Worked
+- Autonomous execution mode worked end-to-end: discuss → plan → execute → verify for all 4 phases without manual intervention
+- Pattern reuse from Phase 10 (stdin timeout, JSON output, graceful exit) made Phase 11 implementation fast
+- Smart discuss with batch table proposals + "Accept all" reduced discussion overhead to ~2 questions per phase
+- All 4 phases had clean verification passes on first attempt — no gap closure cycles needed
+
+### What Was Inefficient
+- VALIDATION.md frontmatter (`nyquist_compliant: false`) was never updated to `true` after execution — a documentation gap across all 4 phases
+- Integration checker correctly identified that artifacts are in source dirs (hooks/, rules/, agents/) not install dirs (.claude/*) — but this is the planned Distribution milestone, not a v1.1 gap
+
+### Patterns Established
+- 3-second stdin timeout guard as universal hook safety pattern
+- `globs:` (not `paths:`) for rule frontmatter — avoids Claude Code parser bug
+- Defense-in-depth for tool scoping: settings.json `matcher` + in-code allowlist
+- Session-scoped debouncing via `/tmp/{prefix}-{session_id}-{hash}.json` files
+- Self-contained agent prompts with zero `@` references for portability
+
+### Key Lessons
+1. Autonomous mode is highly efficient for well-specified milestones — 4 phases completed in a single session
+2. Infrastructure phases (rules, agents) are simpler than behavioral phases (hooks) — fewer grey areas, cleaner verification
+3. VALIDATION.md frontmatter should be auto-updated by the executor, not left as manual post-execution work
+
+### Cost Observations
+- Model mix: ~50% opus (orchestration, execution), ~30% sonnet (verification, plan checking), ~20% sonnet (research)
+- Single-session execution for entire milestone
+- Notable: All phases were 1-plan phases — lean scope kept execution fast
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -49,8 +89,10 @@
 | Milestone | Phases | Plans | Key Change |
 |-----------|--------|-------|------------|
 | v1.0 | 9 | 15 | Established template-first build order and gap closure cycle |
+| v1.1 | 4 | 4 | Autonomous execution mode; pattern reuse across phases |
 
 ### Top Lessons (Verified Across Milestones)
 
 1. Build shared infrastructure (templates, parsers) before consumers — eliminates blocking dependencies
 2. Integration verification at milestone boundary catches cross-phase wiring issues that per-phase verification misses
+3. Pattern reuse between phases accelerates both planning and execution — establish patterns early in a milestone

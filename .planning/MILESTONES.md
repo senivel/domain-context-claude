@@ -1,5 +1,14 @@
 # Milestones
 
+## v1.1 Hooks, Rules & Agent (Shipped: 2026-03-17)
+
+**Phases completed:** 4 phases, 4 plans, 0 tasks
+
+**Key accomplishments:**
+- (none recorded)
+
+---
+
 ## v1.0 Core Skills (Shipped: 2026-03-16)
 
 **Phases:** 9 | **Plans:** 15 | **Requirements:** 36/36
