@@ -10,7 +10,7 @@ Requirements for GSD Integration milestone. Each maps to roadmap phases.
 ### GSD Bridge
 
 - [x] **BRIDGE-01**: dc:init appends GSD bridge text to AGENTS.md snippet referencing .context/ for domain knowledge
-- [ ] **BRIDGE-02**: Re-running dc:init on existing projects updates GSD bridge content via sentinel replacement
+- [x] **BRIDGE-02**: Re-running dc:init on existing projects updates GSD bridge content via sentinel replacement
 - [x] **BRIDGE-03**: GSD bridge text instructs agents to consult .context/ during planning and suggests /dc:extract after phases
 
 ### Extraction Scanning
@@ -65,7 +65,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | BRIDGE-01 | Phase 14 | Complete |
-| BRIDGE-02 | Phase 15 | Pending |
+| BRIDGE-02 | Phase 15 | Complete |
 | BRIDGE-03 | Phase 14 | Complete |
 | SCAN-01 | Phase 16 | Pending |
 | SCAN-02 | Phase 16 | Pending |
