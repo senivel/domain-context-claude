@@ -30,7 +30,7 @@ See .planning/milestones/ for archived phase details.
 
 **Milestone Goal:** Enable bidirectional relationship between GSD's .planning/ artifacts and domain context.
 
-- [ ] **Phase 14: GSD Bridge Template** - Static template with GSD bridge text and sentinel markers for AGENTS.md injection
+- [x] **Phase 14: GSD Bridge Template** - Static template with GSD bridge text and sentinel markers for AGENTS.md injection (completed 2026-03-17)
 - [ ] **Phase 15: dc:init GSD Detection** - Conditional GSD snippet injection in dc:init with idempotent re-run support
 - [ ] **Phase 16: dc:extract Skill** - Full Scan-Propose-Confirm skill extracting domain knowledge from completed GSD phases
 
@@ -84,6 +84,6 @@ Phases execute in numeric order: 14 → 15 → 16
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 14. GSD Bridge Template | v1.2 | 0/1 | Not started | - |
+| 14. GSD Bridge Template | 1/1 | Complete   | 2026-03-17 | - |
 | 15. dc:init GSD Detection | v1.2 | 0/? | Not started | - |
 | 16. dc:extract Skill | v1.2 | 0/? | Not started | - |
