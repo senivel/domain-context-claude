@@ -1,14 +1,14 @@
 # Architecture Research
 
-**Domain:** npm installer / packaging integration for Claude Code extension
+**Domain:** Documentation site integration for existing npm CLI package
 **Researched:** 2026-03-17
 **Confidence:** HIGH
 
-## Context: This Is a v1.3 Integration Research Document
+## Context: This Is a v1.4 Integration Research Document
 
-This document supersedes the v1.2 ARCHITECTURE.md for the v1.3 milestone. It answers a single question: how do `bin/install.js`, `package.json`, and `README.md` integrate with the architecture that already exists? The v1.0, v1.1, and v1.2 analyses are not repeated here — those layers are unchanged.
+This document answers: how does a Starlight documentation site integrate with the existing domain-context-cc npm package? The v1.0-v1.3 layers are unchanged. This focuses exclusively on new components, integration points, and build/deploy architecture.
 
-## Existing Architecture (v1.2 Baseline)
+## Existing Architecture (v1.3 Baseline)
 
 ```
 domain-context-claude/
@@ -16,567 +16,418 @@ domain-context-claude/
 ├── hooks/                    [2 hooks] freshness-check, context-reminder
 ├── agents/                   [1 agent] domain-validator
 ├── rules/                    [1 rule] context-editing
-├── templates/                [9 templates] manifest, architecture, agents-snippet,
-│                              claude, context, domain-concept, decision, constraint,
-│                              gsd-agents-snippet
+├── templates/                [9 templates] all Domain Context file types
 ├── tools/                    [1 script] validate-templates.sh
-├── bin/                      [EMPTY — placeholder only]
-└── .claude/                  [local dev copies, NOT shipped to users]
+├── bin/                      [1 file] install.js (npm entry point)
+├── tests/                    [52 tests] install, reinstall, uninstall
+└── package.json              files whitelist: commands/, agents/, hooks/, rules/,
+                              templates/, tools/, bin/  (7 directories)
 ```
 
-**Key patterns established:**
-- Skills resolve templates from `~/.claude/domain-context/templates/` (global) or `.claude/domain-context/templates/` (local)
-- Hooks registered under `SessionStart` and `PostToolUse` in `settings.json`
-- `settings.json` hook entries use path-scoped `command` strings that must resolve at the target install location
-- All Node.js hooks use built-ins only (fs, path, crypto, os) — zero runtime dependencies
-- Hooks must exit 0 on all error paths (graceful degradation constraint)
+**Key constraint:** Root package.json has zero dependencies and uses a `files` whitelist. Only the 7 listed directories are included in the npm tarball. Anything not listed is automatically excluded.
 
-## New Components: What Gets Added
+## System Overview (v1.4)
 
-| Component | Type | Source Path | Destination |
-|-----------|------|-------------|-------------|
-| `bin/install.js` | Node.js CLI script | `bin/install.js` | Runs via `npx domain-context-cc` at install time |
-| `package.json` | npm package manifest | `package.json` | Consumed by npm/npx; never shipped to target projects |
-| `README.md` | Documentation | `README.md` (already exists, needs expansion) | npm package page, GitHub |
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     GitHub Repository                           │
+├──────────────────────────┬──────────────────────────────────────┤
+│   npm Package (v1.3)     │   Documentation Site (NEW)           │
+│   UNCHANGED              │                                      │
+│                          │   docs/                              │
+│  commands/dc/            │   ├── astro.config.mjs               │
+│  hooks/                  │   ├── package.json                   │
+│  agents/                 │   ├── src/                           │
+│  rules/                  │   │   ├── content/docs/  (pages)     │
+│  templates/              │   │   ├── assets/        (images)    │
+│  tools/                  │   │   └── content.config.ts          │
+│  bin/                    │   └── public/            (static)    │
+│  tests/                  │                                      │
+│  package.json            │                                      │
+├──────────────────────────┴──────────────────────────────────────┤
+│                     .github/workflows/                          │
+│                     deploy-docs.yml  (NEW)                      │
+│                          │                                      │
+│                          v                                      │
+│              GitHub Pages (static HTML)                         │
+│    https://senivel.github.io/domain-context-claude/             │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Component Responsibilities
+
+| Component | Responsibility | Status |
+|-----------|----------------|--------|
+| `docs/` | Self-contained Starlight site with own package.json, node_modules, config | **NEW** |
+| `docs/src/content/docs/` | All documentation pages as Markdown/MDX | **NEW** |
+| `docs/astro.config.mjs` | Starlight config: sidebar, site URL, base path, theme | **NEW** |
+| `.github/workflows/deploy-docs.yml` | CI/CD: build docs/ and deploy to GitHub Pages | **NEW** |
+| `package.json` (root) | UNCHANGED. `files` whitelist excludes `docs/` from npm tarball | **UNCHANGED** |
+| `commands/dc/*.md` | Existing skill files. Source of truth for CLI reference content | **UNCHANGED** |
 
 ### What Does NOT Change
 
 - No existing skills, hooks, agents, rules, or templates are modified
-- The `.claude/` directory in this repo is for local dev only and is not shipped
-- The v1.0, v1.1, and v1.2 layers are entirely unaffected at runtime
+- Root `package.json` is unchanged (no new dependencies, no `files` changes needed)
+- `bin/install.js` is unchanged
+- The npm tarball is unaffected -- `docs/` is excluded because only the 7 whitelisted directories ship
 
-## System Overview (v1.3)
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                          Distribution Layer (NEW)                            │
-│  ┌──────────────────────────────────────────────────────────────────────┐   │
-│  │  npm registry: domain-context-cc                                      │   │
-│  │  npx domain-context-cc  →  bin/install.js                            │   │
-│  │                                    |                                   │   │
-│  │                   ┌────────────────┼────────────────┐                 │   │
-│  │                   v                v                v                 │   │
-│  │             --global           --local         --uninstall           │   │
-│  │          ~/.claude/         ./.claude/          removes files         │   │
-│  └──────────────────────────────────────────────────────────────────────┘   │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                          Target Project Filesystem                           │
-│                         (what the installer writes)                          │
-│  ┌───────────────────┐  ┌───────────────────┐  ┌──────────────────────┐    │
-│  │  ~/.claude/        │  │  .claude/          │  │  ~/.claude/          │    │
-│  │  commands/dc/      │  │  commands/dc/      │  │  settings.json       │    │
-│  │  hooks/            │  │  hooks/            │  │  (hook entries       │    │
-│  │  agents/           │  │  agents/           │  │   merged in)         │    │
-│  │  rules/            │  │  rules/            │  └──────────────────────┘    │
-│  │  domain-context/   │  │  domain-context/   │                              │
-│  │    templates/      │  │    templates/      │                              │
-│  └───────────────────┘  └───────────────────┘                              │
-│         global                  local                                        │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                     Active Layer (user-invoked, v1.0–v1.2, unchanged)        │
-│  ┌─────────┐  ┌──────────┐  ┌──────────┐  ┌─────┐  ┌──────────┐  ┌──────┐ │
-│  │ dc:init │  │dc:explore│  │dc:validate│  │dc:add│  │dc:refresh│  │dc:   │ │
-│  └─────────┘  └──────────┘  └──────────┘  └─────┘  └──────────┘  │extrac│ │
-│                                                                     └──────┘ │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                  Passive Layer (hooks, v1.1, unchanged)                       │
-│  ┌────────────────────────┐  ┌──────────────────────────────────────────┐   │
-│  │  SessionStart Hook     │  │  PostToolUse Hook                         │   │
-│  │  dc-freshness-check.js │  │  dc-context-reminder.js                  │   │
-│  └────────────────────────┘  └──────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
-## Component 1: bin/install.js
-
-### Purpose
-
-Copy all distributable files from the npm package to the target Claude Code configuration directory (`~/.claude/` for global, `.claude/` for local). Merge hook entries into the target `settings.json` without clobbering existing hooks. Support uninstall.
-
-### Data Flow: Install
+## Recommended Project Structure
 
 ```
-User runs: npx domain-context-cc [--local] [--uninstall]
-    |
-    v
-bin/install.js starts
-    |
-    v
-Parse argv:
-    --local     → INSTALL_DIR = path.join(process.cwd(), '.claude')
-    --uninstall → run uninstall flow
-    (default)   → INSTALL_DIR = path.join(os.homedir(), '.claude')
-    |
-    v
-Resolve SOURCE_DIR = path of the npm package itself
-    (use __dirname or path.resolve(__dirname, '..') depending on bin/ depth)
-    |
-    v
-Create target directories (mkdir -p):
-    INSTALL_DIR/commands/dc/
-    INSTALL_DIR/hooks/
-    INSTALL_DIR/agents/
-    INSTALL_DIR/rules/
-    INSTALL_DIR/domain-context/templates/
-    |
-    v
-Copy files (fs.copyFileSync, overwrite):
-    commands/dc/*.md    → INSTALL_DIR/commands/dc/
-    hooks/*.js          → INSTALL_DIR/hooks/
-    agents/*.md         → INSTALL_DIR/agents/
-    rules/*.md          → INSTALL_DIR/rules/
-    templates/*         → INSTALL_DIR/domain-context/templates/
-    |
-    v
-Merge settings.json:
-    (see settings.json merge strategy below)
-    |
-    v
-Print success summary
+domain-context-claude/
+├── commands/dc/                 # existing (UNCHANGED)
+├── hooks/                       # existing (UNCHANGED)
+├── agents/                      # existing (UNCHANGED)
+├── rules/                       # existing (UNCHANGED)
+├── templates/                   # existing (UNCHANGED)
+├── tools/                       # existing (UNCHANGED)
+├── bin/                         # existing (UNCHANGED)
+├── tests/                       # existing (UNCHANGED)
+├── package.json                 # existing (UNCHANGED)
+│
+├── docs/                        # NEW: self-contained Starlight site
+│   ├── astro.config.mjs         # Starlight integration + sidebar config
+│   ├── package.json             # docs-only deps (astro, @astrojs/starlight)
+│   ├── tsconfig.json            # Astro TypeScript config
+│   ├── src/
+│   │   ├── content/
+│   │   │   └── docs/            # documentation pages
+│   │   │       ├── index.mdx              # landing/hero page
+│   │   │       ├── getting-started/
+│   │   │       │   ├── installation.md    # npx domain-context-cc
+│   │   │       │   └── quickstart.md      # first dc:init walkthrough
+│   │   │       ├── guides/
+│   │   │       │   ├── user-guide.md      # full usage guide
+│   │   │       │   └── gsd-integration.md # GSD bridge docs
+│   │   │       ├── reference/
+│   │   │       │   ├── commands.md        # all 6 dc:* commands
+│   │   │       │   ├── hooks.md           # hook reference
+│   │   │       │   └── templates.md       # template reference
+│   │   │       ├── concepts/
+│   │   │       │   ├── spec-overview.md   # Domain Context spec
+│   │   │       │   └── architecture.md    # how dc-cc works
+│   │   │       └── contributing.md
+│   │   ├── content.config.ts    # content collection schema
+│   │   └── assets/              # images, logos
+│   └── public/                  # favicon, static assets
+│
+└── .github/
+    └── workflows/
+        └── deploy-docs.yml      # GitHub Actions: build + deploy to Pages
 ```
 
-### Data Flow: Uninstall
+### Structure Rationale
 
-```
-User runs: npx domain-context-cc --uninstall
-    |
-    v
-Resolve INSTALL_DIR (same logic as install)
-    |
-    v
-Remove files installed by domain-context-cc:
-    INSTALL_DIR/commands/dc/*.md  (rmdir if empty)
-    INSTALL_DIR/hooks/dc-*.js
-    INSTALL_DIR/agents/dc-*.md
-    INSTALL_DIR/rules/dc-*.md
-    INSTALL_DIR/domain-context/  (rmdir if empty)
-    |
-    v
-Remove hook entries from settings.json:
-    Read settings.json, remove only dc hook entries, write back
-    |
-    v
-Print success summary
-```
-
-### Source Directory Resolution
-
-The installer runs from the npm cache as an npx one-shot. `__dirname` refers to the `bin/` directory inside the unpacked package. Source files live one level up:
-
-```javascript
-const PKG_ROOT = path.resolve(__dirname, '..');
-const SOURCES = {
-  commands: path.join(PKG_ROOT, 'commands', 'dc'),
-  hooks:    path.join(PKG_ROOT, 'hooks'),
-  agents:   path.join(PKG_ROOT, 'agents'),
-  rules:    path.join(PKG_ROOT, 'rules'),
-  templates: path.join(PKG_ROOT, 'templates'),
-};
-```
-
-This is straightforward because `package.json` `bin` entry points to `bin/install.js` and all source dirs are at the package root.
-
-### Hook Command Path Conventions
-
-This is the most critical integration detail. Hooks registered in `settings.json` use command strings that Claude Code resolves at runtime. The path format must match where the hook file is installed:
-
-**Global install:**
-```json
-"command": "node \"/Users/<user>/.claude/hooks/dc-freshness-check.js\""
-```
-
-**Local install:**
-```json
-"command": "node \".claude/hooks/dc-freshness-check.js\""
-```
-
-The installer must generate these strings using the actual resolved path, not a hardcoded template. For global install, expand `os.homedir()`. For local install, use a relative path from the project root (`.claude/hooks/...`).
-
-**Why absolute paths for global:** `~` is not expanded by Claude Code's hook runner. The existing GSD install (in `~/.claude/settings.json`) uses full absolute paths: `"node \"/Users/alevine/.claude/hooks/gsd-check-update.js\""`. Follow this pattern.
-
-**Why relative paths for local:** The project's `.claude/settings.json` uses relative paths: `"node hooks/dc-freshness-check.js"`. This allows the project to be moved without breaking local hooks.
-
-## Component 2: settings.json Merge Strategy
-
-### The Core Problem
-
-`settings.json` belongs to the user. It may already contain:
-- Other tools' hooks (GSD hooks, custom hooks)
-- `env`, `permissions`, `statusLine`, `enabledPlugins` keys
-- Other `SessionStart` and `PostToolUse` hook arrays
-
-The installer must add dc hooks without:
-1. Deleting existing hooks
-2. Creating duplicate entries on re-install
-3. Corrupting the JSON
-4. Changing the order of unrelated keys
-
-### Merge Algorithm
-
-```
-function mergeSettings(installDir, dcHookEntries):
-    settingsPath = path.join(installDir, 'settings.json')
-
-    // Load existing settings or start with empty object
-    if file exists:
-        existing = JSON.parse(readFile(settingsPath))
-    else:
-        existing = {}
-
-    // Ensure hooks key structure exists
-    existing.hooks = existing.hooks || {}
-    existing.hooks.SessionStart = existing.hooks.SessionStart || []
-    existing.hooks.PostToolUse = existing.hooks.PostToolUse || []
-
-    // For each DC hook entry to add:
-    for entry in dcHookEntries:
-        // Dedup: check if a hook with this exact command already exists
-        hookCommand = entry.hooks[0].command
-        targetArray = existing.hooks[entry.event]  // SessionStart or PostToolUse
-        alreadyPresent = targetArray.some(
-            existing => existing.hooks?.[0]?.command === hookCommand
-        )
-        if not alreadyPresent:
-            targetArray.push(entry)
-
-    // Write back (preserves all existing keys, only hooks array is mutated)
-    writeFile(settingsPath, JSON.stringify(existing, null, 2))
-```
-
-### Hook Entries to Inject
-
-**Global install (`~/.claude/settings.json`):**
-
-```json
-{
-  "event": "SessionStart",
-  "hooks": [{
-    "type": "command",
-    "command": "node \"/Users/<user>/.claude/hooks/dc-freshness-check.js\""
-  }]
-}
-```
-
-```json
-{
-  "event": "PostToolUse",
-  "matcher": "Edit|Write|MultiEdit",
-  "hooks": [{
-    "type": "command",
-    "command": "node \"/Users/<user>/.claude/hooks/dc-context-reminder.js\""
-  }]
-}
-```
-
-**Local install (`.claude/settings.json`):**
-
-```json
-{
-  "event": "SessionStart",
-  "hooks": [{
-    "type": "command",
-    "command": "node \".claude/hooks/dc-freshness-check.js\""
-  }]
-}
-```
-
-```json
-{
-  "event": "PostToolUse",
-  "matcher": "Edit|Write|MultiEdit",
-  "hooks": [{
-    "type": "command",
-    "command": "node \".claude/hooks/dc-context-reminder.js\""
-  }]
-}
-```
-
-### Uninstall Hook Removal
-
-Match hook entries to remove by command string suffix (the filename):
-
-```javascript
-const DC_HOOK_COMMANDS = [
-  'dc-freshness-check.js',
-  'dc-context-reminder.js',
-];
-
-// Remove any hook entry whose command ends with a dc hook filename
-existing.hooks.SessionStart = existing.hooks.SessionStart.filter(
-  entry => !DC_HOOK_COMMANDS.some(
-    cmd => entry.hooks?.[0]?.command?.endsWith(cmd)
-  )
-);
-// same for PostToolUse
-```
-
-This removes dc hooks regardless of the path prefix, so it works whether originally installed globally or locally.
-
-## Component 3: package.json
-
-### Structure
-
-```json
-{
-  "name": "domain-context-cc",
-  "version": "1.3.0",
-  "description": "Claude Code extension for Domain Context specification — skills, hooks, agents, rules",
-  "bin": {
-    "domain-context-cc": "bin/install.js"
-  },
-  "files": [
-    "bin/",
-    "commands/",
-    "hooks/",
-    "agents/",
-    "rules/",
-    "templates/",
-    "README.md"
-  ],
-  "engines": {
-    "node": ">=18"
-  },
-  "license": "MIT"
-}
-```
-
-**`files` field is the critical gating mechanism.** Only listed paths are included in the npm tarball. This prevents shipping `.claude/` (local dev copies), `.planning/`, `.git/`, `tools/` (dev-only validation script), `.context/`, `.gitignore`, `PLAN.md`, `ARCHITECTURE.md`, `AGENTS.md`, `CLAUDE.md`.
-
-**No `main` field** — this is a CLI tool, not a library. The `bin` entry is sufficient.
-
-**No `dependencies`** — existing constraint (Node.js built-ins only). The package installs zero dependencies.
-
-**`engines.node: ">=18"`** — Node 18+ for stable `fs.cpSync` (available since Node 16.7 but stable in 18). If targeting older Node, use manual recursive copy instead.
-
-### Integration with README.md
-
-The README already exists and documents the CLI flags (`--local`, `--uninstall`). The v1.3 work expands it to include:
-- What gets installed (file list per install mode)
-- Uninstall instructions
-- Upgrade path (`npx domain-context-cc` again — overwrites existing files)
+- **`docs/` as subdirectory, not root-level Starlight:** Keeps the npm package as the primary artifact. The docs site is a companion. Avoids polluting root with `astro.config.mjs`, `tsconfig.json`, and Astro's `src/` directory.
+- **Separate `docs/package.json`:** The docs site needs `astro` and `@astrojs/starlight` as dependencies. These MUST NOT go in root `package.json` (which has zero dependencies by design). A separate package.json isolates doc tooling completely.
+- **No npm workspace:** The docs site has no code dependency on the main package. It reads no imports from root. `cd docs && npm install && npm run build` is sufficient. Workspaces add complexity for zero benefit.
+- **Content in `docs/src/content/docs/`:** Starlight convention. Each `.md` file becomes a page. Directory structure becomes URL structure.
 
 ## Architectural Patterns
 
-### Pattern 1: Package Root Resolution via __dirname
+### Pattern 1: Self-Contained Subdirectory Site
 
-**What:** Resolve all source paths relative to `__dirname` in `bin/install.js`, treating the package root as `path.resolve(__dirname, '..')`.
+**What:** The docs site lives in `docs/` with its own package.json, config, and node_modules. It shares no code with the parent project.
+**When to use:** When adding a documentation site to an existing package that must not gain new dependencies.
+**Trade-offs:** Slightly more setup (separate install step in CI), but clean separation. The npm tarball stays lean because the root `files` whitelist excludes unlisted directories automatically.
 
-**When to use:** Any Node.js CLI in an npm package where the bin script is in a subdirectory.
+### Pattern 2: Manual CLI Reference (Not Auto-Generated)
 
-**Trade-offs:** Simple and reliable. Works in npx (temp cache dir), global npm install, and local dev. No reliance on `npm_package_*` env vars which are absent in npx context.
+**What:** The 6 `commands/dc/*.md` skill files use Claude Code's YAML frontmatter + XML section format (`<objective>`, `<execution_context>`, `<process>`). The CLI reference page should be hand-written markdown, not auto-generated from skill files.
+**When to use:** When source files use a non-standard format that no existing doc generator understands.
+**Trade-offs:** Requires manual sync when skills change. However:
+- Only 6 commands exist, stable since v1.2
+- The skill file format is not parseable by any standard API doc generator
+- Hand-written prose produces better documentation than any auto-extractor
+- A build-time parser script is feasible but overkill for 6 rarely-changing files
 
-### Pattern 2: Additive-Only JSON Merge
+**If maintenance burden grows later:** Add a simple Node.js script (`docs/scripts/gen-reference.mjs`) that parses YAML frontmatter from `commands/dc/*.md` and extracts `<objective>` content into markdown. But do not build this for v1.4.
 
-**What:** Read existing JSON, add new entries, write back. Never replace existing top-level keys or remove array entries that belong to other tools.
+### Pattern 3: GitHub Action with Path Filtering
 
-**When to use:** Any installer that shares a config file (`settings.json`) with other tools.
+**What:** The deploy workflow only triggers on changes to `docs/` or the workflow file itself, not on every push.
+**When to use:** When the docs site is a subdirectory of a project where most commits are unrelated to docs.
+**Trade-offs:** Prevents unnecessary builds. Requires `paths:` filter in the workflow trigger. Include `workflow_dispatch` for manual triggers.
 
-**Trade-offs:** Safe but requires dedup logic. Uninstall must track which entries were added. Dedup by command string is simpler than by entry identity hash — the command string is the semantic identifier of a hook.
+## Data Flow
 
-### Pattern 3: Idempotent Install
-
-**What:** Running the installer twice produces the same result as running it once. Achieved by: overwriting files (copyFileSync), deduplicating hook entries before appending.
-
-**When to use:** All installers. Users will re-run `npx domain-context-cc` to upgrade.
-
-**Trade-offs:** Requires the dedup check in merge. File overwrite means in-place upgrades work transparently (no version tracking needed in the installer itself).
-
-### Pattern 4: Suffix-Based Hook Matching for Uninstall
-
-**What:** Identify dc-owned hook entries by checking if the command string ends with a known dc hook filename (`dc-freshness-check.js`, `dc-context-reminder.js`).
-
-**When to use:** Uninstall flows where the exact command path varies by OS, user, or install mode.
-
-**Trade-offs:** Slightly fragile if user has a non-dc hook with the same filename (unlikely in practice). Alternative is writing a manifest of installed hook commands at install time — adds complexity without meaningful benefit.
-
-## Data Flow Diagrams
-
-### Install Flow (Global)
+### Build and Deploy Flow
 
 ```
-npx domain-context-cc
+Developer pushes to main (docs/** changed)
     |
     v
-bin/install.js
-    |
-    +--[resolve PKG_ROOT from __dirname]
-    |
-    +--[resolve INSTALL_DIR = ~/.claude/]
-    |
-    +--[mkdir -p for 5 target directories]
-    |
-    +--[copyFileSync: 6 skills → INSTALL_DIR/commands/dc/]
-    +--[copyFileSync: 2 hooks  → INSTALL_DIR/hooks/]
-    +--[copyFileSync: 1 agent  → INSTALL_DIR/agents/]
-    +--[copyFileSync: 1 rule   → INSTALL_DIR/rules/]
-    +--[copyFileSync: 9 templates → INSTALL_DIR/domain-context/templates/]
-    |
-    +--[read INSTALL_DIR/settings.json (or {})]
-    +--[append SessionStart hook entry if not present]
-    +--[append PostToolUse hook entry if not present]
-    +--[write INSTALL_DIR/settings.json]
+GitHub Action triggers (paths filter: docs/**)
     |
     v
-stdout: "domain-context-cc installed globally."
-stdout: "  Skills:    ~/.claude/commands/dc/ (6 files)"
-stdout: "  Hooks:     ~/.claude/hooks/ (2 files)"
-stdout: "  Templates: ~/.claude/domain-context/templates/ (9 files)"
-stdout: "  Hooks registered in ~/.claude/settings.json"
+actions/checkout@v5 (clone full repo)
+    |
+    v
+withastro/action@v5 (path: ./docs)
+    ├── Detects package manager from docs/package-lock.json
+    ├── npm install (in docs/ only)
+    ├── astro build (outputs to docs/dist/)
+    └── Uploads build artifact to GitHub Pages
+    |
+    v
+actions/deploy-pages@v4
+    └── Deploys static HTML to GitHub Pages
+    |
+    v
+Live at: https://senivel.github.io/domain-context-claude/
 ```
 
-### Install Flow (Local)
-
-Identical to global, with `INSTALL_DIR = path.join(process.cwd(), '.claude')` and relative hook command paths in settings.json.
-
-### Uninstall Flow
+### npm Tarball Flow (UNCHANGED)
 
 ```
-npx domain-context-cc --uninstall
+npm pack / npm publish
     |
     v
-bin/install.js --uninstall
-    |
-    +--[resolve INSTALL_DIR]
-    |
-    +--[remove INSTALL_DIR/commands/dc/*.md]
-    +--[rmdir INSTALL_DIR/commands/dc/ if empty]
-    +--[remove INSTALL_DIR/hooks/dc-*.js]
-    +--[remove INSTALL_DIR/agents/dc-*.md]
-    +--[remove INSTALL_DIR/rules/dc-*.md]
-    +--[remove INSTALL_DIR/domain-context/ tree]
-    |
-    +--[read INSTALL_DIR/settings.json]
-    +--[filter out dc hook entries by command suffix]
-    +--[write INSTALL_DIR/settings.json]
+Reads package.json "files": [commands/, agents/, hooks/, rules/, templates/, tools/, bin/]
     |
     v
-stdout: "domain-context-cc uninstalled."
+docs/ is NOT in the whitelist --> excluded from tarball automatically
+    |
+    v
+Tarball unchanged: only the 7 whitelisted directories ship (no bloat)
 ```
 
-## Component Boundaries
+### Key Data Flows
 
-| Component | Inputs | Outputs | Depends On |
-|-----------|--------|---------|------------|
-| `bin/install.js` | `argv` (--local, --uninstall), source files in PKG_ROOT, existing `settings.json` | Copied files in INSTALL_DIR, merged `settings.json` | Node.js `fs`, `path`, `os` (built-ins only) |
-| `package.json` | npm registry, `files` field | npm tarball shipped to users | `bin/install.js` existing, `files` list accurate |
-| `README.md` | Existing content (already accurate for commands) | Updated with install/uninstall/what-gets-installed sections | Current install UX decisions |
+1. **Docs content to site:** Markdown files in `docs/src/content/docs/` are compiled by Astro/Starlight into static HTML at build time. No runtime processing.
+2. **Skill files to CLI reference:** Manual content sync. Developer reads `commands/dc/*.md` and writes corresponding reference content in the docs. One-time effort with rare updates.
 
-### Communication Map
+## GitHub Action Configuration
 
+### Workflow File: `.github/workflows/deploy-docs.yml`
+
+```yaml
+name: Deploy Docs
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - '.github/workflows/deploy-docs.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: withastro/action@v5
+        with:
+          path: ./docs
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
 ```
-npm publish reads package.json → generates tarball containing files listed in "files"
-    |
-    v
-npx domain-context-cc → npm downloads tarball → runs bin/install.js
-    |
-    v
-bin/install.js reads:
-    PKG_ROOT/commands/dc/*.md
-    PKG_ROOT/hooks/*.js
-    PKG_ROOT/agents/*.md
-    PKG_ROOT/rules/*.md
-    PKG_ROOT/templates/*
 
-bin/install.js writes:
-    INSTALL_DIR/commands/dc/*.md      (skills)
-    INSTALL_DIR/hooks/*.js            (hooks)
-    INSTALL_DIR/agents/*.md           (agent)
-    INSTALL_DIR/rules/*.md            (rule)
-    INSTALL_DIR/domain-context/templates/*  (templates)
-    INSTALL_DIR/settings.json         (merged, not overwritten)
+**Critical details:**
+- `withastro/action@v5` `path` parameter tells the action where the Astro project root is. Without this, it looks for `astro.config.mjs` at the repo root and fails.
+- The action auto-detects the package manager from the lockfile in `docs/`.
+- `workflow_dispatch` allows manual re-deploys without a code change.
+- `paths` filter prevents rebuilding docs on every skill/hook/template commit.
+
+### Repository Settings Required
+
+| Setting | Value | Why |
+|---------|-------|-----|
+| Settings > Pages > Source | "GitHub Actions" | Required for action-based deployment (not branch-based) |
+
+## Astro/Starlight Configuration
+
+### `docs/astro.config.mjs`
+
+```javascript
+import { defineConfig } from 'astro/config';
+import starlight from '@astrojs/starlight';
+
+export default defineConfig({
+  site: 'https://senivel.github.io',
+  base: '/domain-context-claude',
+  integrations: [
+    starlight({
+      title: 'Domain Context',
+      social: [
+        {
+          icon: 'github',
+          label: 'GitHub',
+          href: 'https://github.com/senivel/domain-context-claude',
+        },
+      ],
+      sidebar: [
+        {
+          label: 'Getting Started',
+          items: [
+            { label: 'Installation', slug: 'getting-started/installation' },
+            { label: 'Quick Start', slug: 'getting-started/quickstart' },
+          ],
+        },
+        {
+          label: 'Guides',
+          items: [
+            { label: 'User Guide', slug: 'guides/user-guide' },
+            { label: 'GSD Integration', slug: 'guides/gsd-integration' },
+          ],
+        },
+        {
+          label: 'Reference',
+          items: [
+            { label: 'Commands', slug: 'reference/commands' },
+            { label: 'Hooks', slug: 'reference/hooks' },
+            { label: 'Templates', slug: 'reference/templates' },
+          ],
+        },
+        {
+          label: 'Concepts',
+          items: [
+            { label: 'Spec Overview', slug: 'concepts/spec-overview' },
+            { label: 'Architecture', slug: 'concepts/architecture' },
+          ],
+        },
+      ],
+    }),
+  ],
+});
 ```
 
-### What Does NOT Communicate
+**Critical:** `base: '/domain-context-claude'` is required. GitHub Pages for project repos (not `username.github.io` repos) serves from `username.github.io/repo-name/`. Without this `base` setting, all asset and link paths break.
 
-- `bin/install.js` does not execute any hooks — it only copies and registers them
-- `bin/install.js` does not read or write `.context/` directories — that is dc:init's domain
-- `package.json` has no runtime effect — it is consumed by npm tooling only
-- `README.md` is documentation — no code dependency on it
-- `tools/validate-templates.sh` is NOT included in the npm package (dev-only)
+### `docs/package.json`
+
+```json
+{
+  "name": "domain-context-cc-docs",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "astro": "^5",
+    "@astrojs/starlight": "^0.33"
+  }
+}
+```
+
+**`private: true`** prevents accidental npm publish of the docs package.
+
+## Integration Points
+
+### New Components
+
+| Component | Type | Dependencies |
+|-----------|------|--------------|
+| `docs/` directory | New subdirectory | astro, @astrojs/starlight (in docs/package.json only) |
+| `.github/workflows/deploy-docs.yml` | New workflow | GitHub Actions: checkout@v5, withastro/action@v5, deploy-pages@v4 |
+
+### Existing Components Modified
+
+**None.** Zero changes to any existing file. The root `package.json` `files` whitelist already excludes `docs/` because it uses an inclusion list, not an exclusion list.
+
+### Internal Boundaries
+
+| Boundary | Communication | Notes |
+|----------|---------------|-------|
+| docs/ <-> root package | None at runtime | Docs build independently; no code imports cross the boundary |
+| docs/ <-> commands/dc/ | Manual content sync | CLI reference written by hand from skill file content |
+| GitHub Action <-> docs/ | `path: ./docs` parameter | Action builds from subdirectory, not repo root |
+| npm tarball <-> docs/ | None | `files` whitelist excludes docs/ automatically |
 
 ## Anti-Patterns
 
-### Anti-Pattern 1: Replacing settings.json Instead of Merging
+### Anti-Pattern 1: Docs Dependencies in Root package.json
 
-**What people do:** Write a full `settings.json` template and overwrite the existing file.
+**What people do:** Add `astro` and `@astrojs/starlight` to root `package.json`.
+**Why it's wrong:** This project has a zero-dependency constraint. Adding doc framework deps to root pollutes `npm install` for all users. The `files` whitelist currently prevents tarball bloat, but adding deps to root violates the project's design principle.
+**Do this instead:** Keep all doc deps in `docs/package.json` only. The root package never knows about Astro.
 
-**Why it's wrong:** Destroys existing hook registrations from GSD, user customizations, `env`, `permissions`, `enabledPlugins` keys. This is the most destructive mistake an installer can make.
+### Anti-Pattern 2: Auto-Generating CLI Reference
 
-**Do this instead:** Read, merge by appending to arrays with dedup, write back.
+**What people do:** Build a custom parser to extract structured data from Claude Code skill markdown and auto-generate API docs.
+**Why it's wrong:** The skill format (YAML frontmatter with `allowed-tools` + XML `<objective>` blocks) is non-standard. Building a parser for 6 files that haven't changed since v1.2 is overengineering. The parser itself would need maintenance.
+**Do this instead:** Write the CLI reference by hand. It takes 30 minutes and produces better documentation than any auto-generator.
 
-### Anti-Pattern 2: Hardcoding ~/.claude Path as a String
+### Anti-Pattern 3: npm Workspaces for Docs
 
-**What people do:** `const installDir = path.join(os.homedir(), '.claude');` as a hardcoded literal, then also emit hook commands like `"node ~/.claude/hooks/dc-freshness-check.js"`.
+**What people do:** Configure npm workspaces to link docs/ and root.
+**Why it's wrong:** There is no code dependency between them. Workspaces add complexity (hoisted node_modules, workspace resolution) for zero benefit.
+**Do this instead:** Treat `docs/` as a standalone project. `cd docs && npm install && npm run build`.
 
-**Why it's wrong:** `~` is a shell expansion that Claude Code's hook runner may not expand. The GSD installer uses fully resolved absolute paths. Tilde in the command string fails on some environments.
+### Anti-Pattern 4: Building Docs on Every Push
 
-**Do this instead:** Use `os.homedir()` in JavaScript and emit the fully resolved path into the command string.
+**What people do:** Trigger the deploy workflow on all pushes to main.
+**Why it's wrong:** Most commits touch skills, hooks, or templates -- not docs. Unnecessary builds waste CI minutes.
+**Do this instead:** Use `paths: ['docs/**']` filter. Include `workflow_dispatch` for manual triggers.
 
-### Anti-Pattern 3: Including .claude/ in the npm Package
+### Anti-Pattern 5: Forgetting the `base` Path
 
-**What people do:** List `.claude/` in the `files` field, shipping the local dev copies.
-
-**Why it's wrong:** The `.claude/` directory in this repo contains `settings.json` with local dev hook commands (`"node hooks/dc-freshness-check.js"` relative to the repo root). Shipping this and installing it to the user's `~/.claude/` would register broken hook paths.
-
-**Do this instead:** `files` field lists only `bin/`, `commands/`, `hooks/`, `agents/`, `rules/`, `templates/`, `README.md`. The installer reads from these source directories and writes to INSTALL_DIR with correct paths.
-
-### Anti-Pattern 4: Assuming settings.json Exists
-
-**What people do:** `JSON.parse(fs.readFileSync(settingsPath, 'utf8'))` without checking if the file exists first.
-
-**Why it's wrong:** Fresh Claude Code installs have no `settings.json`. New users will get a crash.
-
-**Do this instead:** `fs.existsSync(settingsPath) ? JSON.parse(...) : {}` — start from empty object if missing.
+**What people do:** Omit the `base` config in astro.config.mjs when deploying to a GitHub Pages project site.
+**Why it's wrong:** GitHub Pages project repos serve from `username.github.io/repo-name/`. Without `base: '/repo-name'`, all internal links and static assets resolve to the wrong URLs, producing a broken site.
+**Do this instead:** Always set `base: '/domain-context-claude'` in `docs/astro.config.mjs`.
 
 ## Build Order (Dependency-Driven)
 
 ```
-Phase 1: package.json
-         (no code dependencies; defines what gets shipped; must be correct
-          before install can be tested end-to-end with npm pack)
+Phase 1: Scaffold Starlight site
+         Create docs/ with astro.config.mjs, package.json, tsconfig.json
+         Add a placeholder index.mdx page
+         Verify: cd docs && npm install && npm run dev
          |
          v
-Phase 2: bin/install.js
-         (depends on: knowing final file paths, hook command format,
-          settings.json merge strategy)
-         (can be dev-tested without npm pack using node bin/install.js directly)
+Phase 2: GitHub Action + Pages deployment
+         Create .github/workflows/deploy-docs.yml
+         Enable GitHub Pages with Actions source in repo settings
+         Push placeholder site, verify it deploys
          |
          v
-Phase 3: README.md expansion
-         (depends on: knowing final install UX — flags, what gets installed,
-          upgrade path; documents what Phase 2 actually implements)
+Phase 3: Write documentation content
+         Author all pages: getting-started, guides, reference, concepts
+         This is the bulk of work; depends on scaffold + working dev server
+         |
+         v
+Phase 4: Polish
+         Sidebar tuning, custom landing page hero
+         Favicon/branding, final review
+         Dark/light mode and search are built-in (no work needed)
 ```
 
 **Rationale:**
-- `package.json` first: the `files` field determines what ships. Defining it first ensures bin/ and all source dirs are correctly enumerated before writing code that depends on the package layout.
-- `bin/install.js` second: the core deliverable. Can be tested locally with `node bin/install.js` before packaging.
-- README last: documents the implemented behavior. Writing docs before the behavior is final risks having to revise them.
+- Scaffold first: all content depends on having a working Starlight project
+- CI second: deploying a placeholder proves the pipeline works before investing hours in content. Discovering a CI issue after writing 10 pages is frustrating.
+- Content third: the largest effort, benefits from a working dev server for previewing
+- Polish last: iterative refinement on top of complete content
 
-**Testing approach for each phase:**
-- Phase 1: `npm pack --dry-run` to verify tarball contents
-- Phase 2: `node bin/install.js` locally, then `npm pack && npx ./domain-context-cc-*.tgz` for end-to-end
-- Phase 3: Read the README as a new user; does it answer "how do I install?" and "what happens?"
-
-**Total new/modified files:**
-- 1 new file: `package.json`
-- 1 new file: `bin/install.js`
-- 1 modified file: `README.md` (expanded install and what-gets-installed sections)
-
-## Scalability Considerations
-
-This is a file-copy installer, not a service. Scaling is not a concern. The only relevant "scale" question is: does the installer work when `~/.claude/settings.json` is very large (many existing hooks)?
-
-Answer: Yes. JSON.parse/stringify handles arbitrarily large files. The dedup check is O(n) on the number of existing hook entries — negligible at any realistic size.
+**Total new files:**
+- `docs/` directory with ~15 files (config + content pages)
+- `.github/workflows/deploy-docs.yml` (1 file)
+- Zero modifications to existing files
 
 ## Sources
 
-- `/Users/alevine/.claude/settings.json` — real global settings.json structure showing GSD hook format (absolute paths, proper array structure); HIGH confidence
-- `/Users/alevine/code/domain-context-claude/.claude/settings.json` — local dev settings.json showing local hook format (relative paths); HIGH confidence
-- `hooks/dc-freshness-check.js`, `hooks/dc-context-reminder.js` — hook file names that must be referenced in settings.json command strings; HIGH confidence
-- `commands/dc/init.md` (execution_context) — established template resolution pattern (local vs global TEMPLATE_DIR); HIGH confidence
-- `.planning/PROJECT.md` — v1.3 scope, target flags (--global, --local, --uninstall); HIGH confidence
-- `README.md` (existing) — already documents install UX; confirms CLI flag conventions; HIGH confidence
+- [Astro Starlight documentation](https://starlight.astro.build/) -- framework features, project structure, sidebar config
+- [Astro GitHub Pages deployment guide](https://docs.astro.build/en/guides/deploy/github/) -- workflow YAML, base/site config
+- [withastro/action@v5](https://github.com/withastro/action) -- official GitHub Action with `path` parameter for subdirectory builds
+- [Starlight project structure guide](https://starlight.astro.build/guides/project-structure/) -- directory conventions
+- [npm package.json `files` field](https://docs.npmjs.com/cli/v11/configuring-npm/package-json/) -- whitelist behavior for tarball exclusion
+- Existing `package.json` in this repo -- confirmed `files` whitelist pattern already excludes unlisted directories
 
 ---
-*Architecture research for: v1.3 Installation & Distribution (bin/install.js, package.json, README)*
+*Architecture research for: v1.4 Documentation Site (Starlight + GitHub Pages)*
 *Researched: 2026-03-17*
