@@ -1,300 +1,212 @@
-# Pitfalls Research
+# Domain Pitfalls
 
-**Domain:** Claude Code hooks, path-specific rules, and domain validator agent
+**Domain:** Episodic-to-semantic knowledge extraction and GSD bridge integration for domain-context-cc
 **Researched:** 2026-03-16
-**Confidence:** HIGH (hooks: official docs verified; rules frontmatter: verified against GitHub issue tracker; agents: official docs verified)
+**Confidence:** HIGH (based on direct analysis of existing codebase patterns, GSD artifact structures in this project, and established skill conventions)
 
-> **Note:** This file extends the v1.0 PITFALLS.md (skills, templates, manifest parsing).
-> It covers pitfalls specific to the v1.1 milestone: hooks, rules, and agents.
-> The v1.0 pitfalls (Pitfalls 1–7) still apply but are not repeated here.
+> **Note:** This file covers pitfalls specific to the v1.2 milestone: dc:extract skill and AGENTS.md.snippet GSD bridge.
+> The v1.0 pitfalls (1-7) and v1.1 pitfalls (8-15) still apply but are not repeated here.
 
 ---
 
 ## Critical Pitfalls
 
-### Pitfall 8: Rules `paths:` Frontmatter Is Unreliable — Use `globs:` Instead
+### Pitfall 16: Treating All Phase Artifacts as Equal Knowledge Sources
 
-**What goes wrong:**
-The official Claude Code docs describe `paths:` as the frontmatter key for scoping rules to specific file patterns. Using `paths:` with YAML array syntax (the documented form) silently fails — the rule loads globally or not at all. The `.context/` scoping is lost.
+**What goes wrong:** dc:extract naively reads every file in a phase directory (PLAN, SUMMARY, CONTEXT, RESEARCH, VALIDATION, VERIFICATION, UAT) and tries to extract domain knowledge from all of them. Plans contain speculative instructions. Summaries contain execution logs. Research contains third-party findings. Only CONTEXT.md and selected SUMMARY.md metadata contain durable domain knowledge worth promoting to .context/.
 
-**Why it happens:**
-Claude Code's internal parser for the `paths:` field is a character-by-character CSV parser that breaks when it receives a YAML array or quoted values. The documented syntax is wrong. The working syntax is the undocumented `globs:` key with comma-separated unquoted patterns. This is confirmed in GitHub issue #17204 (closed: acknowledged but not fixed as of early 2026).
+**Why it happens:** The temptation is to "be thorough" and scan everything. But GSD artifacts have different epistemological status -- a PLAN is prescriptive intent, a SUMMARY is historical record, CONTEXT.md is distilled domain insight.
 
-**How to avoid:**
-Use `globs:` with comma-separated unquoted patterns, never `paths:` with YAML array syntax:
+**Consequences:** Extractions propose dozens of low-value entries (implementation details, timing data, task lists). The user rejects most proposals, loses trust in the skill, stops using it.
 
-```yaml
----
-globs: .context/**/*.md, .context/MANIFEST.md
----
-```
+**Prevention:** Define a strict artifact hierarchy for extraction:
+1. **Primary sources:** Phase CONTEXT.md files -- specifically the `<domain>`, `<decisions>`, and `<specifics>` sections
+2. **Secondary sources:** SUMMARY.md `key-decisions` and `patterns-established` frontmatter fields
+3. **Ignore:** PLAN.md, RESEARCH.md, VALIDATION.md, VERIFICATION.md, UAT.md
 
-Do not quote the patterns. Do not use YAML array syntax. Do not use `paths:`.
-
-**Warning signs:**
-- The `.context/` rule fires on every file edit, not just `.context/` files
-- The rule never fires at all, even when editing `.context/MANIFEST.md`
-- No visible error — silent failure
-
-**Phase to address:**
-Phase implementing the path-specific rule — use `globs:` from day one.
+**Detection:** If dc:extract proposes more than 3-5 entries from a single milestone, the filter is probably too loose.
 
 ---
 
-### Pitfall 9: Rules Load on Read, Not Write — Rule Won't Fire on New File Creation
+### Pitfall 17: Duplicating Knowledge Already in .context/
 
-**What goes wrong:**
-Path-scoped rules in `.claude/rules/` trigger when Claude reads a file matching the glob pattern, not when Claude writes or creates one. If the domain-context rule is supposed to guide how Claude writes `.context/` files, it will be silently absent during `dc:add` (which creates new files via the Write tool without reading first).
+**What goes wrong:** dc:extract proposes creating a domain concept that already exists in .context/domain/ or an ADR that covers the same decision. The user sees "Add domain concept: Template Resolution" when .context/domain/integration-model.md already documents template resolution as part of the integration model.
 
-**Why it happens:**
-This is a confirmed Claude Code behavior (GitHub issue #23478, closed as NOT_PLANNED in February 2026). The rules injection is tied to the Read tool's file path, not to Write/Edit tool paths. New file creation via Write never triggers a Read, so the rule never loads.
+**Why it happens:** Cross-referencing is done by exact name match or file path only. The extraction doesn't understand semantic overlap. Phase CONTEXT.md might call something "template path resolution" while .context/ calls it "integration model."
 
-**How to avoid:**
-1. Do not rely on the path-scoped rule alone for write-time enforcement. The rule is best used as "when editing existing `.context/` files" — it will catch most real-world edits.
-2. For creation-time enforcement (e.g., ensuring new domain files include required sections), embed the requirements in the `dc:add` skill's `<process>` directly. The skill is the write-time contract; the rule is the edit-time reminder.
-3. Accept the limitation: the rule is a best-effort reminder, not a hard enforcement mechanism.
+**Consequences:** Duplicate entries clutter .context/. If user accepts without checking, MANIFEST.md gets conflicting entries. dc:validate later flags inconsistencies.
 
-**Warning signs:**
-- A newly created `.context/domain/foo.md` file violates rule conventions but no rule fired
-- Rule works perfectly when editing existing `.context/` files but not when `dc:add` creates new ones
+**Prevention:**
+1. Parse existing .context/ files fully -- read content, not just names from MANIFEST.md
+2. Present each proposal alongside the most semantically similar existing entry: "Similar to: Integration Model in .context/domain/integration-model.md"
+3. Offer "update existing" as an option alongside "create new" and "skip"
+4. Default to "update existing" when similarity is high
 
-**Phase to address:**
-Phase implementing the path-specific rule — document this limitation explicitly in the rule's frontmatter as a comment so future maintainers know why write-time enforcement lives in the skills.
+**Detection:** dc:validate's orphan check will catch structural damage, but by then the user has already done unnecessary work.
 
 ---
 
-### Pitfall 10: PostToolUse `additionalContext` Does Not Fire for MCP Tool Calls
+### Pitfall 18: Generating Spec-Noncompliant Files by Reimplementing Template Fill
 
-**What goes wrong:**
-The PostToolUse hook for CONTEXT.md reminders fires after tool execution and injects `additionalContext` into the conversation. This works for standard tools (Read, Write, Edit, Bash) but is silently ignored when the triggering tool is an MCP tool call. The reminder is never shown.
+**What goes wrong:** dc:extract creates domain concept or ADR files that don't match the Domain Context spec format. Missing required sections, wrong heading structure, no verified date, incorrect MANIFEST.md entry format.
 
-**Why it happens:**
-This is a confirmed Claude Code bug (GitHub issue #24788, reported February 2026). The `additionalContext` field from PostToolUse hooks is not surfaced when the hook was triggered by an MCP tool execution. The hook runs successfully and exits 0, but the output is discarded.
+**Why it happens:** dc:extract builds its own file generation logic instead of reusing the template-fill pattern established by dc:add. Two code paths for the same output means two places to maintain spec compliance.
 
-**How to avoid:**
-1. The dc PostToolUse hook targets standard file editing tools (Write, Edit, MultiEdit) — not MCP tools. Scope the hook with a matcher to only fire on Edit/Write/MultiEdit to avoid surprising silence in other contexts.
-2. Accept that MCP-triggered file edits will not receive CONTEXT.md reminders. Document this gap.
-3. Use the matcher field to be explicit:
-```json
-{
-  "matcher": "Edit|Write|MultiEdit"
-}
-```
+**Consequences:** dc:validate fails on files created by dc:extract. The files don't render correctly in dc:explore. User has to manually fix every extracted file.
 
-**Warning signs:**
-- Hook works in manual testing (`echo '...' | node hooks/dc-context-reminder.js`) but reminder never appears
-- Hook works when user edits with Edit tool but not after MCP tool modifies files
+**Prevention:** dc:extract MUST reuse dc:add's established patterns:
+- Same template resolution (Step 2 of dc:add)
+- Same content-to-section mapping (Step 5 of dc:add)
+- Same MANIFEST.md entry insertion (Step 11 of dc:add)
+- Same ADR auto-numbering (Step 6 of dc:add)
+- Same duplicate detection (Step 8 of dc:add)
 
-**Phase to address:**
-Phase implementing the PostToolUse hook — use the Edit|Write|MultiEdit matcher from day one to constrain scope and document the MCP limitation.
+The skill instructions should explicitly reference dc:add's step patterns rather than reimplementing them.
+
+**Detection:** Run dc:validate immediately after every dc:extract run. If any newly created files show issues, the generation path has diverged.
 
 ---
 
-### Pitfall 11: settings.json Hook Registration Clobbers Existing Hooks
+### Pitfall 19: AGENTS.md.snippet Update Breaking dc:init Idempotency
 
-**What goes wrong:**
-The installer or setup script writes the dc hooks to settings.json. If it replaces the entire `hooks` object rather than merging, it destroys existing hooks (GSD's `gsd-check-update.js` and `gsd-context-monitor.js`). The existing hooks silently vanish.
+**What goes wrong:** The agents-snippet.md template is modified to include GSD bridge content, but dc:init's sentinel detection breaks. Projects that already ran dc:init either get the snippet re-injected (double content) or never get the GSD bridge content (silent skip).
 
-**Why it happens:**
-JSON merge requires reading the existing file, merging arrays at the event level (not replacing them), and writing back. A naive write replaces the object. This is already documented in v1.0 PITFALLS.md but is especially critical for hooks because the project's own `.claude/settings.json` already has two live hooks (SessionStart: gsd-check-update, PostToolUse: gsd-context-monitor) that must coexist.
+**Why it happens:** The existing agents-snippet.md uses `<!-- domain-context:start -->` / `<!-- domain-context:end -->` sentinels. dc:init Step 7 checks: "If AGENTS.md exists and contains `<!-- domain-context:start -->`: Record status AGENTS.md: skipped." This means existing projects that already have the sentinel will NEVER receive updated snippet content, including new GSD bridge text.
 
-**How to avoid:**
-1. Before writing hooks to settings.json, read the current file.
-2. Append dc hooks to each event's `hooks` array — never replace the array.
-3. Check for existing dc hook entries before appending (idempotency).
-4. The merge pattern from `gsd-context-monitor.js` and `gsd-check-update.js` already shows the correct registration format — add dc hooks as additional objects in the same arrays.
+**Consequences:** Two classes of projects diverge: new projects (with GSD bridge) and existing projects (without). The user expects dc:init to be idempotent but also to deliver new capabilities -- these goals conflict silently.
 
-**Warning signs:**
-- After adding dc hooks, GSD context warnings stop appearing
-- `gsd-check-update.js` no longer fires on session start
-- settings.json has only dc hooks (no GSD hooks)
+**Prevention:**
+1. Add a version marker inside the sentinel block: `<!-- dc-snippet-v2 -->` (the current template is implicitly v1)
+2. dc:init Step 7 should check sentinel presence AND version, not just sentinel presence
+3. If sentinel present but version outdated: replace the entire block between sentinels with new content, record status "AGENTS.md: updated"
+4. If sentinel present and version current: skip as before
+5. The GSD bridge content goes INSIDE the existing sentinel block, not as a separate template file
 
-**Phase to address:**
-Phase implementing the hooks registration — write idempotent merge logic first, test on the existing settings.json.
+**Detection:** Run dc:init on a project initialized with v1.0/v1.1 templates. Second run should detect outdated snippet and offer update. Run dc:init twice on a fresh project -- second run should report "skipped."
 
 ---
 
-### Pitfall 12: Agent System Prompt Does Not Inherit Parent Context — Must Be Self-Contained
+## Moderate Pitfalls
 
-**What goes wrong:**
-The domain validator agent's markdown body becomes its entire system prompt. It does NOT inherit the parent session's CLAUDE.md, skills, or context. If the agent body says "validate against the Domain Context spec" without including what the spec requires, the agent makes up validation rules or uses stale training data.
+### Pitfall 20: Rigid GSD Artifact Format Expectations
 
-**Why it happens:**
-Subagent system prompts are isolated — the agent receives only its own markdown body plus basic environment details (working directory). The official docs confirm: "Subagents receive only this system prompt (plus basic environment details like working directory), not the full Claude Code system prompt." The parent conversation's CLAUDE.md is invisible.
+**What goes wrong:** dc:extract assumes all GSD phase artifacts follow the exact format seen in this project's .planning/ directory. Real-world GSD projects may have different phase naming, different CONTEXT.md section names, missing XML-like tags, or older GSD versions with different artifact structures.
 
-**How to avoid:**
-1. The domain validator agent must be fully self-contained. Either inline the critical validation rules (what sections are required, what formats are valid) or use the `skills:` frontmatter field to preload relevant skills into the agent's context.
-2. Use `skills: [dc-validation-rules]` if the rules are packaged as a skill. Otherwise inline them directly in the agent body.
-3. Do not use `@path` references to load external files from the agent body — `@` imports work in CLAUDE.md but agents use standard `Read` tool calls to load files at runtime.
-
-**Warning signs:**
-- Agent validates `.context/` files correctly for formats described in its body but ignores rules from CLAUDE.md
-- Agent hallucinates validation rules not present in its system prompt
-- Agent behavior changes between sessions (training data variance instead of spec-derived rules)
-
-**Phase to address:**
-Phase implementing the domain validator agent — write the agent body as a completely standalone spec for validation behavior.
+**Prevention:** Parse defensively. Look for the section tags (`<domain>`, `<decisions>`, `<specifics>`, `<deferred>`) but handle their absence gracefully. If a CONTEXT.md doesn't have the expected sections, fall back to treating the whole file as unstructured text and present it to the user for manual categorization. Never produce empty output because a section tag is missing.
 
 ---
 
-### Pitfall 13: Subagents Cannot Spawn Other Subagents — Validator Cannot Delegate
+### Pitfall 21: Proposing Too Many Entries at Once
 
-**What goes wrong:**
-If the domain validator agent tries to spawn a sub-subagent (e.g., to check a specific file type), the spawn silently fails or errors. The agent hangs or skips the delegation step without reporting the failure.
+**What goes wrong:** A milestone with 9+ phases produces dozens of potential extractions. dc:extract dumps them all in a single list. The user is overwhelmed and either accepts all (creating noise) or rejects all (wasting the extraction).
 
-**Why it happens:**
-This is a hard Claude Code constraint confirmed in official docs: "Subagents cannot spawn other subagents." An agent spawned from a skill cannot itself spawn agents. The validator must do all its work in a single agent turn without delegation.
-
-**How to avoid:**
-Design the validator as a single-agent workflow. All validation steps (read MANIFEST.md, check file existence, check freshness dates, check required sections) must happen in the agent's own execution using its allowed tools (Read, Glob, Grep). Do not design workflows that require nested delegation.
-
-**Warning signs:**
-- Agent silently skips validation steps that were supposed to be delegated
-- Agent hits `maxTurns` limit because it loops waiting for a sub-delegation that never returns
-
-**Phase to address:**
-Phase implementing the domain validator agent — structure the agent's process as a single linear workflow.
+**Prevention:** Group proposals by type (domain concepts, decisions, constraints). Show counts first: "Found 4 potential domain concepts, 3 decisions, 1 constraint." Let the user process one type at a time. For each proposal, show a one-line summary and the source phase -- not the full content until the user selects "preview."
 
 ---
 
-### Pitfall 14: Hook stdin Timeout Guard Is Required — Missing It Causes "Hook Error" Reports
+### Pitfall 22: Not Handling "No .planning/ Directory" Case
 
-**What goes wrong:**
-Without a stdin timeout guard (3-second timer that calls `process.exit(0)`), the hook hangs indefinitely if the stdin pipe has issues (e.g., on Windows/Git Bash, or if Claude Code's pipe implementation changes). Claude Code kills the hung process and reports "hook error" in the UI, which the user sees as a red warning on every session start or tool use.
+**What goes wrong:** User runs dc:extract on a project that doesn't use GSD. The skill either crashes, shows a confusing error, or silently does nothing.
 
-**Why it happens:**
-This is inherited from Pitfall 7 in the v1.0 research but is critical enough to repeat for hooks added in v1.1. The GSD `gsd-context-monitor.js` hook already implements the correct pattern. The dc hooks must copy it exactly.
-
-**How to avoid:**
-Copy this boilerplate verbatim at the top of every hook script:
-```javascript
-let input = '';
-const stdinTimeout = setTimeout(() => process.exit(0), 3000);
-process.stdin.setEncoding('utf8');
-process.stdin.on('data', chunk => input += chunk);
-process.stdin.on('end', () => {
-  clearTimeout(stdinTimeout);
-  try {
-    const data = JSON.parse(input);
-    // ... hook logic ...
-  } catch (e) {
-    process.exit(0); // Silent fail — never block
-  }
-});
-```
-
-All debug output goes to `console.error()`, never `console.log()`.
-
-**Warning signs:**
-- "Hook error" or "hook timed out" appears in Claude Code UI on session start
-- Hook works in manual testing (`echo '{}' | node hook.js`) but fails in Claude Code
-
-**Phase to address:**
-Both hook phases — use the boilerplate from the first line of the first hook written.
+**Prevention:** Check for .planning/ existence as Step 1. If absent: "No .planning/ directory found. dc:extract works with GSD planning artifacts. Use /dc:add to create entries manually." This matches the guard pattern used by every other dc:* skill (check .context/ first, bail with helpful message if missing).
 
 ---
 
-### Pitfall 15: SessionStart Hook Receives No `.context/` Path — Must Discover It
+### Pitfall 23: Cross-Reference Ignoring .context.local/
 
-**What goes wrong:**
-The SessionStart hook receives `session_id` and `cwd` in its JSON input. It does not receive the path to `.context/MANIFEST.md`. If the hook hardcodes `path.join(cwd, '.context/MANIFEST.md')`, it works for standard projects but fails silently for projects where `.context/` is not in the root (e.g., monorepo subdirectories).
+**What goes wrong:** dc:extract cross-references proposals against .context/MANIFEST.md but forgets to also check .context.local/MANIFEST.md. A domain concept that exists as a private entry gets proposed again as a public entry.
 
-**Why it happens:**
-The hook's only location signal is `cwd`. Projects may run Claude Code from a subdirectory while `.context/` is in a parent. The hook must either (a) accept that it only handles the standard case (`.context/` in `cwd`) or (b) walk up the directory tree to find `.context/`.
-
-**How to avoid:**
-1. For v1.1, accept the standard case: look for `.context/MANIFEST.md` relative to `cwd`. If not found, exit silently (no error, no warning).
-2. Do not walk the directory tree — that adds complexity with unclear stopping conditions.
-3. The hook's contract: "If this project has `.context/MANIFEST.md` in its working directory, check freshness. Otherwise, do nothing."
-
-**Warning signs:**
-- Hook warns about stale context in projects that don't use Domain Context
-- Hook silently fails in monorepo subdirectory setups
-
-**Phase to address:**
-Phase implementing the SessionStart hook — the "not found → exit silently" path must be the first thing implemented and tested.
+**Prevention:** Cross-reference against both .context/ and .context.local/ manifests. dc:add already handles the public/private distinction -- dc:extract must follow the same dual-manifest awareness. When a match is found in .context.local/, note it: "Similar private entry exists: [name]."
 
 ---
 
-## Technical Debt Patterns
+### Pitfall 24: Milestone vs Phase Directory Structure Confusion
 
-| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
-|----------|-------------------|----------------|-----------------|
-| Using `paths:` frontmatter (documented format) | Follows official docs | Rule never triggers correctly; silent failure | Never — use `globs:` from the start |
-| Omitting matcher from PostToolUse hook | Hook runs on all tool use | Fires on every tool call including bash reads; CONTEXT.md reminder is spammy | Never — matcher is essential for PostToolUse hooks |
-| Relying on rule for write-time enforcement | Simpler than embedding in skill | New files bypass rule silently (rules only trigger on Read) | Never — dc:add skill must carry write-time requirements |
-| Registering hooks by replacing settings.json hooks object | Simpler code | Destroys GSD hooks and any other registered hooks | Never — always merge |
-| Agent body that references external spec without inlining it | Smaller agent file | Agent uses training data for spec rules instead of actual spec; nondeterministic | Never — agent must be self-contained |
-| Debounce skipped in PostToolUse hook | Simpler implementation | CONTEXT.md reminder fires on every single Edit tool call during dc:add (which calls Edit multiple times) | Only acceptable if reminder rate is tested and not annoying |
+**What goes wrong:** dc:extract looks for phases in .planning/phases/ but this project uses .planning/milestones/v1.0-phases/ for older milestones and .planning/phases/ for newer ones. The extraction misses completed phases or conflates knowledge from different milestones.
+
+**Prevention:** Support both directory patterns:
+- `.planning/phases/` (single-milestone or current milestone)
+- `.planning/milestones/{name}-phases/` (multi-milestone projects)
+
+Accept a milestone parameter or auto-detect. If multiple milestones are found, ask the user which to extract from. Never silently merge knowledge from different milestones -- each milestone may have contradictory decisions where only the latest applies.
 
 ---
 
-## Integration Gotchas
+### Pitfall 25: Losing Source Attribution
 
-| Integration | Common Mistake | Correct Approach |
-|-------------|----------------|------------------|
-| settings.json hook arrays | Replacing `hooks.PostToolUse` array with a new array containing only dc hooks | Read settings.json → find `hooks.PostToolUse` array → push dc hook object → write back |
-| PostToolUse matcher | Omitting `matcher` field entirely | Use `"matcher": "Edit\|Write\|MultiEdit"` to prevent CONTEXT.md reminders on Bash/Read calls |
-| `globs:` frontmatter | Using `paths:` with quoted strings or YAML arrays | `globs: .context/**/*.md` — unquoted, comma-separated if multiple patterns |
-| Agent `tools:` field | Omitting `tools:` so validator agent inherits all tools including Write/Edit | Explicitly set `tools: Read, Glob, Grep` for a read-only validator — principle of least privilege |
-| Agent `skills:` field | Expecting inherited skills from parent conversation | Skills do NOT inherit — must be listed explicitly in agent's `skills:` frontmatter |
-| SessionStart hook `source` field | Not checking `source` field; running freshness check on every source type | Check `data.source` — may want to skip `compact` or `clear` sources if freshness was already checked recently |
+**What goes wrong:** dc:extract creates .context/ files but doesn't record where the knowledge came from. Six months later, someone questions an ADR and has no way to trace it back to the GSD phase that produced the decision.
+
+**Prevention:** Add a source comment in extracted files: `<!-- Extracted from .planning/milestones/v1.0-phases/07-add/07-CONTEXT.md on 2026-03-16 -->`. This is a comment (not a spec-required field) so it won't break spec compliance or dc:validate. It provides traceability without cluttering visible content.
+
+---
+
+## Minor Pitfalls
+
+### Pitfall 26: Template Token Collision with GSD Artifact Content
+
+**What goes wrong:** GSD artifacts contain literal `{placeholder}` text (this project documents its own template system with actual `{placeholder}` examples). When dc:extract reads these artifacts and passes content through template filling, the literal tokens get replaced or cause errors.
+
+**Prevention:** dc:extract should extract content as-is and only apply template tokens to the template structure (headings, metadata). Content from GSD artifacts goes into template section bodies verbatim -- never run token replacement on user content.
+
+---
+
+### Pitfall 27: MANIFEST.md Position Drift During Batch Insert
+
+**What goes wrong:** dc:extract adds multiple entries to MANIFEST.md in a single run but inserts them at the wrong position. Each insertion shifts line numbers, so the second insertion uses stale position data.
+
+**Prevention:** Insert entries one type at a time. After inserting all entries for one section (e.g., Domain Concepts), re-read MANIFEST.md before inserting entries for the next section (e.g., Architecture Decisions). Use the same insertion logic as dc:add: append to section, before next `##` header.
+
+---
+
+### Pitfall 28: The "Extract Everything" Anti-Pattern
+
+**What goes wrong:** The user expects dc:extract to automatically extract all knowledge from all phases. The skill tries to be fully automatic, produces mediocre results, and the user doesn't review them carefully.
+
+**Prevention:** The integration model's Business Rule 3 already states: "Knowledge extraction from .planning/ to .context/ MUST be an explicit user-initiated step (not automatic)." Extend this to mean each individual extraction proposal requires user approval. Design dc:extract as a proposal-and-review workflow, not a batch processor. Never auto-accept.
+
+---
+
+## Phase-Specific Warnings
+
+| Phase Topic | Likely Pitfall | Mitigation |
+|-------------|---------------|------------|
+| Artifact parsing logic | P16: Wrong artifact hierarchy, P20: Rigid format expectations | Parse only CONTEXT.md and SUMMARY.md frontmatter; handle missing XML tags gracefully |
+| Cross-reference engine | P17: Semantic duplicates, P23: Missing .context.local/ | Read .context/ file content (not just names); check both manifests |
+| Proposal generation UX | P21: Overwhelming lists, P28: Extract-everything anti-pattern | Group by type, require per-proposal approval, show source phase |
+| Template fill for extracted files | P18: Spec noncompliance, P26: Token collision | Reuse dc:add's template logic; never run token replacement on user content |
+| AGENTS.md.snippet update | P19: Idempotency breakage | Add version marker; modify existing template; test on pre-existing projects |
+| Directory discovery | P22: No .planning/, P24: Milestone structure confusion | Guard check as Step 1; support both directory patterns; ask which milestone |
+| Attribution and traceability | P25: Lost source chain | Add source comment to extracted files |
+| MANIFEST.md updates | P27: Position drift in batch insert | Re-read MANIFEST.md between section insertions |
 
 ---
 
 ## "Looks Done But Isn't" Checklist
 
-- [ ] **SessionStart hook:** Often missing the "no .context/ found → exit silently" path — verify hook does not error or warn in non-domain-context projects
-- [ ] **SessionStart hook:** Often missing stdin timeout guard — verify `echo '{"session_id":"test","cwd":"/tmp"}' | node hooks/dc-freshness-check.js` exits cleanly within 3 seconds
-- [ ] **PostToolUse hook:** Often missing matcher — verify hook only fires on Edit/Write/MultiEdit, not on every Bash or Read call
-- [ ] **PostToolUse hook:** Often uses `console.log()` for debug output — verify all debug output goes to `console.error()`
-- [ ] **Path-specific rule:** Often uses `paths:` frontmatter — verify rule uses `globs:` key and fires correctly on `.context/MANIFEST.md` edits
-- [ ] **Path-specific rule:** Often assumed to fire on file creation — verify dc:add skill carries write-time requirements independently
-- [ ] **Domain validator agent:** Often missing self-contained validation spec — verify agent body alone (without CLAUDE.md or parent context) is sufficient to validate correctly
-- [ ] **Domain validator agent:** Often not constrained to read-only tools — verify `tools: Read, Glob, Grep` is set and Write/Edit are not accessible
-- [ ] **Hook registration:** Often replaces hooks object — verify settings.json after adding dc hooks still contains GSD hooks (`gsd-check-update.js`, `gsd-context-monitor.js`)
-
----
-
-## Recovery Strategies
-
-| Pitfall | Recovery Cost | Recovery Steps |
-|---------|---------------|----------------|
-| Wrong `paths:` frontmatter (rule never fires) | LOW | Change `paths:` to `globs:` with unquoted comma-separated values; no other changes needed |
-| Rule fires globally (no path scoping) | LOW | Add correct `globs:` frontmatter; verify with InstructionsLoaded hook event if debugging is needed |
-| settings.json clobbered (GSD hooks lost) | MEDIUM | Restore settings.json from git; fix hook registration to merge rather than replace; re-register |
-| Agent not self-contained (uses training data for rules) | MEDIUM | Audit agent body against actual spec; inline required sections; re-test with fresh session to verify spec compliance |
-| PostToolUse spammy (no matcher) | LOW | Add `"matcher": "Edit\|Write\|MultiEdit"` to hook registration in settings.json |
-| Hook blocking sessions (no timeout guard, no exit 0) | LOW | Add timeout guard boilerplate; verify with manual pipe test; re-register |
-
----
-
-## Pitfall-to-Phase Mapping
-
-| Pitfall | Prevention Phase | Verification |
-|---------|------------------|--------------|
-| `globs:` vs `paths:` frontmatter (P8) | Phase: path-specific rule | Manually edit `.context/MANIFEST.md`; verify rule fires. Edit unrelated file; verify rule does not fire. |
-| Rules load on Read not Write (P9) | Phase: path-specific rule | Run `dc:add` to create a new domain concept; verify dc:add skill enforces format independently of rule |
-| PostToolUse additionalContext skipped for MCP (P10) | Phase: PostToolUse hook | Test hook with Edit tool (should fire); note MCP limitation in comments |
-| settings.json merge safety (P11) | Phase: hook registration | After registration, verify settings.json contains both GSD hooks and dc hooks |
-| Agent not self-contained (P12) | Phase: domain validator agent | Create fresh session with no CLAUDE.md loaded; run agent; verify correct behavior |
-| Subagents cannot spawn subagents (P13) | Phase: domain validator agent | Design agent as single-turn workflow; test `maxTurns` ceiling |
-| Missing stdin timeout guard (P14) | Both hook phases | `echo '{}' \| node hook.js` completes within 3 seconds; hook exits 0 on malformed input |
-| SessionStart cwd-only discovery (P15) | Phase: SessionStart hook | Test hook in project without `.context/` — verify silent exit, not error |
+- [ ] **dc:extract artifact filter:** Verify only CONTEXT.md and SUMMARY.md frontmatter are parsed -- not PLAN.md, RESEARCH.md, VALIDATION.md, VERIFICATION.md
+- [ ] **dc:extract duplicate detection:** Create a .context/domain/ file, then run extract on a phase that covers the same topic -- verify "similar to" is shown, not a blind "create new" proposal
+- [ ] **dc:extract template reuse:** Verify extracted files pass dc:validate with zero issues (same format as dc:add output)
+- [ ] **dc:extract on project without .planning/:** Verify helpful error message, not crash or silent nothing
+- [ ] **dc:extract milestone detection:** Test against .planning/phases/ AND .planning/milestones/*-phases/ -- both must work
+- [ ] **dc:extract batch insert:** Extract 3+ entries of the same type -- verify MANIFEST.md entries appear in correct positions without overwriting each other
+- [ ] **AGENTS.md.snippet versioning:** Run dc:init on a project with v1.0/v1.1 snippet -- verify GSD bridge content is added without duplicating existing content
+- [ ] **AGENTS.md.snippet idempotency:** Run dc:init twice on fresh project -- verify second run shows "skipped" for AGENTS.md
+- [ ] **Token collision:** Run dc:extract on this project's own .planning/ (which contains literal `{placeholder}` text) -- verify tokens in content are preserved verbatim
 
 ---
 
 ## Sources
 
-- Official Claude Code hooks documentation: https://code.claude.com/docs/en/hooks (verified 2026-03-16) — hook event schema, output fields, exit code semantics, PostToolUse MCP limitation
-- Official Claude Code subagents documentation: https://code.claude.com/docs/en/sub-agents (verified 2026-03-16) — frontmatter fields, tool inheritance, context isolation, no-subagent-spawning constraint
-- Official Claude Code memory/rules documentation: https://code.claude.com/docs/en/memory (verified 2026-03-16) — rules load behavior, path-scoped rules, `paths:` vs `globs:`
-- GitHub issue #17204: `globs:` works, `paths:` with YAML array/quotes fails (confirmed, not fixed)
-- GitHub issue #23478: Rules only load on Read tool, not Write/Create (confirmed, closed NOT_PLANNED, Feb 2026)
-- GitHub issue #24788: PostToolUse `additionalContext` not surfaced for MCP tool calls (confirmed, Feb 2026)
-- GSD hook pattern: `/Users/alevine/code/domain-context-claude/.claude/hooks/gsd-context-monitor.js` — stdin timeout guard, try/catch exit(0), JSON output pattern
-- Project settings.json: `/Users/alevine/code/domain-context-claude/.claude/settings.json` — existing hook registration format to coexist with
+- Direct analysis of commands/dc/add.md: template fill pattern, MANIFEST.md insertion, ADR numbering (steps 2, 5, 6, 8, 11)
+- Direct analysis of commands/dc/validate.md: cross-reference and entry parsing patterns
+- Direct analysis of commands/dc/init.md: AGENTS.md sentinel detection (Step 7), idempotency contract
+- Direct analysis of templates/agents-snippet.md: sentinel comment pattern (`<!-- domain-context:start/end -->`)
+- GSD artifact structure analysis: .planning/milestones/v1.0-phases/ and .planning/phases/ directory layouts
+- Phase CONTEXT.md structure analysis: XML-like section tags (`<domain>`, `<decisions>`, `<specifics>`, `<deferred>`, `<code_context>`)
+- SUMMARY.md frontmatter analysis: `key-decisions`, `patterns-established` fields
+- Integration model (.context/domain/integration-model.md): Business Rule 3 on explicit extraction
+- PROJECT.md: v1.2 milestone scope and constraints
 
 ---
-*Pitfalls research for: Claude Code hooks, rules, and agent (v1.1 milestone)*
+*Pitfalls research for: dc:extract and AGENTS.md.snippet GSD bridge (v1.2 milestone)*
 *Researched: 2026-03-16*

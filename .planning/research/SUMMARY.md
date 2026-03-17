@@ -1,17 +1,19 @@
 # Project Research Summary
 
-**Project:** domain-context-cc v1.1 — Passive Claude Code Integrations (Hooks, Rules, Agent)
-**Domain:** Claude Code extension development — hooks, path-scoped rules, and custom subagents
+**Project:** domain-context-cc v1.2 — GSD Integration (dc:extract + AGENTS.md GSD bridge)
+**Domain:** Claude Code skill extension — episodic-to-semantic knowledge extraction
 **Researched:** 2026-03-16
 **Confidence:** HIGH
 
 ## Executive Summary
 
-This milestone adds passive, automatic integrations to the existing `domain-context-cc` skill project. Where v1.0 built five user-invoked skills (`dc:init`, `dc:explore`, `dc:validate`, `dc:add`, `dc:refresh`), v1.1 adds four components that work without user invocation: a SessionStart hook that warns when domain context entries are stale, a PostToolUse hook that reminds about CONTEXT.md updates when editing nearby files, a path-scoped rule that injects Domain Context spec guidance when editing `.context/` files, and a read-only domain validator agent that checks code against documented business rules. These are additive — the v1.0 skill layer is entirely unchanged, and no existing files are modified except for two appended entries in `settings.json`.
+This milestone adds two tightly scoped deliverables to an existing, well-tested codebase: a `dc:extract` skill that converts completed GSD planning artifacts into permanent `.context/` domain entries, and a `gsd-agents-snippet.md` template that wires GSD awareness into any project's `AGENTS.md` at init time. There is no new technology, no new dependencies, and no new architectural patterns — everything reuses conventions established in v1.0 and v1.1. The core engineering challenge is not building new infrastructure; it is writing clear enough skill instructions that the LLM correctly classifies "durable domain knowledge" vs. "ephemeral build noise" when reading `.planning/` artifacts.
 
-The recommended approach is well-established within this codebase. All four new components follow patterns already present: hooks copy the `gsd-context-monitor.js` boilerplate verbatim (stdin timeout guard, JSON parse, try/catch, exit 0 on any error), the agent mirrors the `gsd-verifier.md` format, and the rule uses path-scoped frontmatter for zero-overhead delivery. The technology is exclusively Node.js built-ins plus Claude Code's existing extension contracts — no new runtime dependencies. The most complex component is the domain validator agent, which requires a fully self-contained system prompt that cannot rely on inheriting any parent session context.
+The recommended approach is to build in dependency order: template first, dc:init modification second, dc:extract last. This order is supported by the v1.0 retrospective lesson ("template-first prevents circular dependencies") and ensures the full GSD integration story (init with GSD awareness → plan phases → extract knowledge) can be tested end-to-end before the milestone closes. dc:extract must explicitly reuse dc:add's established patterns for template resolution, file creation, MANIFEST.md registration, and ADR numbering — reimplementing any of these is the primary risk for spec noncompliance.
 
-The key risks are all known and avoidable. The most critical: use `globs:` not `paths:` in the rule frontmatter — the documented `paths:` format silently fails (confirmed GitHub issue #17204). The second critical risk: hook registration in `settings.json` must merge into existing arrays, never replace them, to preserve GSD's live hooks. Everything else is applying established boilerplate correctly. Total new file count is four source files plus one `settings.json` edit.
+The key risks are: (1) over-eager extraction proposing low-value entries from the wrong artifact types, mitigated by a strict source hierarchy (CONTEXT.md `<decisions>` and `<domain>` sections first, SUMMARY.md `key-decisions` frontmatter second, everything else ignored); (2) duplicate proposals against existing `.context/` entries, mitigated by semantic cross-referencing before presenting any proposal; and (3) dc:init idempotency breakage when the AGENTS.md snippet gains new GSD content, mitigated by adding a version marker inside the sentinel block and replacing stale blocks on re-run.
+
+---
 
 ## Key Findings
 
@@ -19,165 +21,144 @@ The key risks are all known and avoidable. The most critical: use `globs:` not `
 
 See full details: `.planning/research/STACK.md`
 
-The entire v1.1 milestone uses Node.js built-ins only — `fs`, `path`, `os`, `process.stdin`, `process.stdout`. No new packages. Claude Code's hook contract (JSON on stdin, `hookSpecificOutput.additionalContext` on stdout) is verified against official docs and live GSD hooks in the repo. Agent and rule formats are verified against both official docs and working examples in `.claude/agents/` and `.claude/rules/`.
+This milestone adds zero new technologies. The existing stack — Claude Code skill format (YAML frontmatter + `<objective>/<execution_context>/<process>` sections), `{placeholder}` markdown templates, Node.js built-ins, and zero npm dependencies — fully supports both deliverables. `dc:extract` is a skill (markdown instructions), not a hook (Node.js script). The LLM is the runtime: it uses `Read`, `Glob`, `Grep`, `Write`, `Edit`, and `AskUserQuestion` tools — the same set as dc:add plus `Grep` for content searching across `.planning/` artifacts. `gsd-agents-snippet.md` is static markdown with `<!-- gsd-bridge:start/end -->` sentinels and no placeholders.
 
 **Core technologies:**
-- Node.js >= 20 LTS: Hook scripts — zero runtime dependencies, built-ins sufficient
-- Claude Code hooks contract (2026): stdin/stdout JSON protocol for SessionStart and PostToolUse events — verified against official docs and working GSD hooks
-- Claude Code agents format (2026): YAML frontmatter (`name`, `description`, `tools`, `model`) + markdown system prompt body — verified against `gsd-verifier.md`
-- Claude Code rules format (2026): Markdown with `globs:` YAML frontmatter (NOT `paths:`) for lazy path-triggered loading
-
-**Critical version note:** Rules frontmatter uses `globs:` key with unquoted comma-separated patterns. The documented `paths:` key silently fails (GitHub issue #17204, unresolved as of early 2026).
+- Claude Code skill format (current 2026): `dc:extract` skill definition — same YAML frontmatter and process section pattern as all 5 existing skills
+- Markdown templates with sentinel comments: `gsd-agents-snippet.md` — same `{placeholder}` + sentinel pattern established in v1.0; new `<!-- gsd-bridge:start/end -->` sentinel pair independent of existing domain-context sentinels
+- Node.js >= 20 LTS: no new JS code in this milestone; constraint preserved for future hooks
 
 ### Expected Features
 
 See full details: `.planning/research/FEATURES.md`
 
-All four v1.1 features are table stakes for the milestone to feel complete — partial delivery devalues it.
-
 **Must have (table stakes):**
-- SessionStart freshness hook — stale context causes silent errors; surface at session start before work begins
-- PostToolUse CONTEXT.md reminder with debounce — closes the doc/code gap at the moment of editing; once-per-directory-per-session to prevent noise
-- Path-scoped rule for `.context/` editing — injects spec awareness exactly when Claude edits context files, zero cost otherwise
-- Domain validator agent (read-only) — checks code against `.context/domain/` business rules; Read, Grep, Glob only
+- Scan `.planning/` for extractable artifacts (CONTEXT.md, SUMMARY.md, RETROSPECTIVE.md) — core input step; without it no extraction is possible
+- Identify and classify durable domain concepts, ADR candidates, and constraints — the primary value proposition; must distinguish business rules from build notes
+- Cross-reference proposals against existing `.context/` to avoid duplicates — without this the user faces redundant proposals and loses trust
+- Preview each proposal individually before writing — spec Section 8.4 and integration-model Business Rule 3 mandate explicit user approval; no auto-creation
+- Create `.context/` files using existing templates and update MANIFEST.md — same output path as dc:add; must produce spec-compliant output
+- Handle missing `.planning/` gracefully with helpful guidance — consistent with guard patterns across all dc:* skills
+- GSD bridge text in `agents-snippet.md` injected by dc:init — wires "Why feeds The What" for all new projects
 
-**Differentiators (ship with table stakes):**
-- Edit-proximity awareness in PostToolUse — reminder only fires when a CONTEXT.md actually exists nearby, making it highly relevant rather than generic
-- Business rule extraction in agent — reads documented domain concepts and translates them into verification checks against code; closes the documentation-to-enforcement loop
+**Should have (differentiators):**
+- Intelligent knowledge classification: distinguish business rules and domain invariants from implementation details and build notes — the hard classification problem that makes extraction useful rather than noisy
+- Constraint extraction from planning artifacts — less common but high-value when found
+- Batch proposal UX: group by type (domain concepts, decisions, constraints), show counts first, allow per-entry review
+- Source attribution: cite which `.planning/` artifact each proposal came from for traceability
+- Semantic deduplication: flag conceptual overlap with existing entries even when names differ
 
 **Defer (v2+):**
-- GSD dc:extract skill — extracts `.planning/` artifacts to `.context/` at phase completion
-- npm installer automation — currently manual file copy; automate in a future milestone
-- MCP server — deferred by ADR-003; file-based approach is sufficient
-
-**Do not build:**
-- Auto-update verified dates in hooks — silent manifest mutation is surprising; staleness requires human judgment
-- Block tool use when context is stale (exit 2) — hooks must never block per project constraint
-- Write tool access for domain validator agent — validator reports, it does not fix
+- Phase-scoped extraction (`/dc:extract phases 7-9`) — "scan all completed phases" is sufficient for v1.2
+- CONTEXT.md update suggestions for module-scoped findings — adds a second output path beyond `.context/` entries; reserve for v1.3
 
 ### Architecture Approach
 
 See full details: `.planning/research/ARCHITECTURE.md`
 
-The four new components form three new layers beneath the existing active skill layer: a passive layer (two hooks that fire automatically on session events), a contextual layer (path-triggered rule), and an on-demand layer (domain validator agent). Each layer is fully independent — hooks do not call agents, rules do not call skills, the agent is invoked only on demand. All components operate on the target project's `.context/` directory. The project itself remains configuration-only: no hooks modify source files, and the components make no changes to the v1.0 skill layer.
+v1.2 adds two components to the existing layered architecture without modifying any v1.0 or v1.1 artifacts (skills, hooks, agents, rules) except for a single sub-step added to dc:init Step 7. The new `gsd-agents-snippet.md` template uses independent sentinels (`<!-- gsd-bridge:start/end -->`) distinct from the existing domain-context sentinels, enabling independent lifecycle management. `dc:extract` follows the Scan-Propose-Confirm pattern: discover `.planning/` artifacts, read existing `.context/` for dedup context, cross-reference to identify gaps, present grouped proposals, and create files using dc:add's template fill and MANIFEST.md registration logic for spec compliance.
 
 **Major components:**
-1. `hooks/dc-freshness-check.js` — SessionStart; reads MANIFEST.md, emits advisory warning for entries > 90 days old
-2. `hooks/dc-context-reminder.js` — PostToolUse (Write/Edit/MultiEdit matcher); checks for CONTEXT.md near edited file, emits debounced advisory reminder
-3. `rules/domain-context.md` — Path-scoped rule; injects Domain Context spec guidance when editing `.context/**` or `**/CONTEXT.md`
-4. `agents/domain-validator.md` — Read-only subagent; reads `.context/domain/` files, checks code for business rule violations
-
-**Build order** (dependency-driven): SessionStart hook → PostToolUse hook → settings.json update → path-scoped rule → domain validator agent
+1. `templates/gsd-agents-snippet.md` — static GSD bridge template; injected by dc:init when GSD is detected (`.planning/PROJECT.md` exists or user confirms); uses `<!-- gsd-bridge:start/end -->` sentinels for idempotency; no placeholders
+2. `commands/dc/init.md` (modified Step 7b) — gains conditional GSD snippet injection sub-step; only change to an existing file in this milestone
+3. `commands/dc/extract.md` — new skill; reads `.planning/` artifacts (CONTEXT.md and SUMMARY.md frontmatter only), cross-references `.context/`, proposes domain concepts/ADRs/constraints grouped by type, creates files and updates MANIFEST.md reusing dc:add patterns
 
 ### Critical Pitfalls
 
 See full details: `.planning/research/PITFALLS.md`
 
-1. **`globs:` not `paths:` in rule frontmatter** — `paths:` silently fails (wrong internal parser, GitHub #17204). Use `globs: .context/**/*.md` with unquoted comma-separated patterns. No YAML array syntax, no quoted strings.
+1. **Treating all phase artifacts as equal knowledge sources** — Only `CONTEXT.md` (`<domain>`, `<decisions>`, `<specifics>` sections) and `SUMMARY.md` (`key-decisions`, `patterns-established` frontmatter) are primary sources. `PLAN.md`, `RESEARCH.md`, `VALIDATION.md`, `VERIFICATION.md` must be ignored or they flood the user with low-value proposals and erode trust in the skill.
 
-2. **settings.json hook registration clobbers existing hooks** — Must read existing `settings.json`, append dc hooks to existing event arrays, and write back. Replacing the hooks object destroys GSD's live hooks. Verify settings.json contains both GSD and dc hooks after every registration change.
+2. **Reimplementing template fill instead of reusing dc:add patterns** — dc:extract must explicitly follow dc:add Steps 2, 5, 6, 8, and 11 for template resolution, content-to-section mapping, ADR numbering, duplicate detection, and MANIFEST.md registration. Any divergence produces spec-noncompliant files that fail dc:validate.
 
-3. **Agent system prompt is not inherited — must be self-contained** — The domain validator receives only its own markdown body as context. CLAUDE.md, parent session skills, and conversation history are invisible. Inline all validation rules directly in the agent body.
+3. **Breaking dc:init idempotency with the AGENTS.md snippet update** — The existing sentinel (`<!-- domain-context:start/end -->`) causes dc:init to silently skip already-initialized projects, so new GSD bridge content never reaches them. Add a version marker (`<!-- dc-snippet-v2 -->`) inside the sentinel block; dc:init Step 7 must check version and replace the block when outdated.
 
-4. **Rules only trigger on Read tool, not Write/Create** — Path-scoped rules load when Claude reads matching files, not when it creates them. New `.context/` files created via `dc:add` bypass the rule entirely (GitHub #23478, closed NOT_PLANNED). Write-time requirements must live in the `dc:add` skill directly (already done in v1.0).
+4. **Semantic duplicate proposals** — Name-only dedup against MANIFEST.md is insufficient. dc:extract must read existing `.context/` file content to flag conceptual overlap, offering "update existing" (via dc:refresh) as an option alongside "create new" and "skip."
 
-5. **Missing stdin timeout guard causes "hook error" UI warnings** — Without a 3-second timeout guard calling `process.exit(0)`, pipe issues produce visible red errors in Claude Code's UI. Copy the boilerplate from `gsd-context-monitor.js` verbatim; do not improvise.
+5. **Milestone directory structure confusion** — This project uses both `.planning/phases/` (current milestone) and `.planning/milestones/{name}-phases/` (archived). dc:extract must support both patterns and ask the user which milestone to extract from when multiple are present, rather than silently merging potentially contradictory decisions.
+
+---
 
 ## Implications for Roadmap
 
-Based on research, the build order is fully determined by dependencies and complexity gradient. All four components are independent of each other architecturally, but follow a natural complexity ramp that informs sequencing.
+Architecture research establishes a clear dependency-driven build order. Three phases, each delivering a testable increment.
 
-### Phase 1: SessionStart Freshness Hook
+### Phase 1: GSD Agents Snippet Template
 
-**Rationale:** Simplest hook — no debounce needed, no matcher, synchronous file read. Establishes the hook boilerplate pattern that the PostToolUse hook will reuse. Most user-visible win; fires on every session start in initialized projects.
+**Rationale:** No dependencies; static content; establishes the `gsd-bridge` sentinel pattern that Phase 2 depends on. Template-first is the validated lesson from v1.0 retrospective. Smallest scope in the milestone — delivers real value immediately for any new project running dc:init after v1.2 ships.
+**Delivers:** `templates/gsd-agents-snippet.md` with `<!-- gsd-bridge:start/end -->` sentinels and GSD bridge prose referencing `.planning/PROJECT.md`, `.planning/STATE.md`, and `/dc:extract`
+**Addresses:** AGENTS.md snippet update (all table-stakes features); "Why feeds The What" integration from spec Section 10.1
+**Avoids:** P19 (idempotency breakage) — version marker goes in from the start; P3 (combined snippet anti-pattern) — separate template file with independent sentinels preserves independent injection lifecycle
 
-**Delivers:** `hooks/dc-freshness-check.js` + first `settings.json` entry (SessionStart)
+### Phase 2: dc:init GSD Detection and Injection
 
-**Addresses:** Stale context warning at session start; graceful no-op in non-domain-context projects
+**Rationale:** Small scope (one sub-step added to Step 7 of an existing skill); validates the template in practice; establishes the GSD detection heuristic (`.planning/PROJECT.md` existence check + user prompt) that informs dc:extract's behavior. Completing this phase before dc:extract means the full workflow (init with GSD awareness → plan → extract) is testable end-to-end.
+**Delivers:** dc:init gains Step 7b — conditional injection of `gsd-agents-snippet.md` when GSD is detected; existing projects can re-run dc:init to receive the GSD bridge content
+**Uses:** `gsd-agents-snippet.md` template (Phase 1 output); existing dc:init sentinel detection and file injection logic
+**Implements:** Conditional Template Injection pattern (defined in ARCHITECTURE.md)
+**Avoids:** P19 (idempotency) — version marker check and block replacement logic; P3 (single snippet anti-pattern) — conditional injection preserves "DC always, GSD when present" semantics
 
-**Avoids:** Pitfall 15 (cwd-only discovery — implement "not found → exit 0" as the first code path), Pitfall 14 (stdin timeout guard from the first line of the file)
+### Phase 3: dc:extract Skill
 
-### Phase 2: PostToolUse CONTEXT.md Reminder Hook
-
-**Rationale:** Reuses hook boilerplate from Phase 1. Adds debounce complexity via session-scoped tmp file (identical pattern to `gsd-context-monitor.js`). Must use `Edit|Write|MultiEdit` matcher to avoid spamming on every tool call. PostToolUse MCP limitation (Pitfall 10) is handled by the matcher scope.
-
-**Delivers:** `hooks/dc-context-reminder.js` + second `settings.json` entry (PostToolUse with matcher)
-
-**Addresses:** Edit-proximity CONTEXT.md awareness with debounce; advisory (not imperative) message tone
-
-**Avoids:** Pitfall 10 (MCP tool limitation — matcher constrains scope to standard file tools), Pitfall 11 (settings.json merge — append, never replace)
-
-### Phase 3: Path-Scoped Rule
-
-**Rationale:** No code dependencies. Simple markdown file with frontmatter. Validates understanding of `.context/` file format before encoding that same understanding in the agent system prompt. Lowest complexity of the four new components.
-
-**Delivers:** `rules/domain-context.md`
-
-**Addresses:** Ambient spec compliance guidance when editing `.context/` files; zero overhead for sessions that never touch `.context/`
-
-**Avoids:** Pitfall 8 (use `globs:` not `paths:` — verified correct key before writing), Pitfall 9 (document explicitly that rule does not fire on file creation; dc:add skill carries write-time requirements independently)
-
-### Phase 4: Domain Validator Agent
-
-**Rationale:** Most complex content. Requires encoding business rule extraction logic and code analysis process in a fully self-contained system prompt. Benefits from having worked through `.context/` format in Phase 3. Must be designed as a single linear workflow — subagents cannot spawn other subagents (Pitfall 13).
-
-**Delivers:** `agents/domain-validator.md`
-
-**Addresses:** Semantic validation of code against documented business rules; structured findings output (violation, file, rule violated)
-
-**Avoids:** Pitfall 12 (agent body is a complete standalone spec — no reliance on CLAUDE.md or parent context), Pitfall 13 (single-turn workflow with no nested delegation)
+**Rationale:** Most complex component; benefits from the GSD integration story being complete (Phases 1-2) so end-to-end workflow is testable. dc:extract does not technically depend on Phases 1-2 but testing and validation are stronger with all three components in place.
+**Delivers:** `commands/dc/extract.md` — full Scan-Propose-Confirm skill; reads `.planning/` artifacts with strict hierarchy, cross-references `.context/` semantically, proposes grouped extractions, creates spec-compliant files via dc:add patterns
+**Uses:** All existing domain content templates (domain-concept.md, decision.md, constraint.md); dc:add patterns for template fill, ADR numbering, and MANIFEST.md registration
+**Implements:** Knowledge Extraction (Scan-Propose-Confirm) architectural pattern
+**Avoids:** P16 (strict artifact hierarchy); P17 (semantic dedup — read file content, not just names); P18 (reuse dc:add patterns — no reimplementation); P21 (grouped proposals — type-first presentation); P24 (support both `.planning/phases/` and `.planning/milestones/` directory patterns)
 
 ### Phase Ordering Rationale
 
-- Hooks before settings.json entries: hook files must exist before being registered
-- SessionStart before PostToolUse: simpler (no debounce, no matcher) — establishes boilerplate pattern
-- Rule before agent: both are independent of hooks, but rule validates format understanding before the agent encodes it
-- Agent last: most complex content; writing the rule first forces clarity on spec format requirements before they become an agent system prompt
+- Template before injection: dc:init Step 7b cannot reference a template that does not exist
+- Injection before extraction: end-to-end workflow (init → plan → extract) requires all three components for complete testing; Phase 3 in isolation cannot validate the full GSD integration story
+- Both Phases 1-2 are small (1 file each); Phase 3 is the primary deliverable; completing 1-2 first removes all blockers before the complex work begins
+- This order directly mirrors the v1.0 build order (templates → init → skills) validated as correct in the retrospective
 
 ### Research Flags
 
-Phases with standard, well-documented patterns (can skip research-phase):
-- **Phase 1 (SessionStart hook):** Pattern fully established in `gsd-check-update.js`. Copy and adapt.
-- **Phase 2 (PostToolUse hook):** Pattern fully established in `gsd-context-monitor.js`. Debounce pattern is identical.
-- **Phase 3 (path-scoped rule):** Simple markdown file. Only constraint is `globs:` vs `paths:` (documented and clear).
+Phases with standard, well-documented patterns (skip research-phase):
+- **Phase 1 (GSD snippet template):** Static content with established sentinel pattern; format is identical to existing `agents-snippet.md`; no research needed
+- **Phase 2 (dc:init modification):** Single sub-step addition to an existing, well-understood skill; the injection pattern is copy-and-adapt from Step 7; no research needed
 
-Phase that warrants a design pass before implementation:
-- **Phase 4 (domain validator agent):** The agent's system prompt must encode the Domain Context spec well enough to produce accurate, actionable findings. The *format* is known; the *content quality* requires a draft-and-review cycle. No additional API or documentation research needed — the spec is known from v1.0 work.
+Phase that may benefit from a planning pass:
+- **Phase 3 (dc:extract):** The knowledge classification instructions are the hard problem. The right prompting approach for "durable domain knowledge vs. build noise" should be worked through with concrete examples during planning — not additional research, but a deliberate drafting exercise for the `<process>` section. Budget 30-60 minutes of examples-based prompt design before writing the skill.
+
+---
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | All patterns verified against official docs + working code in this repo. Zero ambiguity on hook/agent/rule formats. No runtime dependency decisions to make. |
-| Features | HIGH | Milestone scope is explicitly defined in PROJECT.md. Feature behavior verified against official docs and live hook examples. All four features are clearly specified. |
-| Architecture | HIGH | Build order is dependency-driven and unambiguous. Component boundaries verified against existing architecture. All four components are independent of each other. |
-| Pitfalls | HIGH | All critical pitfalls sourced from official docs + confirmed GitHub issues with issue numbers. Mitigation patterns are verified working code from this repo. |
+| Stack | HIGH | All technologies in-use in this repo; no new dependencies; verified from working code in 5 existing skills and 2 milestones of artifacts |
+| Features | HIGH | Grounded in Domain Context spec Sections 8.4 and 10.1; integration-model.md Business Rule 3; full dc:add pattern analysis |
+| Architecture | HIGH | Components, data flow, and boundaries derived from direct analysis of dc:add, dc:init, and dc:validate; build order validated against v1.0 retrospective |
+| Pitfalls | HIGH | Each pitfall traced to a specific existing mechanism that would fail; not speculative; dc:add steps cited by number for P18 |
 
 **Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **Agent system prompt content quality:** The format is known (HIGH confidence). The *quality* of the business rule extraction instructions is not verifiable until the agent is tested against a real `.context/domain/` file and codebase. Budget a test-and-refine cycle at the end of Phase 4.
+- **Knowledge classification prompting:** The `<process>` section of dc:extract must produce reliable "durable domain knowledge vs. build noise" classification. The right balance of positive examples, negative examples, and explicit rules is not pre-determined and will require deliberate design during Phase 3 planning — likely against real `.planning/` artifacts from this repo.
 
-- **`globs:` pattern matching with nested paths:** The `globs:` key works. Verify the exact patterns fire correctly for both `.context/**/*.md` (standard project layout) and `**/CONTEXT.md` (per-module context files anywhere in the source tree). Test early in Phase 3 before writing the rule content.
+- **Batch proposal UX flow:** FEATURES.md and ARCHITECTURE.md both recommend type-grouped proposals with count-first presentation, but the exact `AskUserQuestion` sequence for batch review is not specified in any existing skill. This interaction flow should be explicitly designed during Phase 3 planning before writing the process section.
 
-- **Monorepo cwd behavior:** Both hooks use `data.cwd` as the project root. If Claude Code runs from a subdirectory with `.context/` in a parent, hooks silently do nothing. This is acceptable scope for v1.1 (check `cwd` only, no tree traversal). Document the limitation in each hook's comments so future maintainers understand why.
+- **Version marker backward compatibility for AGENTS.md snippet:** PITFALLS.md (P19) specifies adding `<!-- dc-snippet-v2 -->` inside the sentinel block and replacing the block when the version is outdated. The exact dc:init logic for detecting, extracting, and replacing the sentinel block content needs careful specification in Phase 2 planning to avoid edge cases (e.g., manually edited content between sentinels).
+
+---
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- Official Claude Code Hooks docs (`https://code.claude.com/docs/en/hooks`) — stdin/stdout schema, exit code semantics, PostToolUse MCP limitation, matcher format; verified 2026-03-16
-- Official Claude Code Subagents docs (`https://code.claude.com/docs/en/sub-agents`) — frontmatter fields, tool restriction, context isolation, no-nested-spawning constraint; verified 2026-03-16
-- Official Claude Code Memory/Rules docs (`https://code.claude.com/docs/en/memory`) — path-scoped rule behavior, load triggers; verified 2026-03-16
-- `.claude/hooks/gsd-context-monitor.js` — PostToolUse boilerplate, debounce via session-scoped tmp file, stdin timeout guard pattern
-- `.claude/hooks/gsd-check-update.js` — SessionStart boilerplate structure
-- `.claude/agents/gsd-verifier.md` — agent frontmatter format, tools field as comma-separated string
-- `.claude/settings.json` — existing hook registration format, array structure for GSD hooks
+- `commands/dc/add.md` — template fill pattern, MANIFEST.md insertion, ADR numbering (Steps 2, 5, 6, 8, 11); read from working code
+- `commands/dc/init.md` — AGENTS.md sentinel detection (Step 7), idempotency contract, template injection pattern; read from working code
+- `commands/dc/validate.md` — MANIFEST.md cross-reference and entry parsing patterns; read from working code
+- `templates/agents-snippet.md` — sentinel comment format (`<!-- domain-context:start/end -->`); read from working code
+- `.context/domain/integration-model.md` — three-concern model, Business Rule 3 on explicit extraction; project's own domain documentation
+- `.planning/PROJECT.md` — v1.2 milestone scope, constraints, out-of-scope items
+- Domain Context Specification Sections 3.1, 8.4, 10.1 — authoritative spec for extraction rules and GSD integration model
+- GSD `.planning/` artifact structure in this repo — real CONTEXT.md, SUMMARY.md, and RETROSPECTIVE.md files showing extractable content patterns
 
-### Secondary (community-confirmed bug reports)
-- GitHub issue #17204 — `globs:` works; `paths:` with YAML array/quotes fails silently (confirmed, unresolved as of 2026)
-- GitHub issue #23478 — Rules only trigger on Read tool, not Write/Create (confirmed, closed NOT_PLANNED, Feb 2026)
-- GitHub issue #24788 — PostToolUse `additionalContext` not surfaced for MCP tool calls (confirmed, Feb 2026)
+### Secondary (MEDIUM confidence)
+- `.planning/RETROSPECTIVE.md` — template-first build order lesson, cross-milestone patterns; high confidence within this project; may not generalize to other projects
 
 ---
 *Research completed: 2026-03-16*
