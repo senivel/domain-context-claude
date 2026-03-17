@@ -26,7 +26,7 @@
 
 **Milestone Goal:** Add passive integrations that make Claude Code domain-context-aware without explicit commands -- hooks fire automatically, rules inject guidance when editing .context/ files, and a validator agent checks code against documented business rules.
 
-- [ ] **Phase 10: SessionStart Freshness Hook** - Warn about stale domain context entries when a session begins
+- [x] **Phase 10: SessionStart Freshness Hook** - Warn about stale domain context entries when a session begins (completed 2026-03-17)
 - [ ] **Phase 11: PostToolUse Reminder Hook** - Remind about CONTEXT.md updates when editing files near one
 - [ ] **Phase 12: Path-Scoped Rule** - Inject Domain Context spec guidance when editing .context/ files
 - [ ] **Phase 13: Domain Validator Agent** - Check code against documented business rules on demand
@@ -41,7 +41,7 @@
   1. When a session starts in a project with stale .context/ entries (>90 days), Claude's context includes a warning listing which entries are stale
   2. When a session starts in a project without .context/, the hook exits silently with no error or warning
   3. When stdin is delayed or malformed, the hook times out after 3 seconds and exits 0 without producing a UI error
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
 - [ ] 10-01-PLAN.md -- Create SessionStart freshness hook and register in settings.json
@@ -103,7 +103,7 @@ Phases execute in numeric order: 10 -> 11 -> 12 -> 13
 | 7. Add | v1.0 | 2/2 | Complete | 2026-03-16 |
 | 8. Refresh | v1.0 | 2/2 | Complete | 2026-03-16 |
 | 9. Integration Fixes | v1.0 | 1/1 | Complete | 2026-03-16 |
-| 10. SessionStart Freshness Hook | v1.1 | 0/1 | Not started | - |
+| 10. SessionStart Freshness Hook | 1/1 | Complete   | 2026-03-17 | - |
 | 11. PostToolUse Reminder Hook | v1.1 | 0/? | Not started | - |
 | 12. Path-Scoped Rule | v1.1 | 0/? | Not started | - |
 | 13. Domain Validator Agent | v1.1 | 0/? | Not started | - |
