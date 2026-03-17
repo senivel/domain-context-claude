@@ -44,10 +44,10 @@ See .planning/milestones/ for archived phase details.
   1. A `templates/gsd-agents-snippet.md` file exists with `<!-- gsd-bridge:start/end -->` sentinel markers
   2. The template text instructs agents to consult .context/ during planning and references /dc:extract for post-phase knowledge capture
   3. The template references .planning/PROJECT.md and .planning/STATE.md as GSD entry points
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 14-01: TBD
+- [ ] 14-01-PLAN.md — Create GSD bridge template and update validation script
 
 ### Phase 15: dc:init GSD Detection
 **Goal**: Running dc:init on any project (new or existing) injects GSD bridge content into AGENTS.md when GSD is detected
@@ -84,6 +84,6 @@ Phases execute in numeric order: 14 → 15 → 16
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 14. GSD Bridge Template | v1.2 | 0/? | Not started | - |
+| 14. GSD Bridge Template | v1.2 | 0/1 | Not started | - |
 | 15. dc:init GSD Detection | v1.2 | 0/? | Not started | - |
 | 16. dc:extract Skill | v1.2 | 0/? | Not started | - |
