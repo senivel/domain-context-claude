@@ -20,9 +20,9 @@ Requirements for passive integrations milestone. Each maps to roadmap phases.
 
 ### Rules
 
-- [ ] **RULE-01**: Path-scoped rule loads when Claude reads `.context/**` or `**/CONTEXT.md` files
-- [ ] **RULE-02**: Rule provides Domain Context spec formatting guidance (template structure, MANIFEST.md updates, verified dates, naming conventions)
-- [ ] **RULE-03**: Rule uses `globs:` frontmatter key (not `paths:`)
+- [x] **RULE-01**: Path-scoped rule loads when Claude reads `.context/**` or `**/CONTEXT.md` files
+- [x] **RULE-02**: Rule provides Domain Context spec formatting guidance (template structure, MANIFEST.md updates, verified dates, naming conventions)
+- [x] **RULE-03**: Rule uses `globs:` frontmatter key (not `paths:`)
 
 ### Agent
 
@@ -68,9 +68,9 @@ Requirements for passive integrations milestone. Each maps to roadmap phases.
 | HOOK-06 | Phase 11 | Complete |
 | HOOK-07 | Phase 10 | Complete |
 | HOOK-08 | Phase 11 | Complete |
-| RULE-01 | Phase 12 | Pending |
-| RULE-02 | Phase 12 | Pending |
-| RULE-03 | Phase 12 | Pending |
+| RULE-01 | Phase 12 | Complete |
+| RULE-02 | Phase 12 | Complete |
+| RULE-03 | Phase 12 | Complete |
 | AGNT-01 | Phase 13 | Pending |
 | AGNT-02 | Phase 13 | Pending |
 | AGNT-03 | Phase 13 | Pending |

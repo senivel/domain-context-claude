@@ -28,7 +28,7 @@
 
 - [x] **Phase 10: SessionStart Freshness Hook** - Warn about stale domain context entries when a session begins (completed 2026-03-17)
 - [x] **Phase 11: PostToolUse Reminder Hook** - Remind about CONTEXT.md updates when editing files near one (completed 2026-03-17)
-- [ ] **Phase 12: Path-Scoped Rule** - Inject Domain Context spec guidance when editing .context/ files
+- [x] **Phase 12: Path-Scoped Rule** - Inject Domain Context spec guidance when editing .context/ files (completed 2026-03-17)
 - [ ] **Phase 13: Domain Validator Agent** - Check code against documented business rules on demand
 
 ## Phase Details
@@ -68,7 +68,7 @@ Plans:
   1. When Claude reads any file matching `.context/**` or `**/CONTEXT.md`, the rule content is loaded into context
   2. The rule provides actionable guidance on template structure, MANIFEST.md updates, verified date format, and naming conventions
   3. The rule uses `globs:` frontmatter (not `paths:`) to ensure correct pattern matching
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
 - [ ] 12-01-PLAN.md -- Create path-scoped rule file with Domain Context spec formatting guidance
@@ -105,5 +105,5 @@ Phases execute in numeric order: 10 -> 11 -> 12 -> 13
 | 9. Integration Fixes | v1.0 | 1/1 | Complete | 2026-03-16 |
 | 10. SessionStart Freshness Hook | v1.1 | 1/1 | Complete | 2026-03-17 |
 | 11. PostToolUse Reminder Hook | 1/1 | Complete    | 2026-03-17 | - |
-| 12. Path-Scoped Rule | v1.1 | 0/1 | Not started | - |
+| 12. Path-Scoped Rule | 1/1 | Complete   | 2026-03-17 | - |
 | 13. Domain Validator Agent | v1.1 | 0/? | Not started | - |
