@@ -168,6 +168,116 @@ function chmodShellScripts(dir) {
 }
 
 /**
+ * Remove dc-owned files from the target directory.
+ * Uses INSTALL_MAP to determine which files belong to dc. For entries with
+ * a filter, only matching files are removed. For entries without a filter
+ * (commands/dc, templates), all files are removed.
+ * @param {string} targetDir - The target .claude/ directory path
+ * @returns {string[]} Array of absolute paths of removed files
+ */
+function removeDcFiles(targetDir) {
+  const removed = [];
+
+  for (const mapping of INSTALL_MAP) {
+    const dir = path.join(targetDir, mapping.dest);
+    if (!fs.existsSync(dir)) continue;
+
+    if (mapping.dest === 'commands/dc') {
+      // dc-owned directory: remove all contents then the directory itself
+      const files = fs.readdirSync(dir, { withFileTypes: true });
+      for (const entry of files) {
+        const filePath = path.join(dir, entry.name);
+        fs.rmSync(filePath, { recursive: true, force: true });
+        removed.push(filePath);
+        console.log(`  removed: ${filePath}`);
+      }
+      // Remove the dc/ subdirectory itself
+      fs.rmdirSync(dir);
+    } else {
+      // For filtered dirs, remove only matching files; for unfiltered (templates), remove all
+      const files = fs.readdirSync(dir);
+      for (const file of files) {
+        const shouldRemove = mapping.filter ? mapping.filter(file) : true;
+        if (shouldRemove) {
+          const filePath = path.join(dir, file);
+          fs.rmSync(filePath, { force: true });
+          removed.push(filePath);
+          console.log(`  removed: ${filePath}`);
+        }
+      }
+    }
+  }
+
+  return removed;
+}
+
+/**
+ * Remove dc hook entries from settings.json.
+ * Filters out entries where isDcHook returns true from SessionStart
+ * and PostToolUse arrays. Removes empty arrays.
+ * @param {string} settingsPath - Path to settings.json
+ * @returns {number} Count of removed hook entries
+ */
+function removeHooks(settingsPath) {
+  if (!fs.existsSync(settingsPath)) return 0;
+
+  let settings;
+  try {
+    settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+  } catch {
+    return 0;
+  }
+
+  if (!settings.hooks) return 0;
+
+  let removedCount = 0;
+
+  for (const event of Object.keys(settings.hooks)) {
+    const entries = settings.hooks[event];
+    if (!Array.isArray(entries)) continue;
+
+    const cleaned = entries.filter(e => {
+      if (isDcHook(e)) {
+        removedCount++;
+        return false;
+      }
+      return true;
+    });
+
+    if (cleaned.length === 0) {
+      delete settings.hooks[event];
+    } else {
+      settings.hooks[event] = cleaned;
+    }
+  }
+
+  fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + '\n');
+  return removedCount;
+}
+
+/**
+ * Print success message after install.
+ * @param {string} targetDir - The target directory path
+ */
+function printInstallSuccess(targetDir) {
+  console.log(`\ndomain-context-cc installed to ${targetDir}\n`);
+  console.log('Next steps:');
+  console.log('  1. Start a Claude Code session');
+  console.log('  2. Run /dc:init in your project to set up domain context');
+}
+
+/**
+ * Print success message after uninstall.
+ * @param {string} targetDir - The target directory path
+ * @param {number} fileCount - Number of files removed
+ * @param {number} hookCount - Number of hook entries removed
+ */
+function printUninstallSuccess(targetDir, fileCount, hookCount) {
+  console.log(`\ndomain-context-cc uninstalled from ${targetDir}`);
+  console.log(`Removed ${fileCount} files and ${hookCount} hook entries`);
+}
+
+/**
  * Read-modify-write settings.json with dc hook entries.
  * Creates settings.json if it does not exist. On parse failure, backs up
  * the existing file and warns.
@@ -200,14 +310,16 @@ function updateSettings(settingsPath, dcEntries) {
 
 function main() {
   const { isLocal, isUninstall } = parseArgs(process.argv.slice(2));
-
-  if (isUninstall) {
-    console.log('Uninstall not yet implemented.');
-    process.exit(0);
-  }
-
   const targetDir = getTargetDir(isLocal);
   const settingsPath = path.join(targetDir, 'settings.json');
+
+  if (isUninstall) {
+    console.log(`Uninstalling domain-context-cc from ${targetDir}`);
+    const removed = removeDcFiles(targetDir);
+    const hookCount = removeHooks(settingsPath);
+    printUninstallSuccess(targetDir, removed.length, hookCount);
+    return;
+  }
 
   console.log(`Installing domain-context-cc to ${targetDir}`);
 
@@ -216,7 +328,7 @@ function main() {
   const dcEntries = getDcHookEntries(targetDir, isLocal);
   updateSettings(settingsPath, dcEntries);
 
-  console.log('Installation complete.');
+  printInstallSuccess(targetDir);
 }
 
 // ---------------------------------------------------------------------------
@@ -233,6 +345,10 @@ if (typeof module !== 'undefined') {
     INSTALL_MAP,
     copyFiles,
     updateSettings,
+    removeDcFiles,
+    removeHooks,
+    printInstallSuccess,
+    printUninstallSuccess,
   };
 }
 
