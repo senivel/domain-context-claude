@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A Claude Code extension (`domain-context-cc`) that makes Claude Code natively aware of the Domain Context specification. Provides 5 slash commands, 2 lifecycle hooks, 1 path-scoped rule, and 1 domain validator agent for initializing, browsing, validating, creating, refreshing, and passively maintaining domain knowledge as `.context/` directories in any project. Distributed as markdown skill files and Node.js hooks with no runtime dependencies.
+A Claude Code extension (`domain-context-cc`) that makes Claude Code natively aware of the Domain Context specification. Provides 6 slash commands, 2 lifecycle hooks, 1 path-scoped rule, and 1 domain validator agent for initializing, browsing, validating, creating, refreshing, extracting, and passively maintaining domain knowledge as `.context/` directories in any project. Includes GSD integration for bridging planning artifacts with domain context. Distributed as markdown skill files and Node.js hooks with no runtime dependencies.
 
 ## Core Value
 
@@ -25,10 +25,14 @@ Developers can codify and maintain domain knowledge alongside code so that AI as
 - ✓ Path-scoped rule guides .context/ file editing — v1.1
 - ✓ Domain validator agent checks code against documented business rules — v1.1
 
+- ✓ dc:extract — Extract domain knowledge from completed GSD phases into .context/ — v1.2
+- ✓ GSD bridge template — AGENTS.md snippet with GSD instructions, injected by dc:init — v1.2
+- ✓ dc:init GSD detection — Auto-detects GSD projects and injects bridge via sentinels — v1.2
+- ✓ Template validation expanded to 91 checks covering all 6 dc:* skills — v1.2
+
 ### Active
 
-- [ ] GSD `/dc:extract` skill — extract domain knowledge from completed phases
-- [ ] AGENTS.md.snippet template — GSD bridge text appended by dc:init
+(None — planning next milestone)
 
 ### Future
 
@@ -40,18 +44,15 @@ Developers can codify and maintain domain knowledge alongside code so that AI as
 - MCP server — deferred post-MVP per ADR-003
 - Auto-generate domain context from code — domain context captures WHY, not WHAT
 
-## Current Milestone: v1.2 GSD Integration
+## Current State
 
-**Goal:** Enable bidirectional relationship between GSD's .planning/ artifacts and domain context.
-
-**Target features:**
-- dc:extract skill — extract domain knowledge from completed GSD phases into .context/
-- AGENTS.md.snippet template — GSD bridge text appended by dc:init
+v1.2 shipped. All 3 milestones complete.
 
 ## Context
 
 - v1.0 shipped: 5 skills, 8 templates, 1 validation script (1,342 LOC markdown + shell)
 - v1.1 shipped: 2 hooks, 1 rule, 1 agent (318 LOC JS + markdown)
+- v1.2 shipped: dc:extract skill, GSD bridge template, dc:init GSD detection (675 LOC markdown + shell)
 - The Domain Context spec lives at ~/code/domain-context/SPEC.md
 - Skills follow Claude Code format: YAML frontmatter + `<objective>`, `<execution_context>`, `<process>` sections
 - Hooks follow Claude Code format: Node.js scripts reading JSON stdin, writing JSON stdout
@@ -82,6 +83,9 @@ Developers can codify and maintain domain knowledge alongside code so that AI as
 | globs: not paths: for rules | Avoids Claude Code parser bug with paths: frontmatter (GitHub #17204) | ✓ Good |
 | Read-only domain validator | Agent reports violations but never modifies files — separation of concerns | ✓ Good |
 | Matcher + in-code allowlist for PostToolUse | Defense-in-depth: settings.json matcher prevents spawn, code allowlist is fallback | ✓ Good |
+| Sentinel-based GSD bridge injection | Reuse existing domain-context sentinel pattern for GSD bridge — idempotent updates on re-run | ✓ Good |
+| Implicit template placeholder filling | dc:extract and dc:add both rely on Claude's judgment to fill template tokens — explicit enumeration unnecessary | ✓ Good |
+| SUMMARY.md as completion signal | Detect completed phases by SUMMARY.md presence rather than ROADMAP.md status — more reliable | ✓ Good |
 
 ---
-*Last updated: 2026-03-16 after v1.2 milestone started*
+*Last updated: 2026-03-17 after v1.2 milestone completed*

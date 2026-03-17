@@ -1,5 +1,14 @@
 # Milestones
 
+## v1.2 GSD Integration (Shipped: 2026-03-17)
+
+**Phases completed:** 3 phases, 4 plans, 0 tasks
+
+**Key accomplishments:**
+- (none recorded)
+
+---
+
 ## v1.1 Hooks, Rules & Agent (Shipped: 2026-03-17)
 
 **Phases completed:** 4 phases, 4 plans, 0 tasks
