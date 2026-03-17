@@ -32,7 +32,7 @@ See .planning/milestones/ for archived phase details.
 
 - [x] **Phase 14: GSD Bridge Template** - Static template with GSD bridge text and sentinel markers for AGENTS.md injection (completed 2026-03-17)
 - [x] **Phase 15: dc:init GSD Detection** - Conditional GSD snippet injection in dc:init with idempotent re-run support (completed 2026-03-17)
-- [ ] **Phase 16: dc:extract Skill** - Full Scan-Propose-Confirm skill extracting domain knowledge from completed GSD phases
+- [x] **Phase 16: dc:extract Skill** - Full Scan-Propose-Confirm skill extracting domain knowledge from completed GSD phases (completed 2026-03-17)
 
 ## Phase Details
 
@@ -87,4 +87,4 @@ Phases execute in numeric order: 14 → 15 → 16
 |-------|-----------|----------------|--------|-----------|
 | 14. GSD Bridge Template | 1/1 | Complete    | 2026-03-17 | - |
 | 15. dc:init GSD Detection | 1/1 | Complete    | 2026-03-17 | - |
-| 16. dc:extract Skill | 1/2 | In Progress|  | - |
+| 16. dc:extract Skill | 1/2 | Complete    | 2026-03-17 | - |
