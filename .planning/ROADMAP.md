@@ -57,10 +57,10 @@ See .planning/milestones/ for archived phase details.
   2. `npm pack --dry-run` does NOT list .planning/, .context/, .claude/, or other dev artifacts
   3. Running `npx ./domain-context-cc-*.tgz` invokes bin/install.js (bin entry works)
   4. package.json declares zero dependencies and `"type": "commonjs"`
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 17-01: TBD
+- [ ] 17-01-PLAN.md — Create package.json and stub bin/install.js for npm distribution
 
 ### Phase 18: Installer Logic
 **Goal**: Users can install, reinstall, and uninstall domain-context-cc with a single command
@@ -99,6 +99,6 @@ Phases execute in numeric order: 17 → 18 → 19
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 17. Package Configuration | v1.3 | 0/? | Not started | - |
+| 17. Package Configuration | v1.3 | 0/1 | Not started | - |
 | 18. Installer Logic | v1.3 | 0/? | Not started | - |
 | 19. README & Publishing | v1.3 | 0/? | Not started | - |
