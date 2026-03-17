@@ -15,23 +15,23 @@ Requirements for GSD Integration milestone. Each maps to roadmap phases.
 
 ### Extraction Scanning
 
-- [ ] **SCAN-01**: dc:extract scans .planning/ for completed phase CONTEXT.md, SUMMARY.md, RESEARCH.md, and RETROSPECTIVE.md
-- [ ] **SCAN-02**: dc:extract shows clear error with guidance when .context/ or .planning/ is missing
-- [ ] **SCAN-03**: User can scope extraction to specific phases (e.g., `/dc:extract 7-9`)
+- [x] **SCAN-01**: dc:extract scans .planning/ for completed phase CONTEXT.md, SUMMARY.md, RESEARCH.md, and RETROSPECTIVE.md
+- [x] **SCAN-02**: dc:extract shows clear error with guidance when .context/ or .planning/ is missing
+- [x] **SCAN-03**: User can scope extraction to specific phases (e.g., `/dc:extract 7-9`)
 
 ### Knowledge Classification
 
-- [ ] **CLASS-01**: dc:extract identifies extractable domain concepts (business rules, invariants, lifecycle models) from planning artifacts
-- [ ] **CLASS-02**: dc:extract identifies architecture decisions worthy of formal ADRs from planning artifacts
-- [ ] **CLASS-03**: dc:extract identifies external constraints (regulatory, API limits, security policies) from planning artifacts
+- [x] **CLASS-01**: dc:extract identifies extractable domain concepts (business rules, invariants, lifecycle models) from planning artifacts
+- [x] **CLASS-02**: dc:extract identifies architecture decisions worthy of formal ADRs from planning artifacts
+- [x] **CLASS-03**: dc:extract identifies external constraints (regulatory, API limits, security policies) from planning artifacts
 
 ### Proposal & Creation
 
-- [ ] **PROP-01**: dc:extract cross-references proposals against existing .context/ MANIFEST.md to avoid duplicates
-- [ ] **PROP-02**: dc:extract previews all proposed extractions with source attribution before writing any files
-- [ ] **PROP-03**: User can selectively accept or reject individual proposals
-- [ ] **PROP-04**: Accepted proposals create spec-compliant .context/ files using existing templates and update MANIFEST.md
-- [ ] **PROP-05**: dc:extract shows summary of what was extracted after completion
+- [x] **PROP-01**: dc:extract cross-references proposals against existing .context/ MANIFEST.md to avoid duplicates
+- [x] **PROP-02**: dc:extract previews all proposed extractions with source attribution before writing any files
+- [x] **PROP-03**: User can selectively accept or reject individual proposals
+- [x] **PROP-04**: Accepted proposals create spec-compliant .context/ files using existing templates and update MANIFEST.md
+- [x] **PROP-05**: dc:extract shows summary of what was extracted after completion
 
 ## Future Requirements
 
@@ -67,17 +67,17 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BRIDGE-01 | Phase 14 | Complete |
 | BRIDGE-02 | Phase 15 | Complete |
 | BRIDGE-03 | Phase 14 | Complete |
-| SCAN-01 | Phase 16 | Pending |
-| SCAN-02 | Phase 16 | Pending |
-| SCAN-03 | Phase 16 | Pending |
-| CLASS-01 | Phase 16 | Pending |
-| CLASS-02 | Phase 16 | Pending |
-| CLASS-03 | Phase 16 | Pending |
-| PROP-01 | Phase 16 | Pending |
-| PROP-02 | Phase 16 | Pending |
-| PROP-03 | Phase 16 | Pending |
-| PROP-04 | Phase 16 | Pending |
-| PROP-05 | Phase 16 | Pending |
+| SCAN-01 | Phase 16 | Complete |
+| SCAN-02 | Phase 16 | Complete |
+| SCAN-03 | Phase 16 | Complete |
+| CLASS-01 | Phase 16 | Complete |
+| CLASS-02 | Phase 16 | Complete |
+| CLASS-03 | Phase 16 | Complete |
+| PROP-01 | Phase 16 | Complete |
+| PROP-02 | Phase 16 | Complete |
+| PROP-03 | Phase 16 | Complete |
+| PROP-04 | Phase 16 | Complete |
+| PROP-05 | Phase 16 | Complete |
 
 **Coverage:**
 - v1.2 requirements: 14 total
