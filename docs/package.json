@@ -1,0 +1,13 @@
+{
+  "name": "domain-context-docs",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "astro": "^6.0.5",
+    "@astrojs/starlight": "^0.38.1"
+  }
+}
