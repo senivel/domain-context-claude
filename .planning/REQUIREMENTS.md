@@ -64,26 +64,26 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| BRIDGE-01 | — | Pending |
-| BRIDGE-02 | — | Pending |
-| BRIDGE-03 | — | Pending |
-| SCAN-01 | — | Pending |
-| SCAN-02 | — | Pending |
-| SCAN-03 | — | Pending |
-| CLASS-01 | — | Pending |
-| CLASS-02 | — | Pending |
-| CLASS-03 | — | Pending |
-| PROP-01 | — | Pending |
-| PROP-02 | — | Pending |
-| PROP-03 | — | Pending |
-| PROP-04 | — | Pending |
-| PROP-05 | — | Pending |
+| BRIDGE-01 | Phase 14 | Pending |
+| BRIDGE-02 | Phase 15 | Pending |
+| BRIDGE-03 | Phase 14 | Pending |
+| SCAN-01 | Phase 16 | Pending |
+| SCAN-02 | Phase 16 | Pending |
+| SCAN-03 | Phase 16 | Pending |
+| CLASS-01 | Phase 16 | Pending |
+| CLASS-02 | Phase 16 | Pending |
+| CLASS-03 | Phase 16 | Pending |
+| PROP-01 | Phase 16 | Pending |
+| PROP-02 | Phase 16 | Pending |
+| PROP-03 | Phase 16 | Pending |
+| PROP-04 | Phase 16 | Pending |
+| PROP-05 | Phase 16 | Pending |
 
 **Coverage:**
 - v1.2 requirements: 14 total
-- Mapped to phases: 0
-- Unmapped: 14 ⚠️
+- Mapped to phases: 14
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-16*
-*Last updated: 2026-03-16 after initial definition*
+*Last updated: 2026-03-16 after roadmap creation*
