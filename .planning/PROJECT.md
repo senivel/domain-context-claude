@@ -37,7 +37,9 @@ Developers can codify and maintain domain knowledge alongside code so that AI as
 
 ### Active
 
-(None — all current requirements shipped)
+- [ ] Documentation site using modern JS framework (MkDocs-equivalent)
+- [ ] GitHub Pages deployment with CI/CD action
+- [ ] Comprehensive content: spec overview, architecture, quickstart, user guide, CLI reference
 
 ### Future
 
@@ -48,6 +50,16 @@ Developers can codify and maintain domain knowledge alongside code so that AI as
 
 - MCP server — deferred post-MVP per ADR-003
 - Auto-generate domain context from code — domain context captures WHY, not WHAT
+
+## Current Milestone: v1.4 Documentation
+
+**Goal:** Create a polished documentation site with comprehensive guides, published on GitHub Pages with automated builds.
+
+**Target features:**
+- Modern JS documentation framework (Material for MkDocs equivalent)
+- GitHub Pages deployment with GitHub Action CI/CD
+- Domain Context spec overview, architecture, quickstart, user guide, CLI command reference
+- Dark/light mode, search, sidebar navigation, responsive design
 
 ## Current State
 
@@ -103,4 +115,4 @@ v1.3 shipped. All 4 milestones complete. Project is feature-complete for initial
 | node:test for test framework | Built-in, zero dependencies, aligns with project constraints | ✓ Good |
 
 ---
-*Last updated: 2026-03-17 after v1.3 milestone completed*
+*Last updated: 2026-03-17 after v1.4 milestone started*
