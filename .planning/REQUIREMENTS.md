@@ -9,11 +9,11 @@ Requirements for Installation & Distribution milestone. Each maps to roadmap pha
 
 ### Packaging
 
-- [ ] **PKG-01**: package.json has correct name (`domain-context-cc`), version, and description
-- [ ] **PKG-02**: package.json bin entry maps package name to `./bin/install.js`
-- [ ] **PKG-03**: package.json files whitelist includes all 7 distributable directories (commands/, agents/, hooks/, rules/, templates/, tools/, bin/)
-- [ ] **PKG-04**: package.json engines constraint set to `>=20.0.0`
-- [ ] **PKG-05**: package.json has zero runtime dependencies and `type: "commonjs"`
+- [x] **PKG-01**: package.json has correct name (`domain-context-cc`), version, and description
+- [x] **PKG-02**: package.json bin entry maps package name to `./bin/install.js`
+- [x] **PKG-03**: package.json files whitelist includes all 7 distributable directories (commands/, agents/, hooks/, rules/, templates/, tools/, bin/)
+- [x] **PKG-04**: package.json engines constraint set to `>=20.0.0`
+- [x] **PKG-05**: package.json has zero runtime dependencies and `type: "commonjs"`
 
 ### Installation
 
@@ -57,11 +57,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PKG-01 | Phase 17 | Pending |
-| PKG-02 | Phase 17 | Pending |
-| PKG-03 | Phase 17 | Pending |
-| PKG-04 | Phase 17 | Pending |
-| PKG-05 | Phase 17 | Pending |
+| PKG-01 | Phase 17 | Complete |
+| PKG-02 | Phase 17 | Complete |
+| PKG-03 | Phase 17 | Complete |
+| PKG-04 | Phase 17 | Complete |
+| PKG-05 | Phase 17 | Complete |
 | INST-01 | Phase 18 | Pending |
 | INST-02 | Phase 18 | Pending |
 | INST-03 | Phase 18 | Pending |

@@ -42,7 +42,7 @@ See .planning/milestones/ for archived phase details.
 
 **Milestone Goal:** Package domain-context-cc for npm distribution so users can install with `npx domain-context-cc`.
 
-- [ ] **Phase 17: Package Configuration** - package.json with correct metadata, bin entry, files whitelist, and engine constraint
+- [x] **Phase 17: Package Configuration** - package.json with correct metadata, bin entry, files whitelist, and engine constraint (completed 2026-03-17)
 - [ ] **Phase 18: Installer Logic** - bin/install.js supporting global, local, and uninstall modes with idempotent settings.json merge
 - [ ] **Phase 19: README & Publishing** - Final README with install, quick start, command reference, GSD integration, and uninstall docs
 
@@ -99,6 +99,6 @@ Phases execute in numeric order: 17 → 18 → 19
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 17. Package Configuration | v1.3 | 0/1 | Not started | - |
+| 17. Package Configuration | 1/1 | Complete   | 2026-03-17 | - |
 | 18. Installer Logic | v1.3 | 0/? | Not started | - |
 | 19. README & Publishing | v1.3 | 0/? | Not started | - |
