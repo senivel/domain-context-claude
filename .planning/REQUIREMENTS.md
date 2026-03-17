@@ -26,11 +26,11 @@ Requirements for passive integrations milestone. Each maps to roadmap phases.
 
 ### Agent
 
-- [ ] **AGNT-01**: Domain validator agent uses read-only tools (Read, Grep, Glob) only
-- [ ] **AGNT-02**: Agent reads `.context/domain/` files and extracts business rules/constraints
-- [ ] **AGNT-03**: Agent checks code for violations against documented domain rules
-- [ ] **AGNT-04**: Agent produces structured findings (violation, file, rule violated)
-- [ ] **AGNT-05**: Agent system prompt is fully self-contained (no reliance on parent context)
+- [x] **AGNT-01**: Domain validator agent uses read-only tools (Read, Grep, Glob) only
+- [x] **AGNT-02**: Agent reads `.context/domain/` files and extracts business rules/constraints
+- [x] **AGNT-03**: Agent checks code for violations against documented domain rules
+- [x] **AGNT-04**: Agent produces structured findings (violation, file, rule violated)
+- [x] **AGNT-05**: Agent system prompt is fully self-contained (no reliance on parent context)
 
 ## Future Requirements
 
@@ -71,11 +71,11 @@ Requirements for passive integrations milestone. Each maps to roadmap phases.
 | RULE-01 | Phase 12 | Complete |
 | RULE-02 | Phase 12 | Complete |
 | RULE-03 | Phase 12 | Complete |
-| AGNT-01 | Phase 13 | Pending |
-| AGNT-02 | Phase 13 | Pending |
-| AGNT-03 | Phase 13 | Pending |
-| AGNT-04 | Phase 13 | Pending |
-| AGNT-05 | Phase 13 | Pending |
+| AGNT-01 | Phase 13 | Complete |
+| AGNT-02 | Phase 13 | Complete |
+| AGNT-03 | Phase 13 | Complete |
+| AGNT-04 | Phase 13 | Complete |
+| AGNT-05 | Phase 13 | Complete |
 
 **Coverage:**
 - v1.1 requirements: 16 total
