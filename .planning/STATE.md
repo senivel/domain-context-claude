@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Documentation
-status: defining_requirements
-last_updated: "2026-03-17T23:00:00.000Z"
-last_activity: 2026-03-17 — Milestone v1.4 started
+status: ready_to_plan
+last_updated: "2026-03-17T23:30:00.000Z"
+last_activity: 2026-03-17 — Roadmap created (5 phases, 13 requirements)
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,14 +20,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-17)
 
 **Core value:** Developers can codify and maintain domain knowledge alongside code so AI assistants always have accurate business context
-**Current focus:** Milestone v1.4 Documentation
+**Current focus:** Phase 20 - Scaffold Starlight Site
 
 ## Position
 
-Phase: Not started (defining requirements)
+Phase: 20 of 24 (Scaffold Starlight Site)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-03-17 — Milestone v1.4 started
+Status: Ready to plan
+Last activity: 2026-03-17 — Roadmap created (5 phases, 13 requirements mapped)
+
+Progress: [░░░░░░░░░░] 0%
+
+## Performance Metrics
+
+**Velocity:**
+- Total plans completed: 0
+- Average duration: —
+- Total execution time: 0 hours
 
 ## Accumulated Context
 
@@ -40,22 +49,16 @@ Last activity: 2026-03-17 — Milestone v1.4 started
 - commands/dc/ subdirectory removed entirely (dc-owned), parent dirs preserved
 
 ### From v1.2
-- Sentinel pattern (<!-- prefix:start/end -->) reused for GSD bridge template
+- Sentinel pattern reused for GSD bridge template
 - GSD bridge template is static content only, no placeholders
-- Batch write after full accept/reject loop (not incremental)
-- 13-step scan-classify-propose-create pipeline for dc:extract
 
 ### From v1.1
 - 3-second stdin timeout for hooks prevents UI error warnings
-- globs: (not paths:) for rules due to Claude Code parser bug (GitHub #17204)
-- Defense-in-depth: tool scoping via settings.json matcher AND in-hook allowlist
-- Read-only domain validator agent — report-only, never modifies files
+- globs: (not paths:) for rules due to Claude Code parser bug
 
 ### From v1.0
 - Template-first build order prevents circular deps
 - Dual-location verified date (MANIFEST.md + inline comment)
-- Per-group fix offers in validate for better UX
-- AGENTS.md import check as warning (optional per spec)
 
 ### Pending Todos
 

@@ -64,25 +64,25 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | — | Pending |
-| INFRA-02 | — | Pending |
-| INFRA-03 | — | Pending |
-| INFRA-04 | — | Pending |
-| CONT-01 | — | Pending |
-| CONT-02 | — | Pending |
-| CONT-03 | — | Pending |
-| CONT-04 | — | Pending |
-| CONT-05 | — | Pending |
-| CONT-06 | — | Pending |
-| CONT-07 | — | Pending |
-| ENH-01 | — | Pending |
-| ENH-02 | — | Pending |
+| INFRA-01 | Phase 20 | Pending |
+| INFRA-02 | Phase 21 | Pending |
+| INFRA-03 | Phase 21 | Pending |
+| INFRA-04 | Phase 20 | Pending |
+| CONT-01 | Phase 22 | Pending |
+| CONT-02 | Phase 22 | Pending |
+| CONT-03 | Phase 22 | Pending |
+| CONT-04 | Phase 22 | Pending |
+| CONT-05 | Phase 23 | Pending |
+| CONT-06 | Phase 23 | Pending |
+| CONT-07 | Phase 23 | Pending |
+| ENH-01 | Phase 24 | Pending |
+| ENH-02 | Phase 24 | Pending |
 
 **Coverage:**
 - v1.4 requirements: 13 total
-- Mapped to phases: 0
-- Unmapped: 13 ⚠️
+- Mapped to phases: 13
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-17*
-*Last updated: 2026-03-17 after initial definition*
+*Last updated: 2026-03-17 after roadmap creation*
