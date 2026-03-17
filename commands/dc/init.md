@@ -24,6 +24,7 @@ Template files used by this skill:
 - `manifest.md` — MANIFEST.md with `{one_line_description}`, `{restricted_context_instructions}`
 - `architecture.md` — ARCHITECTURE.md with `{system_purpose}`, `{module_rows}`, `{data_flow}`, `{key_boundaries}`, `{technology_decisions}`
 - `agents-snippet.md` — Static snippet with `<!-- domain-context:start/end -->` sentinels
+- `gsd-agents-snippet.md` — GSD bridge snippet with `<!-- gsd-bridge:start/end -->` sentinels
 - `claude.md` — Single line `@AGENTS.md`
 </execution_context>
 
@@ -40,7 +41,7 @@ Template files used by this skill:
    `npx domain-context-cc` (global) or `npx domain-context-cc --local` (local)"
    Then stop.
 
-**Status tracking:** Throughout Steps 2-9, maintain a results list tracking each item's path and status (created/skipped/updated). This list is used in Step 10 to produce the summary. The 8 items to track are: `.context/MANIFEST.md`, `.context/domain/`, `.context/decisions/`, `.context/constraints/`, `ARCHITECTURE.md`, `AGENTS.md`, `CLAUDE.md`, `.gitignore`.
+**Status tracking:** Throughout Steps 2-9, maintain a results list tracking each item's path and status (created/skipped/updated). This list is used in Step 10 to produce the summary. The 9 items to track are: `.context/MANIFEST.md`, `.context/domain/`, `.context/decisions/`, `.context/constraints/`, `ARCHITECTURE.md`, `AGENTS.md`, `AGENTS.md (GSD)`, `CLAUDE.md`, `.gitignore`.
 
 ## Step 2: Detect Existing Context
 
@@ -127,6 +128,25 @@ Do not show `.gitkeep` files as separate items in the results list.
    - Write the existing content followed by two blank lines and the snippet.
    - Record status `AGENTS.md: updated`.
 
+## Step 7.5: Inject GSD Bridge Snippet
+
+1. Read `gsd-agents-snippet.md` from TEMPLATE_DIR.
+2. Check if `.planning/PROJECT.md` exists in the project root.
+3. If `.planning/PROJECT.md` does not exist:
+   - Ask the user using AskUserQuestion:
+     - Prompt: "This project doesn't have GSD set up yet. Add GSD bridge to AGENTS.md anyway?"
+     - Options:
+       1. "Yes" -- continue to inject GSD bridge
+       2. "No" -- Record status `AGENTS.md (GSD): skipped` and move to the next step
+4. Read `AGENTS.md` from the project root (it exists -- Step 7 ensured this).
+5. If `AGENTS.md` contains `<!-- gsd-bridge:start -->`:
+   - Replace everything from `<!-- gsd-bridge:start -->` through `<!-- gsd-bridge:end -->` (inclusive) with the fresh template content.
+   - Record status `AGENTS.md (GSD): updated`.
+6. If `AGENTS.md` does not contain `<!-- gsd-bridge:start -->`:
+   - Read the existing content.
+   - Write the existing content followed by two blank lines and the GSD bridge snippet.
+   - Record status `AGENTS.md (GSD): created`.
+
 ## Step 8: Handle CLAUDE.md
 
 1. Read `claude.md` from TEMPLATE_DIR (contains `@AGENTS.md`).
@@ -167,13 +187,14 @@ Domain Context initialized:
   .context/constraints/    created
   ARCHITECTURE.md          skipped
   AGENTS.md                updated
+  AGENTS.md (GSD)          created
   CLAUDE.md                skipped
   .gitignore               updated
 
-  5 created, 2 skipped, 1 updated
+  5 created, 2 skipped, 2 updated
 ```
 
-Items appear in the order listed above (8 items total). File paths left-aligned, statuses right-aligned with consistent spacing. Use plain text statuses (no emoji or checkmarks). The count line shows the totals for each status category.
+Items appear in the order listed above (9 items total). File paths left-aligned, statuses right-aligned with consistent spacing. Use plain text statuses (no emoji or checkmarks). The count line shows the totals for each status category.
 
 **Part B -- Commit prompt:** If ALL items are "skipped" (0 created and 0 updated), display: "Everything is already set up. No changes needed." and do NOT show the commit prompt.
 
