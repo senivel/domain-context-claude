@@ -1,0 +1,87 @@
+# Requirements: domain-context-cc
+
+**Defined:** 2026-03-17
+**Core Value:** Developers can codify and maintain domain knowledge alongside code so AI assistants always have accurate business context
+
+## v1.3 Requirements
+
+Requirements for Installation & Distribution milestone. Each maps to roadmap phases.
+
+### Packaging
+
+- [ ] **PKG-01**: package.json has correct name (`domain-context-cc`), version, and description
+- [ ] **PKG-02**: package.json bin entry maps package name to `./bin/install.js`
+- [ ] **PKG-03**: package.json files whitelist includes all 7 distributable directories (commands/, agents/, hooks/, rules/, templates/, tools/, bin/)
+- [ ] **PKG-04**: package.json engines constraint set to `>=20.0.0`
+- [ ] **PKG-05**: package.json has zero runtime dependencies and `type: "commonjs"`
+
+### Installation
+
+- [ ] **INST-01**: User can run `npx domain-context-cc` to install globally to `~/.claude/`
+- [ ] **INST-02**: User can run `npx domain-context-cc --local` to install to `./.claude/`
+- [ ] **INST-03**: User can run `npx domain-context-cc --uninstall` to remove dc-prefixed files and hook entries
+- [ ] **INST-04**: Installer merges hook entries into settings.json without clobbering existing hooks
+- [ ] **INST-05**: Re-running install is idempotent (no duplicate hook entries, files safely overwritten)
+- [ ] **INST-06**: Global install uses absolute paths in settings.json hook commands
+- [ ] **INST-07**: Installer uses `__dirname` (not `process.cwd()`) to locate bundled files
+- [ ] **INST-08**: bin/install.js has `#!/usr/bin/env node` shebang
+- [ ] **INST-09**: Installer prints success message with next steps after install
+
+### Documentation
+
+- [ ] **DOC-01**: README has install command (`npx domain-context-cc`)
+- [ ] **DOC-02**: README has quick start section (install → `/dc:init` → start working)
+- [ ] **DOC-03**: README has command reference for all 6 dc:* skills
+- [ ] **DOC-04**: README has GSD integration section explaining the bridge pattern
+- [ ] **DOC-05**: README has uninstall instructions
+
+## Future Requirements
+
+### Distribution
+
+- **DIST-01**: Auto-update check on session start
+- **DIST-02**: `--check` inspection flag to show what's installed
+
+## Out of Scope
+
+| Feature | Reason |
+|---------|--------|
+| MCP server registration | Deferred per ADR-003 |
+| Auto-run `/dc:init` during install | Cannot invoke skills from Node.js |
+| Interactive prompts during install | Breaks npx piped usage |
+| Modifying project CLAUDE.md/AGENTS.md | That's dc:init's job, not the installer |
+
+## Traceability
+
+Which phases cover which requirements. Updated during roadmap creation.
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| PKG-01 | — | Pending |
+| PKG-02 | — | Pending |
+| PKG-03 | — | Pending |
+| PKG-04 | — | Pending |
+| PKG-05 | — | Pending |
+| INST-01 | — | Pending |
+| INST-02 | — | Pending |
+| INST-03 | — | Pending |
+| INST-04 | — | Pending |
+| INST-05 | — | Pending |
+| INST-06 | — | Pending |
+| INST-07 | — | Pending |
+| INST-08 | — | Pending |
+| INST-09 | — | Pending |
+| DOC-01 | — | Pending |
+| DOC-02 | — | Pending |
+| DOC-03 | — | Pending |
+| DOC-04 | — | Pending |
+| DOC-05 | — | Pending |
+
+**Coverage:**
+- v1.3 requirements: 19 total
+- Mapped to phases: 0
+- Unmapped: 19 ⚠️
+
+---
+*Requirements defined: 2026-03-17*
+*Last updated: 2026-03-17 after initial definition*
