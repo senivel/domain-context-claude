@@ -82,6 +82,45 @@
 
 ---
 
+## Milestone: v1.2 — GSD Integration
+
+**Shipped:** 2026-03-17
+**Phases:** 3 | **Plans:** 4
+
+### What Was Built
+- GSD bridge template (`templates/gsd-agents-snippet.md`, 13 lines) — sentinel-marked snippet for AGENTS.md injection
+- dc:init GSD detection (Step 7.5 in `commands/dc/init.md`) — auto-detects .planning/PROJECT.md, prompts user if absent, sentinel-based idempotent injection/replacement
+- dc:extract skill (`commands/dc/extract.md`, 244 lines) — 13-step scan-classify-propose-create pipeline extracting domain knowledge from completed GSD phases
+- Template validation expanded to 91 checks covering all 6 dc:* skill files
+
+### What Worked
+- Autonomous execution continued to work well: all 3 phases completed in a single session with smart discuss → plan → execute → verify per phase
+- Phase 14 (infrastructure) was correctly identified as pure infrastructure and skipped discuss — saved time
+- Pattern reuse from dc:add for dc:extract (template resolution, MANIFEST.md updates, ADR numbering, kebab-case) made the most complex skill straightforward to plan
+- Single-file modifications (Phases 14 and 15) resulted in clean, focused plans with instant verification
+
+### What Was Inefficient
+- Human verification checkpoints (Plan 16-02) were deferred again because skills aren't installed in a testable environment — same issue as v1.0
+- VALIDATION.md nyquist_compliant frontmatter still not being flipped to true — third consecutive milestone with this gap
+- Integration checker flagged implicit template placeholder replacement as a gap, but this is a shared design choice across dc:add and dc:extract — the checker doesn't have enough context to know this is intentional
+
+### Patterns Established
+- Step numbering with decimals (Step 7.5) to avoid renumbering when inserting into existing skills
+- SUMMARY.md presence as completion signal — more reliable than ROADMAP.md status for dc:extract scanning
+- Batch proposal table + per-item AskUserQuestion accept/reject — new UX pattern for multi-item review flows
+
+### Key Lessons
+1. Human verification continues to be the gap — a testing strategy for Claude Code skills (running them against real projects) would eliminate the largest category of deferred work
+2. Infrastructure phases are fast wins — Phase 14 (template creation) took ~2 minutes end-to-end
+3. Smart discuss batch tables work well when prior decisions exist to seed recommendations — Phase 15 and 16 had strong recommendations because of Phase 14 context
+
+### Cost Observations
+- Model mix: ~50% opus (orchestration, execution), ~35% sonnet (verification, plan checking, integration), ~15% sonnet (research)
+- Single-session execution for entire milestone (same as v1.1)
+- Notable: 3 phases × 4 plans is the leanest milestone yet — GSD integration was well-scoped
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -90,9 +129,12 @@
 |-----------|--------|-------|------------|
 | v1.0 | 9 | 15 | Established template-first build order and gap closure cycle |
 | v1.1 | 4 | 4 | Autonomous execution mode; pattern reuse across phases |
+| v1.2 | 3 | 4 | Lean scoping; smart discuss with prior-decision seeding |
 
 ### Top Lessons (Verified Across Milestones)
 
 1. Build shared infrastructure (templates, parsers) before consumers — eliminates blocking dependencies
 2. Integration verification at milestone boundary catches cross-phase wiring issues that per-phase verification misses
 3. Pattern reuse between phases accelerates both planning and execution — establish patterns early in a milestone
+4. Human verification of Claude Code skills remains the primary gap — a testable environment is needed (3 milestones running)
+5. Nyquist VALIDATION.md sign-off should be automated — manual frontmatter updates are consistently missed
