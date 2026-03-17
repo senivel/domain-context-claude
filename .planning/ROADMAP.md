@@ -84,6 +84,6 @@ Phases execute in numeric order: 14 → 15 → 16
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 14. GSD Bridge Template | 1/1 | Complete   | 2026-03-17 | - |
+| 14. GSD Bridge Template | 1/1 | Complete    | 2026-03-17 | - |
 | 15. dc:init GSD Detection | v1.2 | 0/? | Not started | - |
 | 16. dc:extract Skill | v1.2 | 0/? | Not started | - |
