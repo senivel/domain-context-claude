@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Installation & Distribution
-status: defining
+status: planning
 stopped_at: null
 last_updated: "2026-03-17"
-last_activity: 2026-03-17 — Milestone v1.3 started
+last_activity: 2026-03-17 — Roadmap created for v1.3 (3 phases, 19 requirements)
 progress:
-  total_phases: 0
+  total_phases: 3
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,14 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-17)
 
 **Core value:** Developers can codify and maintain domain knowledge alongside code so AI assistants always have accurate business context
-**Current focus:** Defining requirements for v1.3
+**Current focus:** Phase 17 — Package Configuration
 
 ## Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-03-17 — Milestone v1.3 started
+Phase: 17 of 19 (Package Configuration)
+Plan: 0 of ? in current phase
+Status: Ready to plan
+Last activity: 2026-03-17 — Roadmap created for v1.3
+
+Progress: [░░░░░░░░░░] 0%
 
 ## Accumulated Context
 
@@ -49,6 +51,10 @@ Last activity: 2026-03-17 — Milestone v1.3 started
 - Dual-location verified date (MANIFEST.md + inline comment)
 - Per-group fix offers in validate for better UX
 - AGENTS.md import check as warning (optional per spec)
+
+### Decisions (v1.3)
+- Research recommends >=20.0.0 engine constraint (resolves STACK.md vs ARCHITECTURE.md discrepancy)
+- Template preservation on re-install: exact UX deferred to Phase 18 implementation
 
 ### Pending Todos
 

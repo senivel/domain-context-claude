@@ -57,31 +57,31 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PKG-01 | — | Pending |
-| PKG-02 | — | Pending |
-| PKG-03 | — | Pending |
-| PKG-04 | — | Pending |
-| PKG-05 | — | Pending |
-| INST-01 | — | Pending |
-| INST-02 | — | Pending |
-| INST-03 | — | Pending |
-| INST-04 | — | Pending |
-| INST-05 | — | Pending |
-| INST-06 | — | Pending |
-| INST-07 | — | Pending |
-| INST-08 | — | Pending |
-| INST-09 | — | Pending |
-| DOC-01 | — | Pending |
-| DOC-02 | — | Pending |
-| DOC-03 | — | Pending |
-| DOC-04 | — | Pending |
-| DOC-05 | — | Pending |
+| PKG-01 | Phase 17 | Pending |
+| PKG-02 | Phase 17 | Pending |
+| PKG-03 | Phase 17 | Pending |
+| PKG-04 | Phase 17 | Pending |
+| PKG-05 | Phase 17 | Pending |
+| INST-01 | Phase 18 | Pending |
+| INST-02 | Phase 18 | Pending |
+| INST-03 | Phase 18 | Pending |
+| INST-04 | Phase 18 | Pending |
+| INST-05 | Phase 18 | Pending |
+| INST-06 | Phase 18 | Pending |
+| INST-07 | Phase 18 | Pending |
+| INST-08 | Phase 18 | Pending |
+| INST-09 | Phase 18 | Pending |
+| DOC-01 | Phase 19 | Pending |
+| DOC-02 | Phase 19 | Pending |
+| DOC-03 | Phase 19 | Pending |
+| DOC-04 | Phase 19 | Pending |
+| DOC-05 | Phase 19 | Pending |
 
 **Coverage:**
 - v1.3 requirements: 19 total
-- Mapped to phases: 0
-- Unmapped: 19 ⚠️
+- Mapped to phases: 19
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-17*
-*Last updated: 2026-03-17 after initial definition*
+*Last updated: 2026-03-17 after roadmap creation*
