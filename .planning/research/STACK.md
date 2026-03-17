@@ -1,17 +1,18 @@
 # Stack Research
 
-**Domain:** GSD integration — dc:extract skill and AGENTS.md.snippet template
-**Researched:** 2026-03-16
-**Confidence:** HIGH (no new technology; all patterns verified from existing v1.0/v1.1 implementations in this repo)
+**Domain:** npm packaging and Node.js installer for Claude Code extension
+**Researched:** 2026-03-17
+**Confidence:** HIGH
 
 ---
 
-## What Changed in v1.2
+## What Changed in v1.3
 
-This is a focused delta from the v1.1 research (hooks, rules, agent). All prior content remains valid. This document covers what is needed for TWO new artifacts:
+This is a focused delta from the v1.2 research. All prior content (skills, hooks, agents, rules, templates) remains valid and unchanged. This document covers only what is needed for THREE new artifacts:
 
-1. **dc:extract skill** — reads .planning/ artifacts, cross-references against .context/, proposes new domain files
-2. **AGENTS.md.snippet template update** — adds GSD bridge text to the existing agents-snippet.md template
+1. **`package.json`** — npm package configuration (bin entry, files list, engines)
+2. **`bin/install.js`** — Node.js installer script (--global, --local, --uninstall, settings.json merge)
+3. **`README.md`** — Final documentation (no new technology, just content)
 
 ---
 
@@ -21,105 +22,272 @@ This is a focused delta from the v1.1 research (hooks, rules, agent). All prior 
 
 | Technology | Version | Purpose | Why Recommended |
 |------------|---------|---------|-----------------|
-| Claude Code skill format | current (2026) | dc:extract skill definition | Same format as all 5 existing skills. YAML frontmatter + objective/execution_context/process sections. No change needed. |
-| Markdown templates | n/a | AGENTS.md.snippet update | Same `{placeholder}` token system and sentinel comment pattern established in v1.0. |
+| Node.js | `>=20.0.0` minimum; v24 Active LTS current | Runtime for installer script | v20 and v22 are Maintenance LTS; v24 is Active LTS as of 2026. `fs.cpSync` (added v16.7.0) and `fs.rmSync` (added v14.14.0) are both available across all supported LTS versions. Matches existing hook runtime. |
+| npm | bundled with Node | Package registry and npx distribution | `npx domain-context-cc` downloads and runs the `bin` entry without a separate install step. Zero user friction. `files` whitelist controls what ships in the tarball. |
 
 ### Node.js Built-in APIs
 
-**None new.** dc:extract is a skill (markdown instructions for Claude), not a hook (Node.js script). The LLM reads .planning/ files using Read/Glob tools at runtime. No programmatic parsing required.
+All needed functionality is covered by Node.js built-ins. Verified functional in v24.14.0 (current dev environment).
+
+| API | Module | Purpose | Notes |
+|-----|--------|---------|-------|
+| `fs.cpSync(src, dest, opts)` | `fs` | Recursive directory copy for installer | Added v16.7.0. Use `{recursive: true, force: true}`. `force: true` overwrites on reinstall. |
+| `fs.rmSync(path, opts)` | `fs` | Remove installed directories on uninstall | Added v14.14.0. Use `{recursive: true, force: true}`. |
+| `fs.existsSync(path)` | `fs` | Check if settings.json or install dir exists before reading | Available since Node.js 0.x. |
+| `fs.readFileSync(path, enc)` | `fs` | Read settings.json for merge | Synchronous I/O is correct here — installer is a one-shot CLI, not a server. |
+| `fs.writeFileSync(path, data)` | `fs` | Write merged settings.json | Pair with `JSON.stringify(obj, null, 2)` to keep file human-readable. |
+| `fs.mkdirSync(path, opts)` | `fs` | Create target directories if missing | Use `{recursive: true}` to create nested dirs without checking intermediate existence. |
+| `path.join(...parts)` | `path` | Construct platform-safe file paths | Use for all path construction. Never string concatenation. |
+| `path.dirname(p)` | `path` | Resolve directory from `__filename` or a path | Used to locate source files relative to the installed script. |
+| `os.homedir()` | `os` | Resolve `~/.claude` for global install target | More reliable than `process.env.HOME` which can be unset in some environments. |
+| `process.argv` | built-in | CLI flag parsing (--global, --local, --uninstall) | A `for` loop over `process.argv.slice(2)` handles all 3 flags with 5 lines of code. |
+| `process.exit(code)` | built-in | Exit with error code on failure | Use `process.exit(1)` on hard errors; `process.exit(0)` on success or expected early exit. |
+| `JSON.parse` / `JSON.stringify` | built-in | Parse and re-serialize settings.json | `JSON.stringify(obj, null, 2)` produces 2-space-indented output consistent with Claude Code's own format. |
 
 ### Supporting Libraries
 
-**None.** Zero new dependencies. The existing zero-dependency constraint holds unchanged.
+**None.** Zero runtime dependencies. This is a hard project constraint — and the right architectural choice for an installer:
+
+- Installers that pull transitive deps break when npm registry is unreachable or slow
+- All needed APIs are built-in to Node.js (verified above)
+- Existing hooks use zero deps — installer must match this pattern
 
 ---
 
-## What dc:extract Needs (and How Existing Stack Provides It)
+## package.json Configuration
 
-dc:extract is a **skill** (like dc:add, dc:validate). Skills are markdown files that instruct the LLM what to do. The LLM itself is the "runtime" -- it reads files, identifies patterns, and proposes changes using its allowed tools.
+The complete set of fields needed for npm distribution:
 
-### Input: GSD .planning/ Artifacts
+```json
+{
+  "name": "domain-context-cc",
+  "version": "1.3.0",
+  "description": "Claude Code extension for Domain Context specification — skills, hooks, agents, and installer",
+  "type": "commonjs",
+  "bin": {
+    "domain-context-cc": "./bin/install.js"
+  },
+  "files": [
+    "bin/",
+    "commands/",
+    "hooks/",
+    "agents/",
+    "rules/",
+    "templates/"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "keywords": ["claude", "claude-code", "domain-context"],
+  "license": "MIT"
+}
+```
 
-The skill instructs Claude to read these artifact types from `.planning/`:
+**`bin` field:** Maps the package name to the installer entry point. When a user runs `npx domain-context-cc`, npm downloads the package and executes `bin/install.js`. The file must have `#!/usr/bin/env node` as its first line. npm automatically sets the executable bit during install.
 
-| Artifact | Path Pattern | What It Contains | What to Extract |
-|----------|-------------|------------------|-----------------|
-| Phase CONTEXT.md | `.planning/phases/*/NN-CONTEXT.md` or `.planning/milestones/*/NN-CONTEXT.md` | Domain boundaries, implementation decisions, deferred ideas | Domain concepts, architecture decisions, constraints |
-| Phase SUMMARY.md | `.planning/phases/*/NN-NN-SUMMARY.md` or `.planning/milestones/*/NN-NN-SUMMARY.md` | Key decisions made, patterns established, issues encountered | Architecture decisions, new patterns |
-| RETROSPECTIVE.md | `.planning/RETROSPECTIVE.md` | Cross-cutting learnings from completed milestones | Constraints, anti-patterns |
-| Research files | `.planning/research/*.md` | Technology recommendations, architecture patterns, pitfalls | Domain concepts, architecture decisions |
-| PROJECT.md | `.planning/PROJECT.md` | Key decisions table with rationale | Architecture decisions |
+**`files` field:** Whitelist of what ships in the tarball. Omitting `.planning/`, `.context/`, `.git/`, `tools/`, root `.md` files keeps the tarball small and avoids shipping development artifacts. Note: `README.md`, `package.json`, and `LICENSE` are always included by npm regardless of `files`.
 
-All of these are plain markdown files. Claude reads them with the `Read` tool and parses them with its native language understanding -- no regex, no AST, no library needed.
+**`engines` field:** `>=20.0.0` targets the Maintenance LTS minimum. This is a soft advisory — npm warns if violated but does not block install. The installer can add a hard runtime check: `if (parseInt(process.version.slice(1)) < 20) { process.exit(1); }`.
 
-### Output: Proposed .context/ Changes
+**`type: "commonjs"`:** Explicit declaration prevents Node.js module resolution ambiguity. Existing hooks use `require()` — this must match.
 
-The skill instructs Claude to propose (not auto-apply) these outputs:
-
-| Output Type | Uses Existing Template | Template File |
-|-------------|----------------------|---------------|
-| New domain concept | Yes | `templates/domain-concept.md` |
-| New architecture decision | Yes | `templates/decision.md` |
-| New constraint | Yes | `templates/constraint.md` |
-| MANIFEST.md updates | Yes (entry format from dc:add pattern) | n/a (entry lines, not full file) |
-
-### Cross-Reference: .context/ Deduplication
-
-The skill reads existing `.context/MANIFEST.md` and compares entry names/descriptions against proposed extractions. This is LLM-native comparison -- no fuzzy matching library needed. Claude can determine "this phase decision about 'AGENTS.md bridge pattern' maps to existing entry [002: AGENTS.md Bridge]" through semantic understanding.
-
-### Tools Required
-
-| Tool | Purpose | Same as Existing Skills? |
-|------|---------|--------------------------|
-| Read | Read .planning/ artifacts and .context/ files | Yes (all 5 skills use Read) |
-| Glob | Find phase directories and artifact files | Yes (dc:validate, dc:explore use Glob) |
-| Write | Create new .context/ files from templates | Yes (dc:add, dc:init use Write) |
-| Edit | Update MANIFEST.md with new entries | Yes (dc:validate, dc:add use Edit) |
-| AskUserQuestion | Confirm/reject each proposed extraction | Yes (dc:validate, dc:add use it) |
-
-No new tools. The exact same `allowed-tools` set as dc:add.
+**No `main` field needed:** The package is not a library. `bin` is the entry point.
 
 ---
 
-## AGENTS.md.snippet Template Update
+## Node.js Patterns for Installer
 
-The existing `templates/agents-snippet.md` contains the "Project Context" and "Confidential Context" sections wrapped in `<!-- domain-context:start -->` / `<!-- domain-context:end -->` sentinels.
+### CLI flag parsing
 
-### What Needs Adding
+```javascript
+const args = process.argv.slice(2);
+const flags = {};
+for (const arg of args) {
+  if (arg.startsWith('--')) flags[arg.slice(2)] = true;
+}
 
-A GSD bridge paragraph that tells Claude how to use dc:extract after completing GSD phases. This is **static text** -- no new placeholders, no new template mechanics.
+// Default: global install (no flags = --global behavior)
+const isGlobal  = flags.global || (!flags.local && !flags.uninstall);
+const isLocal   = flags.local;
+const isUninstall = flags.uninstall;
+```
 
-The snippet already has no `{placeholder}` tokens (it is identical for every project). The GSD bridge text follows the same pattern: static instructional text within the sentinel block.
+Default to global install because `npx domain-context-cc` (no flags) is the primary use case.
 
-### Template Integration
+### Install target paths
 
-dc:init already handles injecting the agents-snippet.md content into target project AGENTS.md files. The sentinel comments enable idempotent re-injection. No changes to dc:init's injection logic are needed -- only the template content changes.
+```javascript
+const path = require('path');
+const os   = require('os');
+
+const GLOBAL_DIR = path.join(os.homedir(), '.claude');
+const LOCAL_DIR  = path.join(process.cwd(), '.claude');
+
+const installDir   = isGlobal ? GLOBAL_DIR : LOCAL_DIR;
+const commandsDir  = path.join(installDir, 'commands', 'dc');
+const hooksDir     = path.join(installDir, 'hooks');
+const agentsDir    = path.join(installDir, 'agents');
+const rulesDir     = path.join(installDir, 'rules');
+// Templates namespaced to avoid collision with other tools' templates
+const templatesDir = path.join(installDir, 'domain-context', 'templates');
+const settingsPath = path.join(installDir, 'settings.json');
+```
+
+The `domain-context/templates/` subdirectory namespacing is already established in existing skills (they look up templates from `~/.claude/domain-context/templates/`). Keep this consistent.
+
+### File copy (install)
+
+```javascript
+const fs   = require('fs');
+
+const srcRoot = path.join(__dirname, '..');  // package root
+
+fs.mkdirSync(commandsDir,  { recursive: true });
+fs.mkdirSync(hooksDir,     { recursive: true });
+fs.mkdirSync(agentsDir,    { recursive: true });
+fs.mkdirSync(rulesDir,     { recursive: true });
+fs.mkdirSync(templatesDir, { recursive: true });
+
+fs.cpSync(path.join(srcRoot, 'commands', 'dc'), commandsDir,  { recursive: true, force: true });
+fs.cpSync(path.join(srcRoot, 'hooks'),          hooksDir,     { recursive: true, force: true });
+fs.cpSync(path.join(srcRoot, 'agents'),         agentsDir,    { recursive: true, force: true });
+fs.cpSync(path.join(srcRoot, 'rules'),          rulesDir,     { recursive: true, force: true });
+fs.cpSync(path.join(srcRoot, 'templates'),      templatesDir, { recursive: true, force: true });
+```
+
+`force: true` enables idempotent reinstall — existing files are overwritten with the new version.
+
+### settings.json merge
+
+The actual `~/.claude/settings.json` structure (observed directly) uses arrays of hook entry objects. The merge must append without duplicating, and use absolute paths for global installs.
+
+```javascript
+function mergeSettings(settingsPath, hookEvent, entry) {
+  let settings = {};
+  if (fs.existsSync(settingsPath)) {
+    try {
+      settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    } catch (e) {
+      // Malformed settings.json — start fresh rather than corrupt it further
+      settings = {};
+    }
+  }
+  if (!settings.hooks) settings.hooks = {};
+  if (!settings.hooks[hookEvent]) settings.hooks[hookEvent] = [];
+
+  // Idempotency: skip if this command is already registered
+  const newCommand = entry.hooks[0].command;
+  const alreadyRegistered = settings.hooks[hookEvent].some(
+    e => e.hooks && e.hooks.some(h => h.command === newCommand)
+  );
+  if (!alreadyRegistered) {
+    settings.hooks[hookEvent].push(entry);
+  }
+
+  fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + '\n', 'utf8');
+}
+
+// Build entries using absolute paths (prevents breakage across cwd changes)
+const sessionStartEntry = {
+  hooks: [{
+    type: 'command',
+    command: `node "${path.join(hooksDir, 'dc-freshness-check.js')}"`
+  }]
+};
+
+const postToolUseEntry = {
+  matcher: 'Edit|Write|MultiEdit',
+  hooks: [{
+    type: 'command',
+    command: `node "${path.join(hooksDir, 'dc-context-reminder.js')}"`
+  }]
+};
+
+mergeSettings(settingsPath, 'SessionStart', sessionStartEntry);
+mergeSettings(settingsPath, 'PostToolUse',  postToolUseEntry);
+```
+
+**Why absolute paths:** The observed `~/.claude/settings.json` uses absolute quoted paths for global hooks (e.g., `node "/Users/alevine/.claude/hooks/gsd-check-update.js"`). Relative paths break when Claude Code changes working directory between sessions.
+
+### Uninstall
+
+```javascript
+function uninstall(installDir, settingsPath) {
+  // Remove only the files this installer placed — never touch .context/
+  const dirsToRemove = [
+    path.join(installDir, 'commands', 'dc'),
+    path.join(installDir, 'domain-context', 'templates'),
+  ];
+  const filesToRemove = [
+    path.join(installDir, 'hooks', 'dc-freshness-check.js'),
+    path.join(installDir, 'hooks', 'dc-context-reminder.js'),
+    path.join(installDir, 'agents', 'dc-domain-validator.md'),
+    path.join(installDir, 'rules',  'dc-context-editing.md'),
+  ];
+
+  for (const dir of dirsToRemove) {
+    if (fs.existsSync(dir)) fs.rmSync(dir, { recursive: true, force: true });
+  }
+  for (const file of filesToRemove) {
+    if (fs.existsSync(file)) fs.rmSync(file);
+  }
+
+  // Remove hook entries from settings.json
+  if (fs.existsSync(settingsPath)) {
+    const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    const commandsToRemove = ['dc-freshness-check.js', 'dc-context-reminder.js'];
+    for (const event of Object.keys(settings.hooks || {})) {
+      settings.hooks[event] = (settings.hooks[event] || []).filter(
+        entry => !entry.hooks || !entry.hooks.some(
+          h => commandsToRemove.some(cmd => h.command && h.command.includes(cmd))
+        )
+      );
+    }
+    fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + '\n', 'utf8');
+  }
+}
+```
+
+**Critical:** Never remove `.context/` directories. Those are user data created by dc:init in target projects, not installer artifacts.
 
 ---
 
 ## What NOT to Add
 
-| Avoid | Why | What to Do Instead |
-|-------|-----|-------------------|
-| Markdown parsing library (remark, unified, etc.) | Skills use Claude's native text understanding; hooks do not parse .planning/ | Let the LLM read and interpret .planning/ markdown directly |
-| Diff/similarity library (diff, string-similarity) | Cross-referencing .context/ against .planning/ is semantic, not lexical | Claude compares concepts semantically; "same domain concept" is a judgment call, not string matching |
-| Any npm package | Hard constraint: zero runtime deps | Node.js built-ins only (but this milestone adds no JS code at all) |
-| New hook for .planning/ monitoring | dc:extract is user-invoked, not passive | Skill (user runs `/dc:extract`) not hook (auto-fires on events) |
-| New agent for extraction | Extraction requires conversation context (which phases? what was built?) | Skill in main conversation, not delegated subagent |
-| Template engine (Handlebars, EJS, etc.) | Existing `{placeholder}` + string replacement in skills is sufficient | Same pattern as dc:add's template filling |
-| JSON schema for .planning/ artifact validation | .planning/ structure is GSD-internal; dc:extract reads whatever exists | Graceful degradation: if artifacts are missing or malformed, skill reports "no extractable content found" |
+| Avoid | Why | Use Instead |
+|-------|-----|-------------|
+| `chalk`, `ora`, `kleur` | Runtime dep violates constraint; installer output is minimal | `process.stdout.write()` with plain text |
+| `commander`, `yargs`, `minimist` | Deps for 3 boolean flags is wasteful | `process.argv.slice(2)` loop (5 lines) |
+| `fs-extra` | Wraps `fs` — no benefit now that `fs.cpSync` exists natively | `fs.cpSync` with `{recursive: true}` |
+| `glob` / `fast-glob` | Only needed for dynamic file discovery — installer copies a known static directory layout | Hardcoded `fs.cpSync` calls per directory |
+| `rimraf` | `fs.rmSync(dir, {recursive: true})` added in Node 14.14.0 covers the need natively | `fs.rmSync` built-in |
+| `shelljs` | Shell command wrapper — no shell commands needed | Direct `fs` API calls |
+| `json-merge-patch`, `deepmerge` | settings.json merge is shallow (append to arrays) — no deep-merge needed | `Array.prototype.some` + `Array.prototype.push` |
+| `semver` | Engine version check is a single integer comparison | `parseInt(process.version.slice(1))` |
+| ESM / `import`/`export` | Hooks use CommonJS `require()` — mixing module systems creates confusion | `require()` throughout, `"type": "commonjs"` in package.json |
 
 ---
 
 ## Alternatives Considered
 
-| Recommended | Alternative | Why Not |
-|-------------|-------------|---------|
-| Skill (markdown instructions) | Node.js extraction script | Skills leverage LLM's semantic understanding; a script would need complex NLP for cross-referencing |
-| User-confirmed extraction (AskUserQuestion per proposal) | Auto-apply all extractions | Domain knowledge must be human-verified; auto-applying could pollute .context/ with noise |
-| Single dc:extract skill | Separate skills per artifact type (dc:extract-decisions, dc:extract-concepts) | Over-fragmentation; one skill with scope selection is cleaner UX |
-| Update existing agents-snippet.md | New separate gsd-agents-snippet.md template | One snippet file, one injection point; splitting creates maintenance burden |
-| Read all completed phases | Only read latest phase | Cross-cutting patterns emerge across phases; limiting to latest misses cumulative knowledge |
+| Recommended | Alternative | When to Use Alternative |
+|-------------|-------------|-------------------------|
+| `fs.cpSync` | Manual recursive walk with `fs.readdirSync` + `fs.copyFileSync` | If targeting Node < 16.7 (not needed — LTS minimum is 20) |
+| Manual `process.argv` parsing | `commander` or `minimist` | If CLI needed >5 flags, subcommands, `--help` generation, or value-bearing flags — overkill for 3 boolean flags |
+| `JSON.parse` / `JSON.stringify` | `json5`, `jsonc-parser` | If settings.json had comments — Claude Code's settings.json is strict JSON with no comments |
+| `os.homedir()` | `process.env.HOME` | If targeting Windows explicitly — `os.homedir()` works on all platforms |
+| Array-append merge | Full JSON deep-merge library | If settings had arbitrary nested structures to merge — only hook arrays need appending |
+| Absolute hook paths in settings.json | Relative paths | If the installer only supported local install — global install requires absolute paths for cross-session reliability |
+
+---
+
+## Development Workflow
+
+| Tool | Purpose | Command |
+|------|---------|---------|
+| `npm pack` | Test package before publish; verify `files` list | `npm pack` → produces `domain-context-cc-X.Y.Z.tgz` |
+| `npx ./domain-context-cc-*.tgz` | Simulate end-user `npx domain-context-cc` invocation locally | Run after `npm pack` |
+| `npm publish --dry-run` | Verify what would be uploaded to registry | Run before first publish |
 
 ---
 
@@ -127,74 +295,22 @@ dc:init already handles injecting the agents-snippet.md content into target proj
 
 | Component | Version | Notes |
 |-----------|---------|-------|
-| Node.js | >= 20 LTS | No new JS code in this milestone. Constraint preserved for future hooks. |
-| Claude Code | current (2026) | Skill format unchanged. Same YAML frontmatter + process sections. |
-| GSD | any | dc:extract reads .planning/ artifacts. GSD structure is convention-based markdown; any version works. |
-| Domain Context spec | current | Templates must match spec Section 6. No spec changes needed for extraction. |
-
----
-
-## Integration Points
-
-### With Existing Skills
-
-| Existing Skill | Integration |
-|----------------|-------------|
-| dc:add | dc:extract reuses dc:add's template-filling and MANIFEST.md-updating patterns. Could even delegate to dc:add for individual entries, but inline is simpler. |
-| dc:validate | User should run dc:validate after dc:extract to verify structural integrity of newly added entries. Skill should suggest this. |
-| dc:init | dc:init injects agents-snippet.md into AGENTS.md. Updated snippet content takes effect on next dc:init run (or re-run in existing projects). |
-| dc:explore | After extraction, dc:explore can browse the newly added domain context. No integration needed. |
-
-### With GSD .planning/ Structure
-
-dc:extract needs to understand GSD's directory conventions:
-
-```
-.planning/
-  PROJECT.md                          # Key decisions table
-  RETROSPECTIVE.md                    # Cross-cutting learnings
-  research/                           # Stack, architecture, features, pitfalls
-    STACK.md, ARCHITECTURE.md, etc.
-  phases/                             # Current milestone phases
-    NN-phase-name/
-      NN-CONTEXT.md                   # Domain boundary, decisions, specifics
-      NN-NN-SUMMARY.md               # Per-plan completion summaries
-  milestones/                         # Archived milestone phases
-    vX.Y-phases/
-      NN-phase-name/
-        (same structure)
-```
-
-This is **read-only** -- dc:extract never modifies .planning/ files. It only reads them and proposes .context/ changes.
-
-### Template Resolution
-
-Same as all existing skills:
-1. Check `.claude/domain-context/templates/` (local install)
-2. Check `~/.claude/domain-context/templates/` (global install)
-
-No new resolution logic needed.
-
----
-
-## Summary: Zero Stack Changes
-
-This milestone requires **no new technologies, no new dependencies, no new patterns**. It produces:
-
-1. One new markdown file: `commands/dc/extract.md` (skill)
-2. One modified markdown file: `templates/agents-snippet.md` (template content update)
-
-Both use patterns established in v1.0 and validated through v1.1. The "stack" for this milestone is the same stack the project already has.
+| Node.js 20 (Maintenance LTS) | `fs.cpSync`, `fs.rmSync` | cpSync added v16.7.0, rmSync added v14.14.0 — both available. |
+| Node.js 22 (Maintenance LTS) | All APIs used | No compatibility issues. |
+| Node.js 24 (Active LTS) | All APIs used | Verified locally in dev environment. |
+| npm 10+ | `files` whitelist, `bin` entry | No special npm version requirements for these fields. |
+| Claude Code | current (2026) | settings.json hook format verified from live `~/.claude/settings.json`. |
 
 ---
 
 ## Sources
 
-- Existing skills in this repo (`commands/dc/add.md`, `commands/dc/validate.md`) -- template resolution, MANIFEST.md update patterns, AskUserQuestion flow (HIGH confidence, read from working code)
-- Existing templates in this repo (`templates/agents-snippet.md`, `templates/domain-concept.md`, `templates/decision.md`) -- template format, sentinel comment pattern, placeholder conventions (HIGH confidence, read from working code)
-- GSD .planning/ artifacts in this repo -- directory structure, artifact naming conventions, content format (HIGH confidence, read from 13 completed phases across 2 milestones)
-- v1.1 STACK.md research -- hook patterns, tool contracts, integration points (HIGH confidence, validated against official docs 2026-03-16)
+- https://nodejs.org/docs/latest-v24.x/api/fs.html — `fs.cpSync` verified: added v16.7.0, supports `{recursive: true, force: true}` options. HIGH confidence.
+- https://nodejs.org/en/about/previous-releases — Node.js 24 is Active LTS, 22 and 20 are Maintenance LTS as of 2026-03-17. HIGH confidence.
+- `/Users/alevine/.claude/settings.json` (read directly) — Verified settings.json structure: hooks arrays with `{hooks: [{type, command}]}` entries, absolute quoted paths for global hooks. HIGH confidence.
+- Local `node -e` verification — `fs.cpSync` with `{recursive: true}` functional in Node 24.14.0; `typeof fs.cpSync === 'function'` confirmed. HIGH confidence.
+- Existing hooks in this repo (`hooks/dc-freshness-check.js`) — Confirmed `require()` / CommonJS pattern, `process.stdin` / `process.stdout` usage. HIGH confidence.
 
 ---
-*Stack research for: dc:extract skill and AGENTS.md.snippet template (domain-context-cc v1.2)*
-*Researched: 2026-03-16*
+*Stack research for: npm packaging and Node.js installer (domain-context-cc v1.3)*
+*Researched: 2026-03-17*

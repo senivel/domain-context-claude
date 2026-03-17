@@ -1,176 +1,178 @@
-# Feature Landscape
+# Feature Research
 
-**Domain:** Episodic-to-semantic knowledge extraction and GSD bridge integration
-**Researched:** 2026-03-16
-**Confidence:** HIGH (grounded in Domain Context spec Section 8.4 and 10.1, existing dc:add patterns, and GSD artifact structure)
-
----
+**Domain:** CLI tool installer / npm package for a Claude Code extension
+**Researched:** 2026-03-17
+**Confidence:** HIGH — based on existing GSD installer pattern in the same ecosystem, Claude Code hooks/settings.json verified in live environment, and established npm/npx conventions
 
 ## Scope
 
-This file covers the v1.2 milestone features only:
-- `dc:extract` skill -- extracts domain knowledge from completed GSD .planning/ artifacts into .context/
-- `AGENTS.md.snippet` template update -- adds GSD bridge text so dc:init wires GSD awareness
+This file covers the v1.3 milestone features only:
+- `package.json` — npm packaging configuration
+- `bin/install.js` — Node.js installer (--global, --local, --uninstall, settings.json merge)
+- Final `README.md` — install instructions, quick start, command reference, GSD integration
 
-Features from v1.0 (dc:init, dc:explore, dc:validate, dc:add, dc:refresh) and v1.1 (hooks, rule, agent) are prerequisites, not scope.
-
----
-
-## Table Stakes
-
-Features users expect. Missing = product feels incomplete.
-
-### dc:extract Skill
-
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| Scan .planning/ for completed phase artifacts | Can't extract knowledge from artifacts you don't read. This is the input step. | LOW | Glob for `*-CONTEXT.md`, `*-SUMMARY.md`, `*-RESEARCH.md`, and `RETROSPECTIVE.md` |
-| Identify extractable domain concepts | The core value proposition: surface business rules and domain knowledge buried in planning artifacts. | HIGH | Must distinguish durable domain knowledge ("subscriptions follow Trial > Active > Canceled") from ephemeral build notes ("used Glob to find templates"). Requires semantic understanding, not just pattern matching. |
-| Identify extractable architecture decisions | Planning artifacts contain implementation decisions (in CONTEXT.md `<decisions>` sections and SUMMARY.md `key-decisions` frontmatter) that may warrant formal ADRs. | MED | Already-accepted decisions are documented inline; extraction promotes them to .context/decisions/ |
-| Cross-reference against existing .context/ | Avoid proposing entries that already exist. Must read MANIFEST.md and compare. | LOW | Same MANIFEST.md parsing as dc:validate and dc:explore |
-| Preview proposed extractions before writing | User must approve what gets created. Extraction MUST be an explicit user-initiated step per spec Section 8.4 and integration-model.md business rule #3. | LOW | Same preview/confirm pattern as dc:add |
-| Create domain files using existing templates | Extracted knowledge must produce spec-compliant .context/ files using the same templates as dc:add. | LOW | Reuse dc:add's template resolution + filling pattern exactly |
-| Update MANIFEST.md for each created entry | Same manifest registration as dc:add. | LOW | Identical logic: find section, append entry line, handle `(none yet)` placeholder |
-| Handle missing .context/ gracefully | Project not initialized = clear error with guidance. | LOW | Same pattern as all other dc: skills: "Run /dc:init first" |
-| Handle missing .planning/ gracefully | No planning artifacts = nothing to extract. | LOW | "No .planning/ directory found. This skill extracts domain knowledge from GSD planning artifacts." |
-| Summary of what was extracted | User needs to see what happened. | LOW | Same summary pattern as dc:init and dc:add |
-
-### AGENTS.md Snippet Template Update
-
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| GSD bridge text in agents-snippet.md | When dc:init runs, the AGENTS.md snippet should tell GSD agents to consult .context/ during planning. This is the "Why feeds The What" integration from spec Section 10.1. | LOW | Add 2-3 lines to existing `agents-snippet.md` template between sentinels |
-| Sentinel-safe update | Existing projects that already ran dc:init should not break. The snippet uses `<!-- domain-context:start/end -->` sentinels. | LOW | New snippet replaces content between sentinels on re-init; existing projects can re-run dc:init to get the update |
-| GSD-specific instructions in bridge text | The snippet should reference `.planning/` and suggest running `/dc:extract` after phases complete. | LOW | 2-3 actionable lines, not prose |
+Features from v1.0–v1.2 (skills, hooks, rule, agent, templates) are prerequisites, not scope.
 
 ---
 
-## Differentiators
+## Feature Landscape
 
-Features that set product apart. Not expected, but valued.
+### Table Stakes (Users Expect These)
+
+Features users assume exist. Missing these = product feels incomplete.
+
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| `npx domain-context-cc` global install | Standard convention for Claude Code tools; README already promises this UX | LOW | Copies commands/, agents/, hooks/, rules/, templates/, tools/ to ~/.claude/ |
+| `--local` flag for project-scoped install | Developers want per-project installs; Claude Code supports both ~/.claude/ and ./.claude/ | LOW | Target is ./.claude/ instead of ~/.claude/ |
+| `--uninstall` flag | Users must be able to reverse the install; any tool without uninstall feels risky | MEDIUM | Remove dc-prefixed files only; avoid clobbering other installed tools |
+| settings.json hook registration (install) | Without this the SessionStart and PostToolUse hooks never fire; install is incomplete | MEDIUM | Must merge into existing settings.json without clobbering other hooks; append to arrays |
+| settings.json hook removal (uninstall) | Stale hook entries cause confusing session behavior after uninstall | MEDIUM | Parse JSON, filter out dc hook command strings, write back |
+| Idempotent install | Running `npx domain-context-cc` twice must not duplicate hook entries or files | LOW | Check if dc hooks already present before appending; overwriting files is safe |
+| package.json with correct `bin` entry | Required for `npx domain-context-cc` to resolve to the install script | LOW | `"bin": { "domain-context-cc": "bin/install.js" }` |
+| `files` list in package.json | Without it npm publishes everything including .planning/, .context/, test artifacts | LOW | Include: commands/, agents/, hooks/, rules/, templates/, tools/, bin/, README.md |
+| Success message with next step | Users don't know what to do after install; clear next-step instruction prevents abandonment | LOW | "Installed. Run /dc:init in any project to get started." |
+| Graceful degradation when settings.json missing | New Claude Code installs may not have settings.json; installer must handle absent file | LOW | `fs.existsSync()` check; create minimal `{ "hooks": { ... } }` if absent |
+| README install + quick start | First thing users read; must answer "how do I install" and "what do I do next" | LOW | Already drafted; needs final polish to match actual install command |
+
+### Differentiators (Competitive Advantage)
+
+Features that set the product apart. Not required, but valuable.
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| **Intelligent knowledge classification** | Not all planning content is domain knowledge. dc:extract should distinguish between durable domain truths (business rules, invariants, lifecycle models) and ephemeral build details (which tools were used, execution times, file paths). This is the episodic-to-semantic consolidation the spec describes. | HIGH | This is the hard problem. Claude does the classification using the semantic understanding in its prompt -- no rule engine, no regex. The skill instructions must clearly define what constitutes "durable domain knowledge" vs "build noise." |
-| **Constraint extraction** | Planning artifacts sometimes surface external constraints (regulatory requirements, API rate limits, security policies) that should become formal .context/constraints/ entries. | MED | Less common than domain concepts or ADRs, but high-value when found. Scan CONTEXT.md `<decisions>` sections for constraint language. |
-| **Batch proposal with selective acceptance** | Show all proposed extractions in a single table, let user accept/reject individual items rather than all-or-nothing. Per-group fix offers established as a pattern in v1.0 (dc:validate UX). | MED | More complex interaction flow but established pattern. Use AskUserQuestion with "Accept all (recommended)" plus individual toggles. |
-| **Source attribution** | Each proposed extraction should cite which .planning/ artifact it came from (e.g., "From Phase 7 CONTEXT.md, decisions section"). Enables the user to verify the extraction is accurate. | LOW | Track source file path during scanning, include in preview |
-| **Suggest CONTEXT.md updates** | Some extracted knowledge belongs in per-module CONTEXT.md files rather than .context/domain/ entries. dc:extract should identify when a finding is module-scoped and suggest a CONTEXT.md update instead of a global domain entry. | MED | Requires understanding module boundaries. Can use ARCHITECTURE.md module map as guide if present. |
-| **Phase-scoped extraction** | Allow user to specify which phases to extract from (e.g., `/dc:extract phases 7-9`) rather than always scanning all artifacts. Useful when running extraction incrementally after each milestone. | LOW | Optional argument parsing; default is "all completed phases" |
-| **Deduplication intelligence** | Not just exact-match dedup against MANIFEST.md, but semantic dedup: if a proposed extraction is conceptually covered by an existing domain entry (even under a different name), flag it as "possibly already documented" rather than silently creating a near-duplicate. | MED | Claude's semantic understanding handles this during the preview step. The skill instructions should explicitly ask Claude to check for conceptual overlap. |
+| Uninstall removes only dc-prefixed files | Safe uninstall — users trust it won't wreck other Claude Code tools | MEDIUM | Match dc- prefix for hooks, dc/ subdir for commands, domain-context.md for rules, domain-validator.md for agents |
+| Installer copies templates/ and tools/ subdirectory | dc:init and dc:validate need these files at runtime; most Claude Code tools don't have runtime assets | LOW | Copy to {target}/domain-context/templates/ and {target}/domain-context/tools/ — not directly to .claude/ root |
+| README GSD integration section | Target audience uses GSD; documenting the bridge pattern is key to adoption | LOW | AGENTS.md bridge explanation + /dc:extract workflow already drafted in current README |
+| README command reference table | All 6 commands documented in one place; reduces "what can this do?" friction | LOW | Already exists in README; verify it's complete and accurate |
 
----
+### Anti-Features (Commonly Requested, Often Problematic)
 
-## Anti-Features
+Features that seem good but create problems.
 
-Features to explicitly NOT build.
-
-| Anti-Feature | Why Avoid | What to Do Instead |
-|--------------|-----------|-------------------|
-| **Auto-extract on phase completion** | Spec Section 8.4 and integration-model.md business rule #3: "Knowledge extraction from .planning/ to .context/ MUST be an explicit user-initiated step (not automatic)." Silent extraction violates user agency. | User explicitly runs `/dc:extract` when ready. |
-| **Delete or archive .planning/ artifacts after extraction** | .planning/ is GSD's domain. dc:extract reads from it but must not modify it. GSD manages its own artifact lifecycle. | dc:extract is read-only on .planning/; user manages .planning/ separately. |
-| **Extract code patterns or implementation details** | Domain context captures WHY, not WHAT or HOW. "We use a 3-second stdin timeout" is an implementation detail, not domain knowledge. Per PROJECT.md out-of-scope: "Auto-generate domain context from code -- domain context captures WHY, not WHAT." | Only extract business rules, domain invariants, architectural rationale, and external constraints. Skip build patterns, tool choices, and code structure notes. |
-| **Require GSD to be installed** | dc:extract should work by scanning the .planning/ directory structure. It should not import GSD modules, call GSD commands, or depend on GSD being installed. | Read .planning/ files directly with Read/Glob. The file format is the contract, not a programmatic API. |
-| **Modify existing .context/ entries** | dc:extract creates NEW entries. It should never update existing domain files -- that is dc:refresh's job. Mixing creation and update in one skill creates confusion about what changed. | Propose new entries only. If overlap detected, inform user and suggest running dc:refresh on the existing entry instead. |
-| **Generate ARCHITECTURE.md updates** | ARCHITECTURE.md is a single root-level file with a specific structure. Appending extracted content to it would produce an incoherent document. | If architectural insights are found, propose them as ADRs in .context/decisions/ which is the proper location for architectural rationale per the spec. |
-| **Hook-triggered extraction** | A PostPhaseComplete hook that auto-runs extraction would violate the explicit-initiation business rule and would be expensive (spawning an LLM analysis on every phase completion). | User runs `/dc:extract` when they want to consolidate knowledge. The AGENTS.md bridge text reminds them. |
+| Feature | Why Requested | Why Problematic | Alternative |
+|---------|---------------|-----------------|-------------|
+| Auto-run `/dc:init` during install | "Zero configuration" appeal | install.js runs outside Claude Code — cannot invoke skills; also not all users want to init immediately | Print "Run /dc:init in any project to initialize" in success message |
+| Interactive prompts during install | Friendly UX for global vs local choice | Breaks `npx` piped/CI usage; Node.js readline adds complexity | Use explicit flags: default = global, `--local` for local |
+| Post-install script that edits CLAUDE.md or AGENTS.md | Feels magical | Crosses a boundary — installer should not modify project source files; only ~/.claude/ config | Leave project-level changes to `/dc:init` which the user invokes consciously |
+| MCP server registration during install | Future capability | ADR-003 explicitly deferred; Claude Code MCP config is separate from hooks settings.json | Document as future work; keep installer focused on file copy + settings.json merge |
+| `--dry-run` flag | Safety verification | Low value for a file-copy installer; adds test surface area | Print a banner listing what will be installed before doing it |
+| Version pinning individual skill files | "I want dc:init v1.2 but dc:validate v1.3" | No real use case; all files are a coherent release | Version the package as a whole; semver the npm package |
 
 ---
 
 ## Feature Dependencies
 
 ```
-[dc:extract skill]
-    reads     --> .planning/*-CONTEXT.md (GSD phase context files)
-    reads     --> .planning/*-SUMMARY.md (GSD plan summaries)
-    reads     --> .planning/*-RESEARCH.md (GSD phase research)
-    reads     --> .planning/RETROSPECTIVE.md (GSD milestone retrospective)
-    reads     --> .context/MANIFEST.md (for deduplication)
-    reads     --> .context/domain/*.md (for semantic dedup)
-    reads     --> .context/decisions/*.md (for ADR dedup)
-    creates   --> .context/domain/*.md (new domain concepts)
-    creates   --> .context/decisions/*.md (new ADRs)
-    creates   --> .context/constraints/*.md (new constraints)
-    updates   --> .context/MANIFEST.md (registers new entries)
-    reuses    --> dc:add template resolution pattern
-    reuses    --> dc:add template filling pattern
-    reuses    --> dc:add MANIFEST.md update pattern
-    reuses    --> dc:add ADR auto-numbering
-    reuses    --> dc:validate MANIFEST.md parsing
-    depends on -> .context/ exists (dc:init prerequisite)
-    depends on -> .planning/ exists (GSD prerequisite)
-    depends on -> templates/ installed (same as all dc: skills)
+[package.json with bin + files]
+    └──enables──> [npx domain-context-cc invocation]
+                      └──requires──> [bin/install.js exists]
+                                         ├──copies──> [commands/, agents/, hooks/, rules/]
+                                         ├──copies──> [templates/, tools/ into domain-context/ subdir]
+                                         └──merges──> [settings.json hook registration]
 
-[AGENTS.md snippet update]
-    modifies  --> templates/agents-snippet.md
-    consumed by -> dc:init Step 7 (AGENTS.md injection)
-    idempotent via -> <!-- domain-context:start/end --> sentinels
-    no runtime dependencies
+[settings.json hook merge]
+    └──activates──> [dc-freshness-check.js (SessionStart)]
+    └──activates──> [dc-context-reminder.js (PostToolUse)]
+    depends on   -> [live settings.json schema: hooks.SessionStart[].hooks[].command]
+
+[--uninstall flag]
+    └──reverses──> [file copy] (dc-prefixed hook files, dc/ commands, domain-context/ subdir)
+    └──reverses──> [settings.json hook merge] (filter out dc hook command strings)
+
+[README.md final polish]
+    └──documents──> [npx install command from package.json]
+    └──documents──> [all 6 dc:* skills from v1.0-v1.2]
+    └──documents──> [GSD integration from v1.2]
+    no code dependencies — documentation only
 ```
 
 ### Dependency Notes
 
-- **dc:extract heavily reuses dc:add patterns.** Template resolution, template filling, MANIFEST.md registration, ADR auto-numbering, preview/confirm flow, and file creation are all identical. The new logic is exclusively in the scanning and classification steps.
-- **The AGENTS.md snippet change is a template modification, not a skill change.** dc:init already reads agents-snippet.md and injects it. Updating the template content is sufficient; dc:init's code does not change.
-- **.planning/ is the input, .context/ is the output.** dc:extract bridges The What to The Why. It never writes to .planning/ and never deletes from .context/.
+- **bin/install.js must know the final file list**: All source directories (commands/, agents/, hooks/, rules/, templates/, tools/) are stable from v1.0–v1.2. No new skills are being added in v1.3. File list is safe to hardcode.
+- **settings.json merge requires matching live schema**: The live `~/.claude/settings.json` uses `hooks.SessionStart[].hooks[]` array nesting — verified directly. Installer must emit this exact structure.
+- **package.json `files` must include `bin/`**: The `bin/` directory does not yet exist in the repo. Creating `bin/install.js` and `package.json` together is the natural first task of this milestone.
+- **templates/ and tools/ are runtime assets, not just install-time files**: Unlike commands/ and hooks/, these are read by dc:init and dc:validate at skill invocation time. They must land at a predictable sub-path inside .claude/ (e.g., `domain-context/templates/`) not at the .claude/ root.
+- **Uninstall requires predictable naming**: The dc-prefix convention (already established) makes file removal reliable. Hooks match `dc-*.js`, commands are in `dc/` subdir, rule is `domain-context.md`, agent is `domain-validator.md`.
 
 ---
 
-## MVP Recommendation
+## MVP Definition
 
-### Prioritize
+### Launch With (v1.3)
 
-1. **AGENTS.md snippet update** -- lowest complexity, enables the bridge text in all new projects immediately. Template change only.
-2. **dc:extract core scanning** -- read .planning/ artifacts, identify extractable knowledge, cross-reference against existing .context/.
-3. **dc:extract preview and selective acceptance** -- show proposals, let user accept/reject individually.
-4. **dc:extract file creation** -- create .context/ entries using dc:add's template patterns, update MANIFEST.md.
+Minimum viable product — what's needed to distribute the package.
 
-### Defer
+- [ ] `package.json` — name, version, bin entry, files list, no runtime deps declared
+- [ ] `bin/install.js` — global install (default), --local flag, --uninstall flag, file copy, settings.json merge, idempotent
+- [ ] Final `README.md` — install command, quick start (3 steps), command reference table, GSD integration section, links
 
-- **Phase-scoped extraction** (`/dc:extract phases 7-9`): Nice-to-have but adds argument parsing complexity. Default "scan all" is sufficient for v1.2.
-- **CONTEXT.md update suggestions**: Module-scoped extraction is valuable but adds a second output path beyond .context/ entries. Can be a v1.3 feature.
-- **Semantic deduplication**: Basic name/path dedup is table stakes. Deep semantic overlap detection can rely on Claude's judgment in the preview step without explicit skill instructions.
+### Add After Validation (v1.x)
+
+Features to add once core is working.
+
+- [ ] `--check` flag that reports what is installed without making changes — trigger: user feedback about wanting to verify install state
+- [ ] Installer prints version on success — trigger: if users report confusion about which version is installed
+
+### Future Consideration (v2+)
+
+Features to defer until product-market fit is established.
+
+- [ ] MCP server registration during install — explicitly deferred by ADR-003; significant complexity
+- [ ] Auto-update check on session start — adds hook weight; GSD already does this pattern but it is not needed for dc MVP
 
 ---
 
-## GSD Artifact Types and Extraction Value
+## Feature Prioritization Matrix
 
-Understanding what each .planning/ artifact type contains and what is extractable:
+| Feature | User Value | Implementation Cost | Priority |
+|---------|------------|---------------------|----------|
+| package.json with bin + files | HIGH | LOW | P1 |
+| bin/install.js global file copy | HIGH | LOW | P1 |
+| settings.json hook merge (add) | HIGH | MEDIUM | P1 |
+| Idempotent install (no duplicate hooks) | HIGH | LOW | P1 |
+| --local flag | MEDIUM | LOW | P1 |
+| --uninstall flag + file removal | MEDIUM | MEDIUM | P1 |
+| settings.json hook removal on uninstall | HIGH | MEDIUM | P1 |
+| Graceful degradation (missing settings.json) | MEDIUM | LOW | P1 |
+| Success message with next step | MEDIUM | LOW | P1 |
+| README.md final polish | HIGH | LOW | P1 |
+| --check / inspection flag | LOW | MEDIUM | P3 |
 
-| Artifact | Location Pattern | Contains | Extraction Value |
-|----------|-----------------|----------|-----------------|
-| Phase CONTEXT.md | `.planning/**/NN-CONTEXT.md` | `<domain>` (boundary), `<decisions>` (implementation choices), `<specifics>` (ideas), `<code_context>` (existing patterns), `<deferred>` (out-of-scope ideas) | **HIGH** -- `<decisions>` sections contain rationale for architecture choices that may warrant ADRs. `<domain>` sections describe business boundaries. |
-| Plan SUMMARY.md | `.planning/**/NN-MM-SUMMARY.md` | YAML frontmatter with `key-decisions`, `patterns-established`, `tech-stack`; body has accomplishments, deviations, decisions made | **MEDIUM** -- `key-decisions` frontmatter and "Decisions Made" body sections contain extractable ADR candidates. `patterns-established` may surface domain patterns. |
-| Phase RESEARCH.md | `.planning/**/NN-RESEARCH.md` | Architecture patterns, pitfalls, standard stack, open questions | **LOW** -- Mostly implementation-focused. Occasionally surfaces domain constraints or architectural patterns worth preserving. |
-| RETROSPECTIVE.md | `.planning/RETROSPECTIVE.md` | Patterns established, key lessons, what worked/failed | **MEDIUM** -- "Patterns Established" and "Key Lessons" sections may contain durable architectural insights. |
-| ROADMAP.md | `.planning/**/ROADMAP.md` | Phase structure, requirements, success criteria | **LOW** -- Ephemeral planning; requirements are the WHAT not the WHY. |
-| PLAN.md | `.planning/**/NN-MM-PLAN.md` | Task breakdown, implementation steps | **LOW** -- Pure execution artifacts; almost never contain domain knowledge. |
-| VALIDATION.md | `.planning/**/NN-VALIDATION.md` | Test requirements, verification steps | **LOW** -- Testing methodology, not domain knowledge. |
+**Priority key:**
+- P1: Must have for launch
+- P2: Should have, add when possible
+- P3: Nice to have, future consideration
 
-### Recommended Scan Priority
+---
 
-1. **Phase CONTEXT.md files** -- richest source of extractable domain knowledge
-2. **Plan SUMMARY.md files** -- key-decisions and patterns-established sections
-3. **RETROSPECTIVE.md** -- cross-milestone patterns and lessons
-4. **Phase RESEARCH.md files** -- scan for constraints and architecture decisions only
+## Comparable Pattern: GSD Installer
 
-Skip: ROADMAP.md, PLAN.md, VALIDATION.md, VERIFICATION.md (ephemeral execution artifacts with no domain knowledge value).
+The GSD project (`get-shit-done-cc`) is the closest analog — same ecosystem, same install target, same hook registration pattern. Installed files visible at `~/.claude/get-shit-done/`. Key observations from the live install:
+
+| Aspect | GSD Pattern | domain-context-cc Plan |
+|--------|-------------|------------------------|
+| Install target (global) | `~/.claude/` | Same |
+| Install target (local) | `./.claude/` | Same |
+| Hook schema | `hooks.SessionStart[].hooks[].command` | Same (verified from live settings.json) |
+| Existing hooks in settings.json | gsd-check-update.js, gsd-context-monitor.js | Must coexist; installer must not clobber |
+| Runtime asset subdir | `~/.claude/get-shit-done/` | `~/.claude/domain-context/` for templates/ and tools/ |
+| Command files | `~/.claude/commands/gsd/` | `~/.claude/commands/dc/` |
+
+**Critical finding:** GSD and domain-context-cc both register PostToolUse hooks. The settings.json merge must append to the existing `hooks.PostToolUse[0].hooks[]` array (or create new entries), not replace the array. This was confirmed by inspecting the live settings.json which contains both gsd-context-monitor.js and the dc hooks from a manual install test.
 
 ---
 
 ## Sources
 
-- Domain Context Specification Section 8.4 (Knowledge Extraction from SDD Artifacts) -- HIGH confidence; authoritative spec
-- Domain Context Specification Section 10.1 (SDD Frameworks integration model) -- HIGH confidence; authoritative spec
-- Domain Context Specification Section 3.1 (Three Separate Concerns) -- HIGH confidence; authoritative spec
-- `.context/domain/integration-model.md` -- HIGH confidence; project's own domain documentation
-- `.planning/PROJECT.md` -- HIGH confidence; project requirements and constraints
-- Existing dc:add skill (`commands/dc/add.md`) -- HIGH confidence; reusable pattern source
-- GSD .planning/ artifact examples in this project -- HIGH confidence; real artifacts showing extractable content patterns
-- `.planning/RETROSPECTIVE.md` -- HIGH confidence; real retrospective showing extractable knowledge patterns
+- Live `~/.claude/settings.json` inspected directly (2026-03-17) — confirms hook schema: `hooks.SessionStart[].hooks[].command`, `hooks.PostToolUse[].hooks[].command` — HIGH confidence
+- `PLAN.md` Phase 5 specification — authoritative installer requirements for this project — HIGH confidence
+- `PROJECT.md` v1.3 milestone definition — confirms scope boundaries — HIGH confidence
+- `README.md` current state — install commands already defined; implementation must match — HIGH confidence
+- Existing hooks `dc-freshness-check.js` and `dc-context-reminder.js` — confirm Node.js stdin/stdout pattern and graceful degradation requirements — HIGH confidence
+- `~/.claude/` directory structure inspected — confirms GSD install layout as reference pattern — HIGH confidence
 
 ---
-
-*Feature research for: Episodic-to-semantic knowledge extraction and GSD bridge integration*
-*Researched: 2026-03-16*
-*Milestone scope: v1.2 -- adding dc:extract skill and AGENTS.md snippet update to existing dc:* skill project*
+*Feature research for: npm installer and packaging for domain-context-cc Claude Code extension*
+*Researched: 2026-03-17*
+*Milestone scope: v1.3 — installer, packaging, and final README*

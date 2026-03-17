@@ -1,19 +1,17 @@
 # Project Research Summary
 
-**Project:** domain-context-cc v1.2 — GSD Integration (dc:extract + AGENTS.md GSD bridge)
-**Domain:** Claude Code skill extension — episodic-to-semantic knowledge extraction
-**Researched:** 2026-03-16
+**Project:** domain-context-cc v1.3 — Installation & Distribution
+**Domain:** npm packaging and Node.js installer for a Claude Code extension
+**Researched:** 2026-03-17
 **Confidence:** HIGH
 
 ## Executive Summary
 
-This milestone adds two tightly scoped deliverables to an existing, well-tested codebase: a `dc:extract` skill that converts completed GSD planning artifacts into permanent `.context/` domain entries, and a `gsd-agents-snippet.md` template that wires GSD awareness into any project's `AGENTS.md` at init time. There is no new technology, no new dependencies, and no new architectural patterns — everything reuses conventions established in v1.0 and v1.1. The core engineering challenge is not building new infrastructure; it is writing clear enough skill instructions that the LLM correctly classifies "durable domain knowledge" vs. "ephemeral build noise" when reading `.planning/` artifacts.
+The v1.3 milestone is a tightly scoped distribution layer built on top of a complete v1.2 feature set (6 skills, 2 hooks, 1 agent, 1 rule, 9 templates). The work consists of exactly three artifacts: `package.json`, `bin/install.js`, and an expanded `README.md`. The entire implementation uses Node.js built-ins only — no runtime dependencies — which is both a hard project constraint and the correct architectural choice for an installer. The GSD tool (`get-shit-done-cc`) already exists as a direct analog in the same ecosystem, so the patterns for hook registration, settings.json merge, and global/local install targets are fully established and verified from a live installation.
 
-The recommended approach is to build in dependency order: template first, dc:init modification second, dc:extract last. This order is supported by the v1.0 retrospective lesson ("template-first prevents circular dependencies") and ensures the full GSD integration story (init with GSD awareness → plan phases → extract knowledge) can be tested end-to-end before the milestone closes. dc:extract must explicitly reuse dc:add's established patterns for template resolution, file creation, MANIFEST.md registration, and ADR numbering — reimplementing any of these is the primary risk for spec noncompliance.
+The recommended implementation order is dependency-driven: `package.json` first (defines what ships), `bin/install.js` second (the core deliverable, testable locally via `node bin/install.js`), and `README.md` last (documents implemented behavior, not speculative behavior). The install script must copy 5 directory trees to the target `.claude/` directory and merge two hook entries into `settings.json` without clobbering existing hooks from GSD or other tools. Idempotency is non-negotiable — users will re-run `npx domain-context-cc` to upgrade.
 
-The key risks are: (1) over-eager extraction proposing low-value entries from the wrong artifact types, mitigated by a strict source hierarchy (CONTEXT.md `<decisions>` and `<domain>` sections first, SUMMARY.md `key-decisions` frontmatter second, everything else ignored); (2) duplicate proposals against existing `.context/` entries, mitigated by semantic cross-referencing before presenting any proposal; and (3) dc:init idempotency breakage when the AGENTS.md snippet gains new GSD content, mitigated by adding a version marker inside the sentinel block and replacing stale blocks on re-run.
-
----
+The most dangerous risks are all silent failures: an incomplete `files` array in `package.json` causes skills to be absent from the published tarball with no error; overwriting `settings.json` instead of merging destroys existing GSD hooks silently; and relative hook paths in injected command strings cause hooks to silently never fire. All three are easily avoided with `npm pack --dry-run` verification, additive JSON merge, and absolute path resolution via `os.homedir()`. The "looks done but isn't" checklist from PITFALLS.md should be run verbatim before publishing.
 
 ## Key Findings
 
@@ -21,145 +19,138 @@ The key risks are: (1) over-eager extraction proposing low-value entries from th
 
 See full details: `.planning/research/STACK.md`
 
-This milestone adds zero new technologies. The existing stack — Claude Code skill format (YAML frontmatter + `<objective>/<execution_context>/<process>` sections), `{placeholder}` markdown templates, Node.js built-ins, and zero npm dependencies — fully supports both deliverables. `dc:extract` is a skill (markdown instructions), not a hook (Node.js script). The LLM is the runtime: it uses `Read`, `Glob`, `Grep`, `Write`, `Edit`, and `AskUserQuestion` tools — the same set as dc:add plus `Grep` for content searching across `.planning/` artifacts. `gsd-agents-snippet.md` is static markdown with `<!-- gsd-bridge:start/end -->` sentinels and no placeholders.
+The entire installer runs on Node.js built-ins. No third-party packages are needed or appropriate. `fs.cpSync` (added v16.7.0) handles recursive directory copy; `fs.rmSync` handles uninstall cleanup; `os.homedir()` resolves the global install target reliably across platforms. The minimum engine version is `>=20.0.0` (Maintenance LTS), consistent with the existing hooks in the project. All APIs were verified functional in Node 24.14.0, the current dev environment.
 
 **Core technologies:**
-- Claude Code skill format (current 2026): `dc:extract` skill definition — same YAML frontmatter and process section pattern as all 5 existing skills
-- Markdown templates with sentinel comments: `gsd-agents-snippet.md` — same `{placeholder}` + sentinel pattern established in v1.0; new `<!-- gsd-bridge:start/end -->` sentinel pair independent of existing domain-context sentinels
-- Node.js >= 20 LTS: no new JS code in this milestone; constraint preserved for future hooks
+- Node.js `>=20.0.0`: Runtime for installer — Active LTS (v24) in current dev environment; all required built-in APIs (`fs.cpSync`, `fs.rmSync`, `os.homedir`) available since v16/v14
+- npm (bundled with Node): Distribution via `npx domain-context-cc` — zero-friction one-shot install; `files` whitelist controls tarball contents
+- CommonJS (`require()`): Module format — matches existing hooks; avoids ESM/CJS mixing confusion; `"type": "commonjs"` in `package.json` makes this explicit
 
 ### Expected Features
 
 See full details: `.planning/research/FEATURES.md`
 
+All v1.3 features are P1 (must-have for launch). No P2 features were identified. This is a minimal, coherent distribution milestone with no scope ambiguity.
+
 **Must have (table stakes):**
-- Scan `.planning/` for extractable artifacts (CONTEXT.md, SUMMARY.md, RETROSPECTIVE.md) — core input step; without it no extraction is possible
-- Identify and classify durable domain concepts, ADR candidates, and constraints — the primary value proposition; must distinguish business rules from build notes
-- Cross-reference proposals against existing `.context/` to avoid duplicates — without this the user faces redundant proposals and loses trust
-- Preview each proposal individually before writing — spec Section 8.4 and integration-model Business Rule 3 mandate explicit user approval; no auto-creation
-- Create `.context/` files using existing templates and update MANIFEST.md — same output path as dc:add; must produce spec-compliant output
-- Handle missing `.planning/` gracefully with helpful guidance — consistent with guard patterns across all dc:* skills
-- GSD bridge text in `agents-snippet.md` injected by dc:init — wires "Why feeds The What" for all new projects
+- `npx domain-context-cc` global install — standard Claude Code tool install convention; README already promises this UX
+- `--local` flag for project-scoped install — developers need per-project installs; Claude Code supports both `~/.claude/` and `./.claude/`
+- `--uninstall` flag with complete cleanup — any tool without uninstall feels risky; orphan hook entries cause broken session starts
+- settings.json hook registration and removal — without this, installed hooks never fire; must merge, not overwrite
+- Idempotent install — re-running must not duplicate hook entries; overwriting files is safe but hook dedup is required
+- `package.json` with correct `bin` + `files` — required for `npx` to work; `files` omission causes silent partial install
+- Success message with next step — "Run /dc:init in any project to get started"
+- Graceful degradation on missing settings.json — new Claude Code installs may have no `settings.json`; start from `{}` if absent
 
 **Should have (differentiators):**
-- Intelligent knowledge classification: distinguish business rules and domain invariants from implementation details and build notes — the hard classification problem that makes extraction useful rather than noisy
-- Constraint extraction from planning artifacts — less common but high-value when found
-- Batch proposal UX: group by type (domain concepts, decisions, constraints), show counts first, allow per-entry review
-- Source attribution: cite which `.planning/` artifact each proposal came from for traceability
-- Semantic deduplication: flag conceptual overlap with existing entries even when names differ
+- Uninstall removes only dc-prefixed files — safe uninstall that won't damage GSD or other Claude Code tools
+- README GSD integration section — target audience uses GSD; documenting the bridge pattern is key to adoption
 
 **Defer (v2+):**
-- Phase-scoped extraction (`/dc:extract phases 7-9`) — "scan all completed phases" is sufficient for v1.2
-- CONTEXT.md update suggestions for module-scoped findings — adds a second output path beyond `.context/` entries; reserve for v1.3
+- MCP server registration during install — explicitly deferred by ADR-003; significant complexity
+- `--check` inspection flag — low priority; add only if user feedback demands it
+- Auto-update check on session start — GSD does this; not needed for dc MVP
 
 ### Architecture Approach
 
 See full details: `.planning/research/ARCHITECTURE.md`
 
-v1.2 adds two components to the existing layered architecture without modifying any v1.0 or v1.1 artifacts (skills, hooks, agents, rules) except for a single sub-step added to dc:init Step 7. The new `gsd-agents-snippet.md` template uses independent sentinels (`<!-- gsd-bridge:start/end -->`) distinct from the existing domain-context sentinels, enabling independent lifecycle management. `dc:extract` follows the Scan-Propose-Confirm pattern: discover `.planning/` artifacts, read existing `.context/` for dedup context, cross-reference to identify gaps, present grouped proposals, and create files using dc:add's template fill and MANIFEST.md registration logic for spec compliance.
+The installer sits above an unchanged v1.2 layer. The build is organized into three dependency-driven phases: (1) `package.json` defines the tarball boundary via the `files` whitelist — this must be correct before any end-to-end testing is possible; (2) `bin/install.js` copies 5 source directory trees to `INSTALL_DIR` and merges two hook entries into `settings.json` using an additive array-append algorithm; (3) `README.md` expansion documents the implemented behavior. The settings.json merge is the most nuanced component: it must read existing JSON, append dc hook entries only if not already present (dedup by command string equality), and write back without touching any other keys.
 
 **Major components:**
-1. `templates/gsd-agents-snippet.md` — static GSD bridge template; injected by dc:init when GSD is detected (`.planning/PROJECT.md` exists or user confirms); uses `<!-- gsd-bridge:start/end -->` sentinels for idempotency; no placeholders
-2. `commands/dc/init.md` (modified Step 7b) — gains conditional GSD snippet injection sub-step; only change to an existing file in this milestone
-3. `commands/dc/extract.md` — new skill; reads `.planning/` artifacts (CONTEXT.md and SUMMARY.md frontmatter only), cross-references `.context/`, proposes domain concepts/ADRs/constraints grouped by type, creates files and updates MANIFEST.md reusing dc:add patterns
+1. `package.json` — Defines what ships in the npm tarball; gating mechanism via `files` whitelist; no `main` field (CLI only); zero declared dependencies
+2. `bin/install.js` — Copies `commands/dc/`, `hooks/`, `agents/`, `rules/`, `templates/` to install target; merges `SessionStart` and `PostToolUse` hook entries into `settings.json`; supports `--local` and `--uninstall` flags; uses `path.resolve(__dirname, '..')` for package root
+3. `README.md` (expanded) — Documents install command, quick start, command reference table, GSD integration, uninstall instructions, upgrade path
 
 ### Critical Pitfalls
 
 See full details: `.planning/research/PITFALLS.md`
 
-1. **Treating all phase artifacts as equal knowledge sources** — Only `CONTEXT.md` (`<domain>`, `<decisions>`, `<specifics>` sections) and `SUMMARY.md` (`key-decisions`, `patterns-established` frontmatter) are primary sources. `PLAN.md`, `RESEARCH.md`, `VALIDATION.md`, `VERIFICATION.md` must be ignored or they flood the user with low-value proposals and erode trust in the skill.
+1. **`files` array missing directories (P29)** — `npm pack` silently omits unlisted directories; install reports success but skills are absent from `~/.claude/commands/dc/`. Avoid by listing all 6 directories explicitly and running `npm pack --dry-run` to audit every required file before publishing.
 
-2. **Reimplementing template fill instead of reusing dc:add patterns** — dc:extract must explicitly follow dc:add Steps 2, 5, 6, 8, and 11 for template resolution, content-to-section mapping, ADR numbering, duplicate detection, and MANIFEST.md registration. Any divergence produces spec-noncompliant files that fail dc:validate.
+2. **settings.json clobbering (P30)** — Writing a fresh `settings.json` destroys GSD hooks and user customizations silently. Avoid by always reading existing JSON first, appending to hook arrays with dedup check, and never overwriting existing top-level keys.
 
-3. **Breaking dc:init idempotency with the AGENTS.md snippet update** — The existing sentinel (`<!-- domain-context:start/end -->`) causes dc:init to silently skip already-initialized projects, so new GSD bridge content never reaches them. Add a version marker (`<!-- dc-snippet-v2 -->`) inside the sentinel block; dc:init Step 7 must check version and replace the block when outdated.
+3. **Relative paths in injected hook commands (P31)** — Dev-time relative paths (`node hooks/dc-freshness-check.js`) work from the repo root but silently fail post-install because hooks exit 0 on error. Avoid by always emitting absolute paths via `os.homedir()` for global install.
 
-4. **Semantic duplicate proposals** — Name-only dedup against MANIFEST.md is insufficient. dc:extract must read existing `.context/` file content to flag conceptual overlap, offering "update existing" (via dc:refresh) as an option alongside "create new" and "skip."
+4. **`__dirname` vs `process.cwd()` for source resolution (P32)** — Using `process.cwd()` to locate bundled files works when running `node bin/install.js` from the package root but fails when invoked via `npx` from any other directory. Always use `path.resolve(__dirname, '..')` for the package root.
 
-5. **Milestone directory structure confusion** — This project uses both `.planning/phases/` (current milestone) and `.planning/milestones/{name}-phases/` (archived). dc:extract must support both patterns and ask the user which milestone to extract from when multiple are present, rather than silently merging potentially contradictory decisions.
-
----
+5. **Non-executable bin entry (P34)** — Missing `#!/usr/bin/env node` shebang causes `npx domain-context-cc` to fail with a cryptic error even though `node bin/install.js` works fine. Add shebang as the first line; npm sets the executable bit but the shebang is still required.
 
 ## Implications for Roadmap
 
-Architecture research establishes a clear dependency-driven build order. Three phases, each delivering a testable increment.
+Architecture research establishes a clear dependency-driven build order. Three phases, each delivering a testable increment, each gating the next.
 
-### Phase 1: GSD Agents Snippet Template
+### Phase 1: Package Configuration
 
-**Rationale:** No dependencies; static content; establishes the `gsd-bridge` sentinel pattern that Phase 2 depends on. Template-first is the validated lesson from v1.0 retrospective. Smallest scope in the milestone — delivers real value immediately for any new project running dc:init after v1.2 ships.
-**Delivers:** `templates/gsd-agents-snippet.md` with `<!-- gsd-bridge:start/end -->` sentinels and GSD bridge prose referencing `.planning/PROJECT.md`, `.planning/STATE.md`, and `/dc:extract`
-**Addresses:** AGENTS.md snippet update (all table-stakes features); "Why feeds The What" integration from spec Section 10.1
-**Avoids:** P19 (idempotency breakage) — version marker goes in from the start; P3 (combined snippet anti-pattern) — separate template file with independent sentinels preserves independent injection lifecycle
+**Rationale:** `package.json` has no code dependencies and defines what ships in the tarball. It must be authored before any end-to-end testing is possible — without the `files` whitelist, `npm pack --dry-run` cannot verify correctness. This is the simplest phase and unblocks all subsequent work.
+**Delivers:** `package.json` with `name`, `version`, `bin` entry, `files` whitelist, `engines` constraint, and zero declared dependencies
+**Addresses:** P1 features — `npx domain-context-cc` invocation, correct tarball contents
+**Avoids:** P29 (files array missing directories), P34 (non-executable bin entry), P38 (dev artifacts in package)
+**Verification:** `npm pack --dry-run` shows all expected files; no `.planning/`, `.context/`, `.claude/` in output
 
-### Phase 2: dc:init GSD Detection and Injection
+### Phase 2: Installer Logic
 
-**Rationale:** Small scope (one sub-step added to Step 7 of an existing skill); validates the template in practice; establishes the GSD detection heuristic (`.planning/PROJECT.md` existence check + user prompt) that informs dc:extract's behavior. Completing this phase before dc:extract means the full workflow (init with GSD awareness → plan → extract) is testable end-to-end.
-**Delivers:** dc:init gains Step 7b — conditional injection of `gsd-agents-snippet.md` when GSD is detected; existing projects can re-run dc:init to receive the GSD bridge content
-**Uses:** `gsd-agents-snippet.md` template (Phase 1 output); existing dc:init sentinel detection and file injection logic
-**Implements:** Conditional Template Injection pattern (defined in ARCHITECTURE.md)
-**Avoids:** P19 (idempotency) — version marker check and block replacement logic; P3 (single snippet anti-pattern) — conditional injection preserves "DC always, GSD when present" semantics
+**Rationale:** The core deliverable. Depends on knowing the final file paths and package layout from Phase 1. Can be developed and tested locally (`node bin/install.js`) before packaging. All the complexity is here — path resolution, settings.json merge, idempotency, uninstall cleanup.
+**Delivers:** `bin/install.js` — global install (default), `--local` flag, `--uninstall` flag, idempotent file copy via `fs.cpSync`, settings.json additive merge
+**Uses:** `fs.cpSync`, `fs.rmSync`, `fs.mkdirSync({recursive: true})`, `os.homedir()`, `path.resolve(__dirname, '..')`, `JSON.parse`/`JSON.stringify`
+**Implements:** File copy component + settings.json merge component from ARCHITECTURE.md
+**Avoids:** P30 (settings.json clobbering), P31 (relative hook paths), P32 (`__dirname` vs cwd), P33 (uninstall orphan hooks), P35 (template overwrite on re-install), P39 (silent failure on missing target dirs)
+**Verification:** Full "looks done but isn't" checklist from PITFALLS.md; cross-directory `npx .` test; merge test with pre-existing GSD hooks in settings.json
 
-### Phase 3: dc:extract Skill
+### Phase 3: README Expansion and Publishing
 
-**Rationale:** Most complex component; benefits from the GSD integration story being complete (Phases 1-2) so end-to-end workflow is testable. dc:extract does not technically depend on Phases 1-2 but testing and validation are stronger with all three components in place.
-**Delivers:** `commands/dc/extract.md` — full Scan-Propose-Confirm skill; reads `.planning/` artifacts with strict hierarchy, cross-references `.context/` semantically, proposes grouped extractions, creates spec-compliant files via dc:add patterns
-**Uses:** All existing domain content templates (domain-concept.md, decision.md, constraint.md); dc:add patterns for template fill, ADR numbering, and MANIFEST.md registration
-**Implements:** Knowledge Extraction (Scan-Propose-Confirm) architectural pattern
-**Avoids:** P16 (strict artifact hierarchy); P17 (semantic dedup — read file content, not just names); P18 (reuse dc:add patterns — no reimplementation); P21 (grouped proposals — type-first presentation); P24 (support both `.planning/phases/` and `.planning/milestones/` directory patterns)
+**Rationale:** Documentation is written last so it describes implemented behavior, not speculative behavior. Publishing requires Phases 1 and 2 to be complete and verified. README already exists; this phase expands it with install/uninstall/what-gets-installed sections and performs the first `npm publish`.
+**Delivers:** Expanded `README.md` with install command, what-gets-installed list, upgrade path, uninstall instructions; first `npm publish`
+**Addresses:** P1 features — README quick start (3 steps), command reference table, GSD integration section
+**Verification:** End-to-end `npm pack && npx ./domain-context-cc-*.tgz` as documented in AGENTS.md; README answers "how do I install" and "what do I do next" for a new user
 
 ### Phase Ordering Rationale
 
-- Template before injection: dc:init Step 7b cannot reference a template that does not exist
-- Injection before extraction: end-to-end workflow (init → plan → extract) requires all three components for complete testing; Phase 3 in isolation cannot validate the full GSD integration story
-- Both Phases 1-2 are small (1 file each); Phase 3 is the primary deliverable; completing 1-2 first removes all blockers before the complex work begins
-- This order directly mirrors the v1.0 build order (templates → init → skills) validated as correct in the retrospective
+- `package.json` must come before installer testing because the `files` field determines what the installer can find in the package; until the tarball boundary is defined, end-to-end tests are unreliable
+- Installer before README because the README must accurately describe what the installer actually does (flags, paths, what gets installed); writing it before the installer risks doc-to-code drift
+- This order exactly matches the "Build Order" section in ARCHITECTURE.md, derived independently from dependency analysis and confirmed by the v1.0 retrospective lesson ("template-first prevents circular dependencies")
 
 ### Research Flags
 
-Phases with standard, well-documented patterns (skip research-phase):
-- **Phase 1 (GSD snippet template):** Static content with established sentinel pattern; format is identical to existing `agents-snippet.md`; no research needed
-- **Phase 2 (dc:init modification):** Single sub-step addition to an existing, well-understood skill; the injection pattern is copy-and-adapt from Step 7; no research needed
+Phases with standard patterns (skip `/gsd:research-phase`):
+- **Phase 1 (Package Configuration):** Well-documented npm conventions; `package.json` structure is deterministic from research; no ambiguity remains
+- **Phase 2 (Installer Logic):** All patterns are established — GSD installer provides a direct analog; settings.json structure verified from live file; Node.js built-in APIs verified in dev environment
+- **Phase 3 (README):** Documentation only; content is determined by Phases 1 and 2 outputs
 
-Phase that may benefit from a planning pass:
-- **Phase 3 (dc:extract):** The knowledge classification instructions are the hard problem. The right prompting approach for "durable domain knowledge vs. build noise" should be worked through with concrete examples during planning — not additional research, but a deliberate drafting exercise for the `<process>` section. Budget 30-60 minutes of examples-based prompt design before writing the skill.
-
----
+No phases need additional research. All research is complete and HIGH confidence.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | All technologies in-use in this repo; no new dependencies; verified from working code in 5 existing skills and 2 milestones of artifacts |
-| Features | HIGH | Grounded in Domain Context spec Sections 8.4 and 10.1; integration-model.md Business Rule 3; full dc:add pattern analysis |
-| Architecture | HIGH | Components, data flow, and boundaries derived from direct analysis of dc:add, dc:init, and dc:validate; build order validated against v1.0 retrospective |
-| Pitfalls | HIGH | Each pitfall traced to a specific existing mechanism that would fail; not speculative; dc:add steps cited by number for P18 |
+| Stack | HIGH | All Node.js built-in APIs verified in Node 24.14.0 dev environment; version compat table confirmed against nodejs.org docs |
+| Features | HIGH | Derived from live `~/.claude/settings.json`, existing GSD installer pattern as direct analog, and PLAN.md specification |
+| Architecture | HIGH | settings.json structure verified directly from live file; GSD install layout observed from live `~/.claude/`; `__dirname` behavior documented and verified |
+| Pitfalls | HIGH | Based on direct analysis of project files, live settings.json, and npm/Node.js documentation; each pitfall traced to a specific failure mechanism |
 
 **Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **Knowledge classification prompting:** The `<process>` section of dc:extract must produce reliable "durable domain knowledge vs. build noise" classification. The right balance of positive examples, negative examples, and explicit rules is not pre-determined and will require deliberate design during Phase 3 planning — likely against real `.planning/` artifacts from this repo.
-
-- **Batch proposal UX flow:** FEATURES.md and ARCHITECTURE.md both recommend type-grouped proposals with count-first presentation, but the exact `AskUserQuestion` sequence for batch review is not specified in any existing skill. This interaction flow should be explicitly designed during Phase 3 planning before writing the process section.
-
-- **Version marker backward compatibility for AGENTS.md snippet:** PITFALLS.md (P19) specifies adding `<!-- dc-snippet-v2 -->` inside the sentinel block and replacing the block when the version is outdated. The exact dc:init logic for detecting, extracting, and replacing the sentinel block content needs careful specification in Phase 2 planning to avoid edge cases (e.g., manually edited content between sentinels).
-
----
+- **Engine version discrepancy:** STACK.md recommends `>=20.0.0`; ARCHITECTURE.md says `>=18`. Both are conservative minimums for `fs.cpSync`. Resolve in Phase 1 by using `>=20.0.0` (current Maintenance LTS minimum, consistent with existing hooks).
+- **Template preservation on re-install (P35):** Research recommends skip-if-exists with `--force` override, but the exact UX is left to implementation. Low risk — decide during Phase 2 execution.
+- **Local install hook path format:** ARCHITECTURE.md specifies relative paths for local install (`.claude/hooks/...`). Verify this resolves correctly with Claude Code's cwd assumptions before Phase 3 publishing.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- `commands/dc/add.md` — template fill pattern, MANIFEST.md insertion, ADR numbering (Steps 2, 5, 6, 8, 11); read from working code
-- `commands/dc/init.md` — AGENTS.md sentinel detection (Step 7), idempotency contract, template injection pattern; read from working code
-- `commands/dc/validate.md` — MANIFEST.md cross-reference and entry parsing patterns; read from working code
-- `templates/agents-snippet.md` — sentinel comment format (`<!-- domain-context:start/end -->`); read from working code
-- `.context/domain/integration-model.md` — three-concern model, Business Rule 3 on explicit extraction; project's own domain documentation
-- `.planning/PROJECT.md` — v1.2 milestone scope, constraints, out-of-scope items
-- Domain Context Specification Sections 3.1, 8.4, 10.1 — authoritative spec for extraction rules and GSD integration model
-- GSD `.planning/` artifact structure in this repo — real CONTEXT.md, SUMMARY.md, and RETROSPECTIVE.md files showing extractable content patterns
+- `/Users/alevine/.claude/settings.json` (read directly, 2026-03-17) — verified hook registration schema, GSD coexistence, absolute path format for global hooks
+- `/Users/alevine/code/domain-context-claude/.claude/settings.json` (read directly) — local dev settings.json format, relative path conventions
+- Node.js 24.14.0 local environment — `fs.cpSync` functional verification (`typeof fs.cpSync === 'function'` confirmed)
+- `hooks/dc-freshness-check.js`, `hooks/dc-context-reminder.js` (this project) — CommonJS pattern, graceful degradation convention, hook filenames for settings.json entries
+- `.planning/PROJECT.md` — authoritative v1.3 scope definition and flag requirements
+- `README.md` (this project, existing) — confirmed CLI flag conventions already documented
 
 ### Secondary (MEDIUM confidence)
-- `.planning/RETROSPECTIVE.md` — template-first build order lesson, cross-milestone patterns; high confidence within this project; may not generalize to other projects
+- nodejs.org/docs/latest-v24.x/api/fs.html — `fs.cpSync` version history (added v16.7.0)
+- nodejs.org/en/about/previous-releases — LTS schedule (v24 Active, v22/v20 Maintenance as of 2026-03-17)
+- npm documentation (training data) — `files` array behavior, `bin` entry, symlink handling, `npm pack --dry-run`
 
 ---
-*Research completed: 2026-03-16*
+*Research completed: 2026-03-17*
 *Ready for roadmap: yes*

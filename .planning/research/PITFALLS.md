@@ -1,212 +1,294 @@
 # Domain Pitfalls
 
-**Domain:** Episodic-to-semantic knowledge extraction and GSD bridge integration for domain-context-cc
-**Researched:** 2026-03-16
-**Confidence:** HIGH (based on direct analysis of existing codebase patterns, GSD artifact structures in this project, and established skill conventions)
+**Domain:** npm packaging and Node.js installer for a Claude Code extension
+**Researched:** 2026-03-17
+**Confidence:** HIGH (based on direct analysis of this project's file layout, hook registration patterns, existing settings.json structure, Node.js built-in behavior, and npm packaging behavior)
 
-> **Note:** This file covers pitfalls specific to the v1.2 milestone: dc:extract skill and AGENTS.md.snippet GSD bridge.
-> The v1.0 pitfalls (1-7) and v1.1 pitfalls (8-15) still apply but are not repeated here.
+> **Note:** This file covers pitfalls specific to the v1.3 milestone: npm packaging, the `bin/install.js` installer, and settings.json hook merge. Prior milestone pitfalls (1-28) are archived but not repeated here.
 
 ---
 
 ## Critical Pitfalls
 
-### Pitfall 16: Treating All Phase Artifacts as Equal Knowledge Sources
+### Pitfall 29: `files` Array in package.json Missing Entire Directory Trees
 
-**What goes wrong:** dc:extract naively reads every file in a phase directory (PLAN, SUMMARY, CONTEXT, RESEARCH, VALIDATION, VERIFICATION, UAT) and tries to extract domain knowledge from all of them. Plans contain speculative instructions. Summaries contain execution logs. Research contains third-party findings. Only CONTEXT.md and selected SUMMARY.md metadata contain durable domain knowledge worth promoting to .context/.
+**What goes wrong:** The installer copies files to `~/.claude/commands/dc/`, `~/.claude/hooks/`, `~/.claude/agents/`, `~/.claude/rules/`, and `~/.claude/domain-context/templates/` — but if `commands/`, `hooks/`, `agents/`, `rules/`, or `templates/` directories are not listed in the `files` array, `npm pack` silently omits them. The published package installs cleanly but the copied files are simply not present. The user sees no error during `npx domain-context-cc`; the install appears to succeed.
 
-**Why it happens:** The temptation is to "be thorough" and scan everything. But GSD artifacts have different epistemological status -- a PLAN is prescriptive intent, a SUMMARY is historical record, CONTEXT.md is distilled domain insight.
+**Why it happens:** The `files` array uses globs relative to package root. Developers list individual files or top-level names but forget subdirectories. `"files": ["bin", "hooks"]` does NOT include `commands/dc/` because `commands` was omitted.
 
-**Consequences:** Extractions propose dozens of low-value entries (implementation details, timing data, task lists). The user rejects most proposals, loses trust in the skill, stops using it.
+**Consequences:** Silent partial install. Skills missing, hooks missing. User opens Claude Code, `/dc:init` doesn't exist. Debugging is non-obvious because the install script reports success.
 
-**Prevention:** Define a strict artifact hierarchy for extraction:
-1. **Primary sources:** Phase CONTEXT.md files -- specifically the `<domain>`, `<decisions>`, and `<specifics>` sections
-2. **Secondary sources:** SUMMARY.md `key-decisions` and `patterns-established` frontmatter fields
-3. **Ignore:** PLAN.md, RESEARCH.md, VALIDATION.md, VERIFICATION.md, UAT.md
+**How to avoid:**
+- List every directory explicitly: `"files": ["bin", "commands", "hooks", "agents", "rules", "templates", "tools"]`
+- After writing package.json, run `npm pack --dry-run` and manually verify every required file appears in the output list
+- The install script should verify source files exist before copying — if `commands/dc/init.md` is missing from the npm package, throw a clear error: "Package is missing expected file: commands/dc/init.md — re-install the package"
 
-**Detection:** If dc:extract proposes more than 3-5 entries from a single milestone, the filter is probably too loose.
+**Warning signs:** `npm pack --dry-run` output is shorter than expected. Install completes but skill files are absent from `~/.claude/commands/dc/`.
 
----
-
-### Pitfall 17: Duplicating Knowledge Already in .context/
-
-**What goes wrong:** dc:extract proposes creating a domain concept that already exists in .context/domain/ or an ADR that covers the same decision. The user sees "Add domain concept: Template Resolution" when .context/domain/integration-model.md already documents template resolution as part of the integration model.
-
-**Why it happens:** Cross-referencing is done by exact name match or file path only. The extraction doesn't understand semantic overlap. Phase CONTEXT.md might call something "template path resolution" while .context/ calls it "integration model."
-
-**Consequences:** Duplicate entries clutter .context/. If user accepts without checking, MANIFEST.md gets conflicting entries. dc:validate later flags inconsistencies.
-
-**Prevention:**
-1. Parse existing .context/ files fully -- read content, not just names from MANIFEST.md
-2. Present each proposal alongside the most semantically similar existing entry: "Similar to: Integration Model in .context/domain/integration-model.md"
-3. Offer "update existing" as an option alongside "create new" and "skip"
-4. Default to "update existing" when similarity is high
-
-**Detection:** dc:validate's orphan check will catch structural damage, but by then the user has already done unnecessary work.
+**Phase to address:** Package Configuration phase (package.json authoring).
 
 ---
 
-### Pitfall 18: Generating Spec-Noncompliant Files by Reimplementing Template Fill
+### Pitfall 30: settings.json Clobbering Existing Hooks
 
-**What goes wrong:** dc:extract creates domain concept or ADR files that don't match the Domain Context spec format. Missing required sections, wrong heading structure, no verified date, incorrect MANIFEST.md entry format.
+**What goes wrong:** The installer writes a new `settings.json` (or overwrites the existing one) instead of merging into it. The user has other hooks registered — for example, GSD hooks (`gsd-check-update.js`, `gsd-context-monitor.js`) or hooks from other extensions. After install, those hooks are gone. The user notices only when GSD stops working.
 
-**Why it happens:** dc:extract builds its own file generation logic instead of reusing the template-fill pattern established by dc:add. Two code paths for the same output means two places to maintain spec compliance.
+**Why it happens:** `JSON.parse` + `JSON.stringify` + `fs.writeFileSync` is the path of least resistance. A first-pass installer writes the template settings.json directly.
 
-**Consequences:** dc:validate fails on files created by dc:extract. The files don't render correctly in dc:explore. User has to manually fix every extracted file.
+**Consequences:** Silent data loss. Existing hooks stop firing. If the user doesn't have the hooks backed up, they must manually reconstruct their settings.json from memory.
 
-**Prevention:** dc:extract MUST reuse dc:add's established patterns:
-- Same template resolution (Step 2 of dc:add)
-- Same content-to-section mapping (Step 5 of dc:add)
-- Same MANIFEST.md entry insertion (Step 11 of dc:add)
-- Same ADR auto-numbering (Step 6 of dc:add)
-- Same duplicate detection (Step 8 of dc:add)
+**How to avoid:**
+- Always read the existing settings.json first (if it exists)
+- Use deep array merge for hook arrays: append dc hook entries to existing `SessionStart` and `PostToolUse` arrays rather than replacing them
+- Before appending, check whether an identical hook command already exists in the array — if so, skip (idempotency)
+- Never overwrite top-level keys (`statusLine`, `permissions`, `env`, etc.) unless they are absent
+- Write a backup of the original settings.json to `settings.json.bak` before any modification
 
-The skill instructions should explicitly reference dc:add's step patterns rather than reimplementing them.
+**Warning signs:** User reports "my other hooks stopped working after install." Running `--install` twice produces duplicate hook entries.
 
-**Detection:** Run dc:validate immediately after every dc:extract run. If any newly created files show issues, the generation path has diverged.
+**Phase to address:** Installer Logic phase (settings.json merge).
 
 ---
 
-### Pitfall 19: AGENTS.md.snippet Update Breaking dc:init Idempotency
+### Pitfall 31: Hook Commands Use Relative Paths That Break Outside the Source Directory
 
-**What goes wrong:** The agents-snippet.md template is modified to include GSD bridge content, but dc:init's sentinel detection breaks. Projects that already ran dc:init either get the snippet re-injected (double content) or never get the GSD bridge content (silent skip).
+**What goes wrong:** The existing development settings.json uses relative paths: `"command": "node hooks/dc-freshness-check.js"`. This works when Claude Code's working directory is the project root. When the same command is injected by the installer into the global `~/.claude/settings.json`, the relative path breaks — `hooks/dc-freshness-check.js` no longer resolves to anything because the user's project root is not the install location.
 
-**Why it happens:** The existing agents-snippet.md uses `<!-- domain-context:start -->` / `<!-- domain-context:end -->` sentinels. dc:init Step 7 checks: "If AGENTS.md exists and contains `<!-- domain-context:start -->`: Record status AGENTS.md: skipped." This means existing projects that already have the sentinel will NEVER receive updated snippet content, including new GSD bridge text.
+**Why it happens:** The hooks were developed and tested from the project root. The path worked in development, so it gets copied as-is into the installer output.
 
-**Consequences:** Two classes of projects diverge: new projects (with GSD bridge) and existing projects (without). The user expects dc:init to be idempotent but also to deliver new capabilities -- these goals conflict silently.
+**Consequences:** The installed hooks silently fail on every invocation (exit non-zero or error to stderr). Because the hooks use `exit 0` on error, the user may never notice the hooks are broken — they simply never fire. The freshness check never warns. The context reminder never fires.
 
-**Prevention:**
-1. Add a version marker inside the sentinel block: `<!-- dc-snippet-v2 -->` (the current template is implicitly v1)
-2. dc:init Step 7 should check sentinel presence AND version, not just sentinel presence
-3. If sentinel present but version outdated: replace the entire block between sentinels with new content, record status "AGENTS.md: updated"
-4. If sentinel present and version current: skip as before
-5. The GSD bridge content goes INSIDE the existing sentinel block, not as a separate template file
+**How to avoid:**
+- The installer must inject absolute paths into settings.json, not relative paths
+- For global install (`--global`): `"command": "node /Users/alice/.claude/hooks/dc-freshness-check.js"`
+- For local install (`--local`): `"command": "node .claude/hooks/dc-freshness-check.js"` (relative to project root, which is Claude Code's cwd)
+- Use `os.homedir()` or the resolved install destination to compute the absolute path at install time
+- Test by running the injected command string verbatim from a random directory — if it fails, the path is wrong
 
-**Detection:** Run dc:init on a project initialized with v1.0/v1.1 templates. Second run should detect outdated snippet and offer update. Run dc:init twice on a fresh project -- second run should report "skipped."
+**Warning signs:** Hooks installed but staleness warnings never appear. PostToolUse hook never fires context reminder. No error messages (because hooks exit 0 silently).
+
+**Phase to address:** Installer Logic phase (hook command path resolution).
+
+---
+
+### Pitfall 32: `__dirname` vs `process.cwd()` in the Installer Itself
+
+**What goes wrong:** The installer script (`bin/install.js`) uses `process.cwd()` to locate its own bundled files (skills, hooks, templates). This resolves to wherever the user invoked `npx`, not where the package is installed. When run via `npx domain-context-cc`, `process.cwd()` is the user's current directory — the package files are in a temporary npx cache directory, not in cwd.
+
+**Why it happens:** `process.cwd()` is familiar and works during local development (when you run `node bin/install.js` from the package root). It fails when the script is run as an npm bin entry from a different location.
+
+**Consequences:** Installer cannot find its own bundled files. Errors like "ENOENT: no such file or directory, open '/Users/alice/myproject/commands/dc/init.md'".
+
+**How to avoid:**
+- Always use `__dirname` (or `path.dirname(new URL(import.meta.url).pathname)` for ESM) to locate files relative to the script itself
+- `const SOURCE_ROOT = path.resolve(__dirname, '..')` gives the package root regardless of invocation directory
+- Verify by running `npx .` from a subdirectory during testing — not just from the package root
+
+**Warning signs:** Install works when run from the package root (`node bin/install.js`) but fails when run via `npx domain-context-cc` from a different directory.
+
+**Phase to address:** Installer Logic phase (path resolution).
+
+---
+
+### Pitfall 33: Uninstall Leaving Orphan Hook Entries in settings.json
+
+**What goes wrong:** The `--uninstall` flag removes files from `~/.claude/commands/dc/`, `~/.claude/hooks/`, etc., but does not remove the corresponding hook entries from `~/.claude/settings.json`. On the next session start, Claude Code tries to execute `node ~/.claude/hooks/dc-freshness-check.js`, fails (file not found), and may produce error output that confuses the user.
+
+**Why it happens:** Uninstall is typically an afterthought. The hook-removal logic mirrors the hook-injection logic but is not implemented, or the developer assumes "just delete the files."
+
+**Consequences:** Broken session starts. Error output from missing hook commands. User must manually edit settings.json to clean up.
+
+**How to avoid:**
+- The `--uninstall` path must mirror `--install` in reverse: parse settings.json, filter out the exact hook command strings that were injected, write back the result
+- Keep the injected command strings in a known format so they can be identified and removed precisely (e.g., always use the same path pattern)
+- Test uninstall by running install followed by uninstall and asserting settings.json is identical to the pre-install state
+
+**Warning signs:** After `--uninstall`, `settings.json` still contains dc hook entries. Session start produces "command not found" or "ENOENT" errors for dc hooks.
+
+**Phase to address:** Installer Logic phase (uninstall cleanup).
+
+---
+
+### Pitfall 34: The `bin` Entry in package.json Points to a Non-Executable Script
+
+**What goes wrong:** `"bin": {"domain-context-cc": "./bin/install.js"}` — but `bin/install.js` is missing a shebang (`#!/usr/bin/env node`) or has incorrect Unix permissions (not executable). When the user runs `npx domain-context-cc`, they get a "permission denied" or the script is run by the wrong interpreter.
+
+**Why it happens:** The file is created normally (permissions 644) and lacks a shebang. Works fine when invoked explicitly as `node bin/install.js` but fails as a bin entry.
+
+**Consequences:** `npx domain-context-cc` fails with a cryptic permission error or interpreter error.
+
+**How to avoid:**
+- Add `#!/usr/bin/env node` as the first line of `bin/install.js`
+- Set file permissions: `chmod +x bin/install.js` (or ensure package.json does not override)
+- npm automatically sets execute bits for bin entries during install, but the shebang is still required for direct execution
+- Test via `npm pack && npx ./domain-context-cc-*.tgz` as documented in AGENTS.md
+
+**Warning signs:** `npx domain-context-cc` returns "permission denied" or "bad interpreter." The script runs fine as `node bin/install.js` but not as `npx`.
+
+**Phase to address:** Package Configuration phase (bin entry setup).
 
 ---
 
 ## Moderate Pitfalls
 
-### Pitfall 20: Rigid GSD Artifact Format Expectations
+### Pitfall 35: Template Files Overwriting User-Customized Copies on Re-Install
 
-**What goes wrong:** dc:extract assumes all GSD phase artifacts follow the exact format seen in this project's .planning/ directory. Real-world GSD projects may have different phase naming, different CONTEXT.md section names, missing XML-like tags, or older GSD versions with different artifact structures.
+**What goes wrong:** The installer copies templates to `~/.claude/domain-context/templates/`. If the user has customized those templates (e.g., added their own sections to `domain-concept.md`), a subsequent re-install overwrites their customizations silently.
 
-**Prevention:** Parse defensively. Look for the section tags (`<domain>`, `<decisions>`, `<specifics>`, `<deferred>`) but handle their absence gracefully. If a CONTEXT.md doesn't have the expected sections, fall back to treating the whole file as unstructured text and present it to the user for manual categorization. Never produce empty output because a section tag is missing.
+**Why it happens:** Simple `fs.copyFileSync` with no existence check.
 
----
+**How to avoid:** Before copying each template, check if a file already exists at the destination. If it does, skip it by default. Add a `--force` flag that allows overwriting. Log which files were skipped so the user knows their customizations are preserved.
 
-### Pitfall 21: Proposing Too Many Entries at Once
-
-**What goes wrong:** A milestone with 9+ phases produces dozens of potential extractions. dc:extract dumps them all in a single list. The user is overwhelmed and either accepts all (creating noise) or rejects all (wasting the extraction).
-
-**Prevention:** Group proposals by type (domain concepts, decisions, constraints). Show counts first: "Found 4 potential domain concepts, 3 decisions, 1 constraint." Let the user process one type at a time. For each proposal, show a one-line summary and the source phase -- not the full content until the user selects "preview."
+**Phase to address:** Installer Logic phase (file copy behavior).
 
 ---
 
-### Pitfall 22: Not Handling "No .planning/ Directory" Case
+### Pitfall 36: Global vs Local Install Destination Confusion
 
-**What goes wrong:** User runs dc:extract on a project that doesn't use GSD. The skill either crashes, shows a confusing error, or silently does nothing.
+**What goes wrong:** `--global` installs to `~/.claude/`. `--local` installs to `.claude/` in the current working directory. A user who runs `npx domain-context-cc --global` from inside a project expects the project's Claude Code config to gain the skills, not their home directory. Or vice versa.
 
-**Prevention:** Check for .planning/ existence as Step 1. If absent: "No .planning/ directory found. dc:extract works with GSD planning artifacts. Use /dc:add to create entries manually." This matches the guard pattern used by every other dc:* skill (check .context/ first, bail with helpful message if missing).
+**Why it happens:** The distinction is non-obvious, especially since Claude Code itself uses `~/.claude/` for user-level config and `.claude/` for project-level config — but users may not know this.
 
----
+**How to avoid:**
+- Print the resolved destination path before copying: "Installing to /Users/alice/.claude/ (global)"
+- After install, print where to restart Claude Code or how to verify the install worked
+- Make `--global` the default for `npx` invocations (users reaching this via npx are likely doing a one-time global install)
 
-### Pitfall 23: Cross-Reference Ignoring .context.local/
-
-**What goes wrong:** dc:extract cross-references proposals against .context/MANIFEST.md but forgets to also check .context.local/MANIFEST.md. A domain concept that exists as a private entry gets proposed again as a public entry.
-
-**Prevention:** Cross-reference against both .context/ and .context.local/ manifests. dc:add already handles the public/private distinction -- dc:extract must follow the same dual-manifest awareness. When a match is found in .context.local/, note it: "Similar private entry exists: [name]."
-
----
-
-### Pitfall 24: Milestone vs Phase Directory Structure Confusion
-
-**What goes wrong:** dc:extract looks for phases in .planning/phases/ but this project uses .planning/milestones/v1.0-phases/ for older milestones and .planning/phases/ for newer ones. The extraction misses completed phases or conflates knowledge from different milestones.
-
-**Prevention:** Support both directory patterns:
-- `.planning/phases/` (single-milestone or current milestone)
-- `.planning/milestones/{name}-phases/` (multi-milestone projects)
-
-Accept a milestone parameter or auto-detect. If multiple milestones are found, ask the user which to extract from. Never silently merge knowledge from different milestones -- each milestone may have contradictory decisions where only the latest applies.
+**Phase to address:** Installer Logic phase (destination resolution and UX).
 
 ---
 
-### Pitfall 25: Losing Source Attribution
+### Pitfall 37: Symlinks Created by Global npm Install Break `__dirname` Resolution
 
-**What goes wrong:** dc:extract creates .context/ files but doesn't record where the knowledge came from. Six months later, someone questions an ADR and has no way to trace it back to the GSD phase that produced the decision.
+**What goes wrong:** When installed globally via `npm install -g domain-context-cc`, npm creates a symlink from `/usr/local/bin/domain-context-cc` to the actual script in the npm global package directory. On some systems, `__dirname` in a symlinked script resolves to the symlink's location (the bin directory), not the actual package directory. `path.resolve(__dirname, '..', 'commands')` then points to the wrong place.
 
-**Prevention:** Add a source comment in extracted files: `<!-- Extracted from .planning/milestones/v1.0-phases/07-add/07-CONTEXT.md on 2026-03-16 -->`. This is a comment (not a spec-required field) so it won't break spec compliance or dc:validate. It provides traceability without cluttering visible content.
+**Why it happens:** Node.js resolves `__dirname` to the real path (via `fs.realpath`) in most cases, but behavior can differ with certain Node.js versions and symlink configurations.
 
----
+**How to avoid:**
+- Use `fs.realpathSync(__dirname)` to normalize the path before computing relative paths: `const realDir = fs.realpathSync(__dirname)`
+- Test global install scenario explicitly (not just `node bin/install.js` from the dev directory)
 
-## Minor Pitfalls
-
-### Pitfall 26: Template Token Collision with GSD Artifact Content
-
-**What goes wrong:** GSD artifacts contain literal `{placeholder}` text (this project documents its own template system with actual `{placeholder}` examples). When dc:extract reads these artifacts and passes content through template filling, the literal tokens get replaced or cause errors.
-
-**Prevention:** dc:extract should extract content as-is and only apply template tokens to the template structure (headings, metadata). Content from GSD artifacts goes into template section bodies verbatim -- never run token replacement on user content.
+**Phase to address:** Installer Logic phase (path resolution).
 
 ---
 
-### Pitfall 27: MANIFEST.md Position Drift During Batch Insert
+### Pitfall 38: `npm pack` Includes `.planning/`, `.context/`, and Development Artifacts
 
-**What goes wrong:** dc:extract adds multiple entries to MANIFEST.md in a single run but inserts them at the wrong position. Each insertion shifts line numbers, so the second insertion uses stale position data.
+**What goes wrong:** Without an explicit `files` array (or with an overly broad one), `npm pack` includes `.planning/`, `.context/`, `.claude/`, `PLAN.md`, research files, and other development artifacts. The published package becomes multi-megabyte and leaks internal project context to npm registry.
 
-**Prevention:** Insert entries one type at a time. After inserting all entries for one section (e.g., Domain Concepts), re-read MANIFEST.md before inserting entries for the next section (e.g., Architecture Decisions). Use the same insertion logic as dc:add: append to section, before next `##` header.
+**Why it happens:** Developers test locally where all files are present and forget that `npm pack` includes everything not in `.npmignore` unless `files` is set.
+
+**How to avoid:**
+- Use the `files` array (more explicit than `.npmignore`)
+- Or use `.npmignore` with explicit exclusions for `.planning/`, `.context/`, `.claude/`, `*.md` (except README), etc.
+- `files` array takes precedence over `.npmignore` — use one, not both
+- Run `npm pack --dry-run` and audit the file list before publishing
+
+**Phase to address:** Package Configuration phase (files list).
 
 ---
 
-### Pitfall 28: The "Extract Everything" Anti-Pattern
+### Pitfall 39: The Install Script Fails Silently When Target Directories Don't Exist
 
-**What goes wrong:** The user expects dc:extract to automatically extract all knowledge from all phases. The skill tries to be fully automatic, produces mediocre results, and the user doesn't review them carefully.
+**What goes wrong:** The installer tries to copy `hooks/dc-freshness-check.js` to `~/.claude/hooks/dc-freshness-check.js` but `~/.claude/hooks/` doesn't exist yet. `fs.copyFileSync` throws ENOENT. The installer catches the error and exits 0 silently (following the "never block" hook safety pattern), leaving files uncopied.
 
-**Prevention:** The integration model's Business Rule 3 already states: "Knowledge extraction from .planning/ to .context/ MUST be an explicit user-initiated step (not automatic)." Extend this to mean each individual extraction proposal requires user approval. Design dc:extract as a proposal-and-review workflow, not a batch processor. Never auto-accept.
+**Why it happens:** The "exit 0 on error" pattern is correct for hooks but wrong for the installer. A hook silently failing is acceptable; an installer silently failing is a serious usability bug.
+
+**Consequences:** User believes install succeeded. Commands are missing. No indication of what went wrong.
+
+**How to avoid:**
+- The installer is NOT a hook — do not apply the "exit 0 on error" pattern here
+- Use `fs.mkdirSync(dest, {recursive: true})` before each copy operation to ensure directories exist
+- Throw (or `process.exit(1)`) on installer errors with a descriptive message
+- Print each copied file to stdout so the user can see what was installed
+
+**Phase to address:** Installer Logic phase (directory creation and error handling).
 
 ---
 
-## Phase-Specific Warnings
+## Technical Debt Patterns
 
-| Phase Topic | Likely Pitfall | Mitigation |
-|-------------|---------------|------------|
-| Artifact parsing logic | P16: Wrong artifact hierarchy, P20: Rigid format expectations | Parse only CONTEXT.md and SUMMARY.md frontmatter; handle missing XML tags gracefully |
-| Cross-reference engine | P17: Semantic duplicates, P23: Missing .context.local/ | Read .context/ file content (not just names); check both manifests |
-| Proposal generation UX | P21: Overwhelming lists, P28: Extract-everything anti-pattern | Group by type, require per-proposal approval, show source phase |
-| Template fill for extracted files | P18: Spec noncompliance, P26: Token collision | Reuse dc:add's template logic; never run token replacement on user content |
-| AGENTS.md.snippet update | P19: Idempotency breakage | Add version marker; modify existing template; test on pre-existing projects |
-| Directory discovery | P22: No .planning/, P24: Milestone structure confusion | Guard check as Step 1; support both directory patterns; ask which milestone |
-| Attribution and traceability | P25: Lost source chain | Add source comment to extracted files |
-| MANIFEST.md updates | P27: Position drift in batch insert | Re-read MANIFEST.md between section insertions |
+| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
+|----------|-------------------|----------------|-----------------|
+| Overwrite settings.json without merging | Simpler code | Destroys user's existing hooks on re-install | Never |
+| Relative paths in injected hook commands | Works in dev | Hooks silently fail post-install | Never |
+| Skip `npm pack --dry-run` verification | Faster iteration | Publishes incomplete package silently | Never |
+| No `--uninstall` flag in v1 | Faster to ship | Orphan settings.json entries; no clean removal | Acceptable only if README documents manual cleanup |
+| Copy templates unconditionally | Simpler code | Overwrites user customizations | Never after v1.0 |
+| Use `process.cwd()` for source path | Works in dev | Fails when invoked via npx from other dirs | Never |
+
+---
+
+## Integration Gotchas
+
+| Integration | Common Mistake | Correct Approach |
+|-------------|----------------|------------------|
+| Claude Code settings.json | Treat as write-only target | Read first, deep-merge arrays, write back |
+| npm bin entries | Assume file is executable | Add shebang + `chmod +x` + test via `npx .` |
+| npm `files` array | List only top-level files | List all directory names; run `--dry-run` audit |
+| Global npm symlinks | Trust `__dirname` directly | Resolve via `fs.realpathSync(__dirname)` |
+| SessionStart / PostToolUse hook arrays | Replace the array | Append entries; check for duplicates first |
+| Template destination | Always overwrite | Check existence; skip if present; offer `--force` |
 
 ---
 
 ## "Looks Done But Isn't" Checklist
 
-- [ ] **dc:extract artifact filter:** Verify only CONTEXT.md and SUMMARY.md frontmatter are parsed -- not PLAN.md, RESEARCH.md, VALIDATION.md, VERIFICATION.md
-- [ ] **dc:extract duplicate detection:** Create a .context/domain/ file, then run extract on a phase that covers the same topic -- verify "similar to" is shown, not a blind "create new" proposal
-- [ ] **dc:extract template reuse:** Verify extracted files pass dc:validate with zero issues (same format as dc:add output)
-- [ ] **dc:extract on project without .planning/:** Verify helpful error message, not crash or silent nothing
-- [ ] **dc:extract milestone detection:** Test against .planning/phases/ AND .planning/milestones/*-phases/ -- both must work
-- [ ] **dc:extract batch insert:** Extract 3+ entries of the same type -- verify MANIFEST.md entries appear in correct positions without overwriting each other
-- [ ] **AGENTS.md.snippet versioning:** Run dc:init on a project with v1.0/v1.1 snippet -- verify GSD bridge content is added without duplicating existing content
-- [ ] **AGENTS.md.snippet idempotency:** Run dc:init twice on fresh project -- verify second run shows "skipped" for AGENTS.md
-- [ ] **Token collision:** Run dc:extract on this project's own .planning/ (which contains literal `{placeholder}` text) -- verify tokens in content are preserved verbatim
+- [ ] **`npm pack --dry-run` audit:** Every file in `commands/dc/`, `hooks/`, `agents/`, `rules/`, `templates/`, `tools/`, `bin/` appears in the pack output — verify before publishing
+- [ ] **Cross-directory invocation:** Run `npx .` from a subdirectory of the project, not just the root — verify installer finds its bundled files via `__dirname`
+- [ ] **Merge, not overwrite:** Install with an existing settings.json containing GSD hooks — verify GSD hooks are still present after install
+- [ ] **Idempotency:** Run `--install` twice — verify no duplicate hook entries in settings.json
+- [ ] **Uninstall cleanup:** Run install then uninstall — verify settings.json is returned to pre-install state
+- [ ] **Absolute paths in injected hooks:** After install, inspect settings.json and confirm hook commands use absolute paths (not `node hooks/...`)
+- [ ] **Missing target directory:** Delete `~/.claude/hooks/` then run install — verify installer creates the directory rather than failing silently
+- [ ] **Template preservation:** Customize a template file after install, then re-install — verify the customized file is not overwritten
+- [ ] **Shebang present:** Run `head -1 bin/install.js` — must be `#!/usr/bin/env node`
+- [ ] **Bin permissions:** Run `ls -la bin/install.js` — must be executable (755 or 644 via npm; shebang is the real guard)
+
+---
+
+## Recovery Strategies
+
+| Pitfall | Recovery Cost | Recovery Steps |
+|---------|---------------|----------------|
+| `files` array missing directories | MEDIUM | Re-publish package with corrected files array; users must re-run `npx domain-context-cc` |
+| settings.json clobbered | LOW | User restores from `settings.json.bak` (if installer created one) or manually re-adds lost hooks |
+| Relative paths in hooks | MEDIUM | Re-publish; users re-run install; manually edit `~/.claude/settings.json` to replace relative with absolute paths |
+| Uninstall orphans | LOW | User manually removes dc hook entries from `~/.claude/settings.json` (3-4 lines) |
+| Templates overwritten | MEDIUM | User must manually recreate customizations; no recovery if no backup |
+| Silent install failure (missing dirs) | LOW | Re-run install after ensuring `~/.claude/` exists |
+
+---
+
+## Pitfall-to-Phase Mapping
+
+| Pitfall | Prevention Phase | Verification |
+|---------|------------------|--------------|
+| P29: `files` array missing directories | Package Configuration | `npm pack --dry-run` — all expected files present |
+| P30: settings.json clobbered | Installer Logic | Install with pre-existing settings.json; diff before/after |
+| P31: Relative paths in hooks | Installer Logic | Inspect injected commands; run hook from unrelated directory |
+| P32: `__dirname` vs `process.cwd()` | Installer Logic | Run `npx .` from subdirectory; installer finds files |
+| P33: Uninstall orphans | Installer Logic | Install + uninstall; settings.json diff equals zero |
+| P34: Non-executable bin entry | Package Configuration | `npx domain-context-cc` succeeds (not just `node bin/install.js`) |
+| P35: Template overwrite on re-install | Installer Logic | Customize template; re-install; customization preserved |
+| P36: Global vs local confusion | Installer UX | Print resolved destination before copying |
+| P37: Symlink `__dirname` | Installer Logic | Test `npm install -g .` scenario; `realpathSync` used |
+| P38: Dev artifacts in package | Package Configuration | `npm pack --dry-run` shows no `.planning/`, `.context/`, `.claude/` |
+| P39: Silent failure on missing dirs | Installer Logic | Delete target dir; run install; dir created; no silent skip |
 
 ---
 
 ## Sources
 
-- Direct analysis of commands/dc/add.md: template fill pattern, MANIFEST.md insertion, ADR numbering (steps 2, 5, 6, 8, 11)
-- Direct analysis of commands/dc/validate.md: cross-reference and entry parsing patterns
-- Direct analysis of commands/dc/init.md: AGENTS.md sentinel detection (Step 7), idempotency contract
-- Direct analysis of templates/agents-snippet.md: sentinel comment pattern (`<!-- domain-context:start/end -->`)
-- GSD artifact structure analysis: .planning/milestones/v1.0-phases/ and .planning/phases/ directory layouts
-- Phase CONTEXT.md structure analysis: XML-like section tags (`<domain>`, `<decisions>`, `<specifics>`, `<deferred>`, `<code_context>`)
-- SUMMARY.md frontmatter analysis: `key-decisions`, `patterns-established` fields
-- Integration model (.context/domain/integration-model.md): Business Rule 3 on explicit extraction
-- PROJECT.md: v1.2 milestone scope and constraints
+- Direct analysis of `/Users/alevine/code/domain-context-claude/hooks/dc-freshness-check.js` and `dc-context-reminder.js`: hook path patterns, stdin contract, exit 0 on error convention
+- Direct analysis of `/Users/alevine/code/domain-context-claude/.claude/settings.json`: existing hook registration format (SessionStart array, PostToolUse array with matcher), GSD and dc hooks co-registered
+- Direct analysis of `/Users/alevine/code/domain-context-claude/.claude/package.json`: current `{"type":"commonjs"}` — confirms CommonJS module format for all JS files
+- npm documentation (training data, HIGH confidence): `files` array behavior, `.npmignore` precedence, `npm pack --dry-run`, bin entry requirements, symlink handling
+- Node.js documentation (training data, HIGH confidence): `__dirname` behavior in CommonJS modules, `fs.realpathSync`, `fs.mkdirSync({recursive: true})`
+- AGENTS.md (this project): `npm pack && npx ./domain-context-cc-*.tgz` as documented test install procedure
+- PROJECT.md v1.3 milestone scope: installer flags (`--global`, `--local`, `--uninstall`), settings.json hook merge requirement
+- Claude Code settings.json structure (observed in project): `hooks.SessionStart` and `hooks.PostToolUse` as arrays, `matcher` field on PostToolUse entries
 
 ---
-*Pitfalls research for: dc:extract and AGENTS.md.snippet GSD bridge (v1.2 milestone)*
-*Researched: 2026-03-16*
+*Pitfalls research for: npm packaging and installer (v1.3 milestone)*
+*Researched: 2026-03-17*
