@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Hooks, Rules & Agent
 status: completed
-last_updated: "2026-03-17T00:29:46.143Z"
-last_activity: 2026-03-16 -- Completed 10-01 SessionStart freshness hook
+last_updated: "2026-03-17T01:31:32.509Z"
+last_activity: 2026-03-16 -- Completed 11-01 PostToolUse reminder hook
 progress:
   total_phases: 4
-  completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
+  completed_phases: 2
+  total_plans: 2
+  completed_plans: 2
   percent: 100
 ---
 
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-16)
 
 **Core value:** Developers can codify and maintain domain knowledge alongside code so AI assistants always have accurate business context
-**Current focus:** Phase 10 -- SessionStart Freshness Hook
+**Current focus:** Phase 11 -- PostToolUse Reminder Hook
 
 ## Position
 
-Phase: 10 of 13 (SessionStart Freshness Hook)
+Phase: 11 of 13 (PostToolUse Reminder Hook)
 Plan: 1 of 1 (Complete)
-Status: Phase 10 complete
-Last activity: 2026-03-16 -- Completed 10-01 SessionStart freshness hook
+Status: Phase 11 complete
+Last activity: 2026-03-16 -- Completed 11-01 PostToolUse reminder hook
 
 Progress: [██████████] 100%
 
@@ -43,12 +43,16 @@ Progress: [██████████] 100%
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 10 | 1 | 2min | 2min |
+| Phase 11 P01 | 2min | 2 tasks | 2 files |
 
 ## Decisions
 
 - Phase 10: Entries without verified dates flagged as "never verified" rather than silently ignored
 - Phase 10: Overdue count shows days past threshold (daysSince - 90) not total days since verified
 - Phase 10: Uses local midnight Date constructor to avoid UTC timezone edge cases
+- [Phase 11]: MD5 hash (first 8 chars) of directory path for debounce file naming
+- [Phase 11]: Defense-in-depth: tool scoping via settings.json matcher AND in-hook allowlist
+- [Phase 11]: os.tmpdir() for debounce files -- auto-cleans on reboot
 
 ## Session Log
 

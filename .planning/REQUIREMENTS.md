@@ -11,12 +11,12 @@ Requirements for passive integrations milestone. Each maps to roadmap phases.
 
 - [x] **HOOK-01**: SessionStart hook reads MANIFEST.md and warns about entries with verified dates >90 days old
 - [x] **HOOK-02**: SessionStart hook exits 0 gracefully when no .context/ exists or on any error
-- [ ] **HOOK-03**: PostToolUse hook detects when edited file has a CONTEXT.md in its directory or parent
-- [ ] **HOOK-04**: PostToolUse hook emits advisory reminder to update CONTEXT.md when nearby one exists
-- [ ] **HOOK-05**: PostToolUse hook debounces reminders to once per directory per session via tmp file
-- [ ] **HOOK-06**: PostToolUse hook scopes to Edit/Write/MultiEdit tools only via matcher
+- [x] **HOOK-03**: PostToolUse hook detects when edited file has a CONTEXT.md in its directory or parent
+- [x] **HOOK-04**: PostToolUse hook emits advisory reminder to update CONTEXT.md when nearby one exists
+- [x] **HOOK-05**: PostToolUse hook debounces reminders to once per directory per session via tmp file
+- [x] **HOOK-06**: PostToolUse hook scopes to Edit/Write/MultiEdit tools only via matcher
 - [x] **HOOK-07**: Both hooks use stdin timeout guard (3-second) to prevent UI error warnings
-- [ ] **HOOK-08**: Hook registration merges into existing settings.json arrays without clobbering GSD hooks
+- [x] **HOOK-08**: Hook registration merges into existing settings.json arrays without clobbering GSD hooks
 
 ### Rules
 
@@ -62,12 +62,12 @@ Requirements for passive integrations milestone. Each maps to roadmap phases.
 |-------------|-------|--------|
 | HOOK-01 | Phase 10 | Complete |
 | HOOK-02 | Phase 10 | Complete |
-| HOOK-03 | Phase 11 | Pending |
-| HOOK-04 | Phase 11 | Pending |
-| HOOK-05 | Phase 11 | Pending |
-| HOOK-06 | Phase 11 | Pending |
+| HOOK-03 | Phase 11 | Complete |
+| HOOK-04 | Phase 11 | Complete |
+| HOOK-05 | Phase 11 | Complete |
+| HOOK-06 | Phase 11 | Complete |
 | HOOK-07 | Phase 10 | Complete |
-| HOOK-08 | Phase 11 | Pending |
+| HOOK-08 | Phase 11 | Complete |
 | RULE-01 | Phase 12 | Pending |
 | RULE-02 | Phase 12 | Pending |
 | RULE-03 | Phase 12 | Pending |
