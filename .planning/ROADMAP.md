@@ -105,5 +105,5 @@ Phases execute in numeric order: 10 -> 11 -> 12 -> 13
 | 9. Integration Fixes | v1.0 | 1/1 | Complete | 2026-03-16 |
 | 10. SessionStart Freshness Hook | v1.1 | 1/1 | Complete | 2026-03-17 |
 | 11. PostToolUse Reminder Hook | 1/1 | Complete    | 2026-03-17 | - |
-| 12. Path-Scoped Rule | 1/1 | Complete   | 2026-03-17 | - |
+| 12. Path-Scoped Rule | 1/1 | Complete    | 2026-03-17 | - |
 | 13. Domain Validator Agent | v1.1 | 0/? | Not started | - |
