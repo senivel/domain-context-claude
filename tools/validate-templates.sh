@@ -40,7 +40,7 @@ check_heading() {
 
 echo -e "\n${BOLD}=== File Existence (TMPL-01) ===${RESET}\n"
 
-FILES=(manifest.md context.md domain-concept.md decision.md constraint.md agents-snippet.md architecture.md claude.md)
+FILES=(manifest.md context.md domain-concept.md decision.md constraint.md agents-snippet.md architecture.md claude.md gsd-agents-snippet.md)
 
 for f in "${FILES[@]}"; do
   if [ -f "${TEMPLATES_DIR}/${f}" ]; then
@@ -99,6 +99,11 @@ check_heading "${TEMPLATES_DIR}/agents-snippet.md" "## Project Context"
 check_heading "${TEMPLATES_DIR}/agents-snippet.md" "## Confidential Context"
 check_heading "${TEMPLATES_DIR}/agents-snippet.md" "<!-- domain-context:end -->"
 
+echo -e "\n${BOLD}gsd-agents-snippet.md${RESET}"
+check_heading "${TEMPLATES_DIR}/gsd-agents-snippet.md" "<!-- gsd-bridge:start -->"
+check_heading "${TEMPLATES_DIR}/gsd-agents-snippet.md" "## GSD Integration"
+check_heading "${TEMPLATES_DIR}/gsd-agents-snippet.md" "<!-- gsd-bridge:end -->"
+
 echo -e "\n${BOLD}architecture.md${RESET}"
 check_heading "${TEMPLATES_DIR}/architecture.md" "## System Purpose"
 check_heading "${TEMPLATES_DIR}/architecture.md" "## Module Map"
@@ -124,7 +129,7 @@ for f in "${PLACEHOLDER_FILES[@]}"; do
 done
 
 # Files that should NOT have {…} placeholders
-NO_PLACEHOLDER_FILES=(agents-snippet.md claude.md)
+NO_PLACEHOLDER_FILES=(agents-snippet.md claude.md gsd-agents-snippet.md)
 for f in "${NO_PLACEHOLDER_FILES[@]}"; do
   if grep -qE '\{[a-z][a-z0-9_]*\}' "${TEMPLATES_DIR}/${f}"; then
     fail "${f} should not have {…} placeholders"
