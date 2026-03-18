@@ -125,10 +125,10 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. The architecture/concepts page renders Mermaid diagrams showing component relationships and data flow
   2. Install instructions across the site use tabbed content blocks to show global vs local install variants side-by-side
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 24-01: TBD
+- [ ] 24-01-PLAN.md — Mermaid diagrams on architecture page and tabbed install blocks on landing/quickstart
 
 ## Progress
 
@@ -144,4 +144,4 @@ Plans:
 | 21. CI/CD and GitHub Pages | 1/1 | Complete    | 2026-03-18 | - |
 | 22. User-Facing Content | 2/2 | Complete    | 2026-03-18 | - |
 | 23. Conceptual and Contributor Content | 2/2 | Complete    | 2026-03-18 | - |
-| 24. Visual Enhancements | v1.4 | 0/? | Not started | - |
+| 24. Visual Enhancements | v1.4 | 0/1 | Not started | - |
