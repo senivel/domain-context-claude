@@ -10,8 +10,8 @@ Requirements for Documentation milestone. Each maps to roadmap phases.
 ### Infrastructure
 
 - [x] **INFRA-01**: Starlight (Astro) doc site scaffolded in isolated `docs/` directory with own package.json
-- [ ] **INFRA-02**: Site deploys to GitHub Pages via GitHub Action on pushes to `docs/**`
-- [ ] **INFRA-03**: CI link checker validates all internal and external links before deploy
+- [x] **INFRA-02**: Site deploys to GitHub Pages via GitHub Action on pushes to `docs/**`
+- [x] **INFRA-03**: CI link checker validates all internal and external links before deploy
 - [x] **INFRA-04**: Framework defaults active: sidebar nav, full-text search, dark/light mode, code highlighting with copy, responsive layout
 
 ### Content
@@ -65,8 +65,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | INFRA-01 | Phase 20 | Complete |
-| INFRA-02 | Phase 21 | Pending |
-| INFRA-03 | Phase 21 | Pending |
+| INFRA-02 | Phase 21 | Complete |
+| INFRA-03 | Phase 21 | Complete |
 | INFRA-04 | Phase 20 | Complete |
 | CONT-01 | Phase 22 | Pending |
 | CONT-02 | Phase 22 | Pending |

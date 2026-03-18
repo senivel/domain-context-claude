@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Documentation
-status: completed
-last_updated: "2026-03-17T23:53:29.949Z"
-last_activity: 2026-03-17 — Completed 20-01-PLAN.md (Scaffold Starlight Site)
+status: in-progress
+last_updated: "2026-03-18T00:27:59.751Z"
+last_activity: 2026-03-17 — Completed 21-01-PLAN.md (CI/CD and GitHub Pages)
 progress:
   total_phases: 5
-  completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
+  completed_phases: 2
+  total_plans: 2
+  completed_plans: 2
   percent: 100
 ---
 
@@ -20,27 +20,28 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-17)
 
 **Core value:** Developers can codify and maintain domain knowledge alongside code so AI assistants always have accurate business context
-**Current focus:** Phase 20 - Scaffold Starlight Site
+**Current focus:** Phase 21 - CI/CD and GitHub Pages
 
 ## Position
 
-Phase: 20 of 24 (Scaffold Starlight Site)
+Phase: 21 of 24 (CI/CD and GitHub Pages)
 Plan: 1 of 1 (complete)
-Status: Phase 20 complete
-Last activity: 2026-03-17 — Completed 20-01-PLAN.md (Scaffold Starlight Site)
+Status: Phase 21 complete
+Last activity: 2026-03-17 — Completed 21-01-PLAN.md (CI/CD and GitHub Pages)
 
 Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 1
-- Average duration: 2 min
-- Total execution time: 0.03 hours
+- Total plans completed: 2
+- Average duration: 1.5 min
+- Total execution time: 0.05 hours
 
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
 | 20-scaffold-starlight-site | 01 | 2min | 2 | 6 |
+| 21-ci-cd-and-github-pages | 01 | 1min | 2 | 3 |
 
 ## Accumulated Context
 
@@ -49,6 +50,9 @@ Progress: [██████████] 100%
 - Manual scaffolding instead of interactive npm create wizard for deterministic results
 - Isolated docs/ project: all docs commands run inside docs/, root package.json untouched
 - Content collection schema: docsLoader + docsSchema in src/content.config.ts (Astro 6 API)
+- Three-job CI pipeline: build artifact -> link-check -> deploy (artifact passing between jobs)
+- Lychee link checker needs --base flag for correct relative URL resolution on GitHub Pages
+- GitHub Pages deploy requires concurrency group with cancel-in-progress: false
 
 ### From v1.3
 - Single CommonJS file for installer — no benefit to module splitting
