@@ -98,10 +98,11 @@ Plans:
   2. A user following the quickstart guide goes from zero to a working `.context/` directory in under 5 minutes
   3. The user guide walks through the complete workflow: init, explore, add, validate, refresh, extract
   4. The CLI reference documents all 6 dc:* commands with usage syntax, descriptions, and examples
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 22-01: TBD
+- [ ] 22-01-PLAN.md — Sidebar navigation, splash landing page, and quickstart guide
+- [ ] 22-02-PLAN.md — User guide and CLI command reference
 
 ### Phase 23: Conceptual and Contributor Content
 **Goal**: Users understand the architecture and spec underpinning the tool, and contributors know how to participate
@@ -140,6 +141,6 @@ Plans:
 | 17-19 | v1.3 | 4/4 | Complete | 2026-03-17 |
 | 20. Scaffold Starlight Site | 1/1 | Complete    | 2026-03-17 | - |
 | 21. CI/CD and GitHub Pages | 1/1 | Complete    | 2026-03-18 | - |
-| 22. User-Facing Content | v1.4 | 0/? | Not started | - |
+| 22. User-Facing Content | v1.4 | 0/2 | Not started | - |
 | 23. Conceptual and Contributor Content | v1.4 | 0/? | Not started | - |
 | 24. Visual Enhancements | v1.4 | 0/? | Not started | - |
