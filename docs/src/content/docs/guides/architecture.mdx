@@ -5,21 +5,22 @@ sidebar:
   order: 2
 ---
 
+import Mermaid from '../../../components/Mermaid.astro';
+
 This page explains how Domain Context's components work together -- the bridge pattern that connects AI tools to domain knowledge, the module structure, and the hooks that keep context fresh.
 
 ## The bridge pattern
 
 Domain Context uses a three-layer chain to make domain knowledge visible to any AI assistant:
 
-```
-CLAUDE.md
-  └── @AGENTS.md
-       ├── @ARCHITECTURE.md
-       └── @.context/MANIFEST.md
-            ├── domain/
-            ├── decisions/
-            └── constraints/
-```
+<Mermaid chart={`graph TD
+  A[CLAUDE.md] --> B[AGENTS.md]
+  B --> C[ARCHITECTURE.md]
+  B --> D[.context/MANIFEST.md]
+  D --> E[domain/]
+  D --> F[decisions/]
+  D --> G[constraints/]
+`} />
 
 **CLAUDE.md** is a thin pointer -- it imports AGENTS.md via `@AGENTS.md` and adds any Claude-specific settings. **AGENTS.md** is the primary instruction file. It is vendor-neutral (originated by OpenAI, adopted broadly), so any AI coding tool can consume it. AGENTS.md references ARCHITECTURE.md for system design and .context/MANIFEST.md for domain knowledge.
 
@@ -46,6 +47,32 @@ Domain Context organizes project knowledge into three complementary concerns:
 | rules/ | Formatting guidance for .context/ files |
 | templates/ | Scaffolding files for /dc:init |
 | bin/ | npm installer (npx entry point) |
+
+<Mermaid chart={`graph TD
+  BIN[bin/install.js] --> CMD[commands/dc/]
+  BIN --> HK[hooks/]
+  BIN --> AG[agents/]
+  BIN --> RL[rules/]
+  CMD --> TPL[templates/]
+  CMD --> TL[tools/]
+  HK --> MF[.context/MANIFEST.md]
+`} />
+
+## Data flow
+
+The install-to-session lifecycle shows how Domain Context flows from initial setup through active development:
+
+<Mermaid chart={`graph LR
+  A[npx domain-context-cc] --> B[bin/install.js]
+  B --> C[Files in ~/.claude/]
+  C --> D[Hooks registered]
+  D --> E[/dc:init]
+  E --> F[.context/ created]
+  F --> G[Session start]
+  G --> H[Freshness check]
+  H --> I[Edit code]
+  I --> J[Context reminder]
+`} />
 
 ## Hook lifecycle
 
