@@ -1,0 +1,62 @@
+name: Deploy Docs to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths: ['docs/**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Build Astro site
+        uses: withastro/action@v5
+        with:
+          path: ./docs
+
+  check-links:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Download Pages artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: github-pages
+          path: ./dist
+
+      - name: Extract artifact
+        run: tar -xf ./dist/artifact.tar -C ./dist
+
+      - name: Check links
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: '--base https://senivel.github.io/domain-context-claude --no-progress ./dist/**/*.html'
+          fail: true
+          jobSummary: true
+
+  deploy:
+    needs: [build, check-links]
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

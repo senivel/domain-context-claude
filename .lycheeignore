@@ -1,0 +1,6 @@
+# Rate-limited social media
+https://twitter.com/.*
+https://x.com/.*
+
+# LinkedIn blocks crawlers
+https://www.linkedin.com/.*
