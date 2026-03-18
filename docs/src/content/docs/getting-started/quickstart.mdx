@@ -3,7 +3,7 @@ title: Quickstart
 description: Go from zero to a working .context/ directory in under 5 minutes.
 ---
 
-import { Steps } from '@astrojs/starlight/components';
+import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
 
 ## Prerequisites
 
@@ -14,15 +14,25 @@ import { Steps } from '@astrojs/starlight/components';
 
 <Steps>
 
-1. **Install domain-context-cc globally:**
+1. **Install domain-context-cc:**
 
-   ```bash
-   npx domain-context-cc
-   ```
-
-   :::note
-   For project-specific install, use `npx domain-context-cc --local` instead.
-   :::
+   <Tabs syncKey="install">
+     <TabItem label="Global (recommended)">
+       ```bash
+       npx domain-context-cc
+       ```
+     </TabItem>
+     <TabItem label="Local">
+       ```bash
+       npx domain-context-cc --local
+       ```
+     </TabItem>
+     <TabItem label="Uninstall">
+       ```bash
+       npx domain-context-cc --uninstall
+       ```
+     </TabItem>
+   </Tabs>
 
 2. **Open your project in Claude Code and run:**
 
