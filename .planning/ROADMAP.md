@@ -143,5 +143,5 @@ Plans:
 | 20. Scaffold Starlight Site | 1/1 | Complete    | 2026-03-17 | - |
 | 21. CI/CD and GitHub Pages | 1/1 | Complete    | 2026-03-18 | - |
 | 22. User-Facing Content | 2/2 | Complete    | 2026-03-18 | - |
-| 23. Conceptual and Contributor Content | 2/2 | Complete   | 2026-03-18 | - |
+| 23. Conceptual and Contributor Content | 2/2 | Complete    | 2026-03-18 | - |
 | 24. Visual Enhancements | v1.4 | 0/? | Not started | - |
