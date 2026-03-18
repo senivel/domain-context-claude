@@ -1,0 +1,292 @@
+---
+title: CLI Reference
+description: Complete reference for all dc:* commands.
+---
+
+All commands are Claude Code slash commands. Run them in the Claude Code chat interface.
+
+## dc:init
+
+Initialize Domain Context in the current project.
+
+**Usage:**
+
+```
+/dc:init
+```
+
+**What it does:** Creates the `.context/` directory with MANIFEST.md, domain/, decisions/, and constraints/ subdirectories. Scaffolds ARCHITECTURE.md, wires AGENTS.md with the domain-context snippet, and creates CLAUDE.md with an `@AGENTS.md` pointer. Configures `.gitignore` to exclude `.context.local/`.
+
+**Example -- new project:**
+
+```
+/dc:init
+```
+
+```
+Domain Context initialized:
+
+  .context/MANIFEST.md     created
+  .context/domain/         created
+  .context/decisions/      created
+  .context/constraints/    created
+  ARCHITECTURE.md          created
+  AGENTS.md                created
+  AGENTS.md (GSD)          skipped
+  CLAUDE.md                created
+  .gitignore               updated
+
+  7 created, 1 skipped, 1 updated
+```
+
+**Example -- GSD project** (detects `.planning/PROJECT.md`):
+
+```
+/dc:init
+```
+
+```
+Domain Context initialized:
+
+  .context/MANIFEST.md     created
+  .context/domain/         created
+  .context/decisions/      created
+  .context/constraints/    created
+  ARCHITECTURE.md          created
+  AGENTS.md                created
+  AGENTS.md (GSD)          created
+  CLAUDE.md                created
+  .gitignore               updated
+
+  8 created, 0 skipped, 1 updated
+```
+
+## dc:explore
+
+Browse and search domain context in the current project.
+
+**Usage:**
+
+```
+/dc:explore
+/dc:explore <keyword>
+```
+
+**What it does:** Shows a summary of all entries grouped by section with freshness status. Supports keyword search to filter entries by name, description, or content. Lets you drill into specific entries to view full content.
+
+**Example -- browse all entries:**
+
+```
+/dc:explore
+```
+
+```
+Domain Context:
+
+  Domain Concepts (2)
+    - Integration Model           [verified: 2026-03-11]
+    - Claude Code Extensions      [verified: 2026-03-11]
+
+  Architecture Decisions (3)
+    - 001: Single Project          [verified: 2026-03-11]
+    - 002: AGENTS.md Bridge        [verified: 2026-03-11]
+    - 003: No MCP for MVP          [verified: 2026-03-11]
+
+  Constraints (0)
+
+  Module Context Files (0)
+```
+
+**Example -- keyword search:**
+
+```
+/dc:explore caching
+```
+
+```
+1 entry matching 'caching':
+  - Caching Strategy (domain concept) -- matched in content
+
+[Full entry content displayed]
+```
+
+## dc:validate
+
+Check structural integrity of domain context.
+
+**Usage:**
+
+```
+/dc:validate
+```
+
+**What it does:** Reports broken links, orphan files, stale entries, and missing AGENTS.md imports. Groups issues by type with severity levels. Offers to fix each group interactively after reporting.
+
+**Example -- all checks pass:**
+
+```
+/dc:validate
+```
+
+```
+Domain Context Validation:
+
+  OK Broken Links (0)
+  OK Orphan Files (0)
+  OK Stale Entries (0)
+  OK AGENTS.md Imports (0)
+
+  All checks passed. 5 entries validated.
+```
+
+**Example -- issues found:**
+
+```
+/dc:validate
+```
+
+```
+Domain Context Validation:
+
+  X Broken Links (1)
+    1 entry in MANIFEST.md points to a file that doesn't exist.
+    - Caching Strategy -> domain/caching-strategy.md
+
+  X Orphan Files (1)
+    1 file in .context/ is not referenced in MANIFEST.md.
+    - .context/domain/old-model.md
+
+  ! Stale Entries (2)
+    2 entries have not been verified in over 90 days.
+    - Integration Model [verified: 2025-11-01, 138 days ago]
+    - Single Project [verified: 2025-10-15, 155 days ago]
+
+  OK AGENTS.md Imports (0)
+
+  2 errors, 2 warnings
+```
+
+## dc:add
+
+Add a new domain concept, architecture decision, or constraint.
+
+**Usage:**
+
+```
+/dc:add
+/dc:add <description>
+```
+
+**What it does:** Extracts structured content from a freeform description, creates the file from the appropriate template, and registers it in MANIFEST.md. Supports three entry types: domain concept, architecture decision, and constraint. Architecture decisions are auto-numbered as ADRs.
+
+**Example -- add a domain concept:**
+
+```
+/dc:add Our billing model uses usage-based pricing with monthly billing cycles
+```
+
+```
+Entry created:
+  Type:     Domain concept
+  File:     .context/domain/billing-model.md
+  Manifest: .context/MANIFEST.md updated
+```
+
+**Example -- add an architecture decision:**
+
+```
+/dc:add We chose PostgreSQL over MongoDB because our data is highly relational
+```
+
+```
+Entry created:
+  Type:     Architecture decision
+  File:     .context/decisions/004-postgresql-over-mongodb.md
+  Manifest: .context/MANIFEST.md updated
+```
+
+## dc:refresh
+
+Review stale entries and update them based on current code.
+
+**Usage:**
+
+```
+/dc:refresh
+```
+
+**What it does:** Identifies entries with verified dates older than 90 days. For each stale entry, reads its content, searches the codebase for relevant source code, assesses accuracy, and presents findings. Updates verified dates in both MANIFEST.md and the context file.
+
+**Example -- stale entries found:**
+
+```
+/dc:refresh
+```
+
+```
+Stale entries (2 of 5 checked):
+
+  Integration Model
+    Verified: 2025-11-01 (138 days ago)
+    File: .context/domain/integration-model.md
+    Assessment: Still accurate -- entry describes three-concern model,
+    code still implements How/What/Why separation.
+
+  [Still accurate -- bump date / Edit first / Skip]
+```
+
+**Example -- all entries fresh:**
+
+```
+/dc:refresh
+```
+
+```
+All entries are fresh. 5 entries checked, none older than 90 days.
+```
+
+## dc:extract
+
+Extract domain knowledge from completed GSD phases.
+
+**Usage:**
+
+```
+/dc:extract
+/dc:extract <phase-number>
+/dc:extract <start>-<end>
+```
+
+**What it does:** Scans completed GSD phase artifacts (CONTEXT.md, SUMMARY.md, RESEARCH.md, RETROSPECTIVE.md) from `.planning/phases/`. Classifies findings into domain concepts, decisions, and constraints. Presents a proposal table with source attribution, then lets you accept or reject each proposal.
+
+**Example -- extract from all phases:**
+
+```
+/dc:extract
+```
+
+```
+Proposed extractions from phases 1-14:
+
+  #  Type        Title                          Source
+  1  Decision    Single CommonJS Installer      Phase 12 CONTEXT.md
+  2  Concept     Sentinel Pattern               Phase 13 SUMMARY.md
+  3  Constraint  3-Second Hook Timeout          Phase 8 RESEARCH.md
+
+  3 proposals (1 concept, 1 decision, 1 constraint)
+```
+
+**Example -- extract from a specific range:**
+
+```
+/dc:extract 5-8
+```
+
+```
+Proposed extractions from phases 5-8:
+
+  #  Type        Title                          Source
+  1  Constraint  3-Second Hook Timeout          Phase 8 RESEARCH.md
+
+  1 proposal (0 concepts, 0 decisions, 1 constraint)
+```
