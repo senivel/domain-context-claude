@@ -22,7 +22,7 @@ Requirements for Documentation milestone. Each maps to roadmap phases.
 - [x] **CONT-04**: CLI command reference — all 6 dc:* commands with usage, descriptions, and examples
 - [ ] **CONT-05**: Architecture/concepts page — bridge pattern, hook lifecycle, .context/ structure
 - [ ] **CONT-06**: Domain Context spec overview — what the spec is and how this tool implements it
-- [ ] **CONT-07**: Contributing guide — setup, conventions, PR process
+- [x] **CONT-07**: Contributing guide — setup, conventions, PR process
 
 ### Enhancements
 
@@ -74,7 +74,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CONT-04 | Phase 22 | Complete |
 | CONT-05 | Phase 23 | Pending |
 | CONT-06 | Phase 23 | Pending |
-| CONT-07 | Phase 23 | Pending |
+| CONT-07 | Phase 23 | Complete |
 | ENH-01 | Phase 24 | Pending |
 | ENH-02 | Phase 24 | Pending |
 
