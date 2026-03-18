@@ -58,7 +58,7 @@ See .planning/milestones/ for archived phase details.
 - [x] **Phase 21: CI/CD and GitHub Pages** - Deploy pipeline with GitHub Action, link checker, live placeholder site (completed 2026-03-18)
 - [x] **Phase 22: User-Facing Content** - Landing page, quickstart, user guide, CLI command reference (completed 2026-03-18)
 - [x] **Phase 23: Conceptual and Contributor Content** - Architecture/concepts, spec overview, contributing guide (completed 2026-03-18)
-- [ ] **Phase 24: Visual Enhancements** - Mermaid diagrams on architecture pages, tabbed install variants
+- [x] **Phase 24: Visual Enhancements** - Mermaid diagrams on architecture pages, tabbed install variants (completed 2026-03-18)
 
 ## Phase Details
 
@@ -144,4 +144,4 @@ Plans:
 | 21. CI/CD and GitHub Pages | 1/1 | Complete    | 2026-03-18 | - |
 | 22. User-Facing Content | 2/2 | Complete    | 2026-03-18 | - |
 | 23. Conceptual and Contributor Content | 2/2 | Complete    | 2026-03-18 | - |
-| 24. Visual Enhancements | v1.4 | 0/1 | Not started | - |
+| 24. Visual Enhancements | 1/1 | Complete   | 2026-03-18 | - |

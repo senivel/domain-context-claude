@@ -26,8 +26,8 @@ Requirements for Documentation milestone. Each maps to roadmap phases.
 
 ### Enhancements
 
-- [ ] **ENH-01**: Mermaid architecture diagrams on concepts/architecture pages
-- [ ] **ENH-02**: Tabbed content blocks for global vs local install variants
+- [x] **ENH-01**: Mermaid architecture diagrams on concepts/architecture pages
+- [x] **ENH-02**: Tabbed content blocks for global vs local install variants
 
 ## Future Requirements
 
@@ -75,8 +75,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CONT-05 | Phase 23 | Complete |
 | CONT-06 | Phase 23 | Complete |
 | CONT-07 | Phase 23 | Complete |
-| ENH-01 | Phase 24 | Pending |
-| ENH-02 | Phase 24 | Pending |
+| ENH-01 | Phase 24 | Complete |
+| ENH-02 | Phase 24 | Complete |
 
 **Coverage:**
 - v1.4 requirements: 13 total
