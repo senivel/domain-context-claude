@@ -84,10 +84,10 @@ Plans:
   1. Pushing changes to `docs/**` on main triggers a GitHub Action that builds and deploys the site to GitHub Pages
   2. The deployed site is accessible at `https://senivel.github.io/domain-context-claude/` with correct base URL (no broken CSS/JS/links)
   3. A CI link checker runs before deploy and fails the workflow if any internal or external link is broken
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 21-01: TBD
+- [ ] 21-01-PLAN.md — GitHub Actions workflow with build, link check, and deploy jobs plus Astro base URL config
 
 ### Phase 22: User-Facing Content
 **Goal**: Users can learn about the project, install it, and use every feature through comprehensive documentation
@@ -139,7 +139,7 @@ Plans:
 | 14-16 | v1.2 | 4/4 | Complete | 2026-03-17 |
 | 17-19 | v1.3 | 4/4 | Complete | 2026-03-17 |
 | 20. Scaffold Starlight Site | 1/1 | Complete    | 2026-03-17 | - |
-| 21. CI/CD and GitHub Pages | v1.4 | 0/? | Not started | - |
+| 21. CI/CD and GitHub Pages | v1.4 | 0/1 | Not started | - |
 | 22. User-Facing Content | v1.4 | 0/? | Not started | - |
 | 23. Conceptual and Contributor Content | v1.4 | 0/? | Not started | - |
 | 24. Visual Enhancements | v1.4 | 0/? | Not started | - |
