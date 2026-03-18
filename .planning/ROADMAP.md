@@ -57,7 +57,7 @@ See .planning/milestones/ for archived phase details.
 - [x] **Phase 20: Scaffold Starlight Site** - Initialize docs/ with Astro/Starlight, verify framework defaults, confirm npm tarball isolation (completed 2026-03-17)
 - [x] **Phase 21: CI/CD and GitHub Pages** - Deploy pipeline with GitHub Action, link checker, live placeholder site (completed 2026-03-18)
 - [x] **Phase 22: User-Facing Content** - Landing page, quickstart, user guide, CLI command reference (completed 2026-03-18)
-- [ ] **Phase 23: Conceptual and Contributor Content** - Architecture/concepts, spec overview, contributing guide
+- [x] **Phase 23: Conceptual and Contributor Content** - Architecture/concepts, spec overview, contributing guide (completed 2026-03-18)
 - [ ] **Phase 24: Visual Enhancements** - Mermaid diagrams on architecture pages, tabbed install variants
 
 ## Phase Details
@@ -143,5 +143,5 @@ Plans:
 | 20. Scaffold Starlight Site | 1/1 | Complete    | 2026-03-17 | - |
 | 21. CI/CD and GitHub Pages | 1/1 | Complete    | 2026-03-18 | - |
 | 22. User-Facing Content | 2/2 | Complete    | 2026-03-18 | - |
-| 23. Conceptual and Contributor Content | 1/2 | In Progress|  | - |
+| 23. Conceptual and Contributor Content | 2/2 | Complete   | 2026-03-18 | - |
 | 24. Visual Enhancements | v1.4 | 0/? | Not started | - |
