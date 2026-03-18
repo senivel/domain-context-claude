@@ -18,8 +18,8 @@ Requirements for Documentation milestone. Each maps to roadmap phases.
 
 - [x] **CONT-01**: Landing page with project overview, value proposition, and install command
 - [x] **CONT-02**: Quickstart guide — zero to working in under 5 minutes
-- [ ] **CONT-03**: User guide — full workflow walkthrough of all features
-- [ ] **CONT-04**: CLI command reference — all 6 dc:* commands with usage, descriptions, and examples
+- [x] **CONT-03**: User guide — full workflow walkthrough of all features
+- [x] **CONT-04**: CLI command reference — all 6 dc:* commands with usage, descriptions, and examples
 - [ ] **CONT-05**: Architecture/concepts page — bridge pattern, hook lifecycle, .context/ structure
 - [ ] **CONT-06**: Domain Context spec overview — what the spec is and how this tool implements it
 - [ ] **CONT-07**: Contributing guide — setup, conventions, PR process
@@ -70,8 +70,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INFRA-04 | Phase 20 | Complete |
 | CONT-01 | Phase 22 | Complete |
 | CONT-02 | Phase 22 | Complete |
-| CONT-03 | Phase 22 | Pending |
-| CONT-04 | Phase 22 | Pending |
+| CONT-03 | Phase 22 | Complete |
+| CONT-04 | Phase 22 | Complete |
 | CONT-05 | Phase 23 | Pending |
 | CONT-06 | Phase 23 | Pending |
 | CONT-07 | Phase 23 | Pending |
