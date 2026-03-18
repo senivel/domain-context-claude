@@ -112,10 +112,11 @@ Plans:
   1. The architecture/concepts page explains the bridge pattern, hook lifecycle, and `.context/` directory structure
   2. The spec overview page explains what the Domain Context specification is and how this tool implements it
   3. The contributing guide covers local development setup, code conventions, and PR process
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 23-01: TBD
+- [ ] 23-01-PLAN.md — Architecture/concepts page and spec overview page
+- [ ] 23-02-PLAN.md — Contributing guide
 
 ### Phase 24: Visual Enhancements
 **Goal**: Architecture pages include diagrams and install instructions use tabbed variants for clarity
@@ -142,5 +143,5 @@ Plans:
 | 20. Scaffold Starlight Site | 1/1 | Complete    | 2026-03-17 | - |
 | 21. CI/CD and GitHub Pages | 1/1 | Complete    | 2026-03-18 | - |
 | 22. User-Facing Content | 2/2 | Complete    | 2026-03-18 | - |
-| 23. Conceptual and Contributor Content | v1.4 | 0/? | Not started | - |
+| 23. Conceptual and Contributor Content | v1.4 | 0/2 | Not started | - |
 | 24. Visual Enhancements | v1.4 | 0/? | Not started | - |
