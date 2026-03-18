@@ -1,5 +1,14 @@
 # Milestones
 
+## v1.4 Documentation (Shipped: 2026-03-18)
+
+**Phases completed:** 5 phases, 7 plans, 0 tasks
+
+**Key accomplishments:**
+- (none recorded)
+
+---
+
 ## v1.3 Installation & Distribution (Shipped: 2026-03-17)
 
 **Phases:** 3 | **Plans:** 4 | **Requirements:** 19/19
