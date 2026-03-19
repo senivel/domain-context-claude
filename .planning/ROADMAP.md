@@ -68,7 +68,7 @@ See .planning/milestones/ for archived phase details.
 
 - [x] **Phase 25: Release Please Configuration** - Config files that tell release-please how to version this package (completed 2026-03-19)
 - [x] **Phase 26: Release Workflow** - GitHub Action that automates release PR creation and GitHub Releases (completed 2026-03-19)
-- [ ] **Phase 27: Conventional Commit Docs** - Contributing documentation explaining the commit format release-please requires
+- [x] **Phase 27: Conventional Commit Docs** - Contributing documentation explaining the commit format release-please requires (completed 2026-03-19)
 
 ## Phase Details
 
@@ -121,4 +121,4 @@ Plans:
 | 20-24 | v1.4 | 7/7 | Complete | 2026-03-18 |
 | 25 | 1/1 | Complete    | 2026-03-19 | - |
 | 26 | v1.5 | Complete    | 2026-03-19 | 2026-03-19 |
-| 27 | v1.5 | 0/1 | Not started | - |
+| 27 | 1/1 | Complete   | 2026-03-19 | - |

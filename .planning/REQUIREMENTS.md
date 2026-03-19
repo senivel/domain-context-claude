@@ -20,7 +20,7 @@ Requirements for automated versioning and releasing via release-please.
 
 ### Documentation
 
-- [ ] **DOCS-01**: Contributing docs explain conventional commit message format required by release-please
+- [x] **DOCS-01**: Contributing docs explain conventional commit message format required by release-please
 
 ## Future Requirements
 
@@ -49,7 +49,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CICD-01 | Phase 26 | Complete |
 | CICD-02 | Phase 26 | Complete |
 | CICD-03 | Phase 26 | Complete |
-| DOCS-01 | Phase 27 | Pending |
+| DOCS-01 | Phase 27 | Complete |
 
 **Coverage:**
 - v1.5 requirements: 6 total

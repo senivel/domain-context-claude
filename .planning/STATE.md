@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Release Please
 status: completed
-last_updated: "2026-03-19T01:38:13.126Z"
-last_activity: 2026-03-19 — Completed 26-01-PLAN.md (release-please workflow)
+last_updated: "2026-03-19T01:47:03.006Z"
+last_activity: 2026-03-19 — Completed 27-01-PLAN.md (conventional commit docs)
 progress:
   total_phases: 3
-  completed_phases: 2
-  total_plans: 2
-  completed_plans: 2
+  completed_phases: 3
+  total_plans: 3
+  completed_plans: 3
   percent: 100
 ---
 
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-03-18)
 
 ## Position
 
-Phase: 26 - Release Workflow (complete)
+Phase: 27 - Conventional Commit Docs (complete)
 Plan: 01 of 01 (complete)
-Status: Phase 26 complete
-Last activity: 2026-03-19 — Completed 26-01-PLAN.md (release-please workflow)
+Status: Phase 27 complete
+Last activity: 2026-03-19 — Completed 27-01-PLAN.md (conventional commit docs)
 
 Progress: [██████████] 100%
 
@@ -35,6 +35,7 @@ Progress: [██████████] 100%
 
 - 4 visible changelog sections (feat/fix/perf/docs), 6 hidden (chore/ci/test/refactor/style/build)
 - No checkout step needed -- release-please-action handles its own checkout
+- Consolidated commit type table with visibility and version bump columns for quick reference
 
 ## Accumulated Context
 
