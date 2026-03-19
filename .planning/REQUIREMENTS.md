@@ -14,9 +14,9 @@ Requirements for automated versioning and releasing via release-please.
 
 ### CI/CD
 
-- [ ] **CICD-01**: GitHub Action workflow triggers release-please on push to main
-- [ ] **CICD-02**: Workflow creates release PRs with auto-generated changelogs
-- [ ] **CICD-03**: Merging a release PR creates a GitHub Release with changelog
+- [x] **CICD-01**: GitHub Action workflow triggers release-please on push to main
+- [x] **CICD-02**: Workflow creates release PRs with auto-generated changelogs
+- [x] **CICD-03**: Merging a release PR creates a GitHub Release with changelog
 
 ### Documentation
 
@@ -46,9 +46,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 |-------------|-------|--------|
 | RLSE-01 | Phase 25 | Complete |
 | RLSE-02 | Phase 25 | Complete |
-| CICD-01 | Phase 26 | Pending |
-| CICD-02 | Phase 26 | Pending |
-| CICD-03 | Phase 26 | Pending |
+| CICD-01 | Phase 26 | Complete |
+| CICD-02 | Phase 26 | Complete |
+| CICD-03 | Phase 26 | Complete |
 | DOCS-01 | Phase 27 | Pending |
 
 **Coverage:**
