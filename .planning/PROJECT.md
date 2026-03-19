@@ -41,6 +41,10 @@ Developers can codify and maintain domain knowledge alongside code so that AI as
 - ✓ Architecture/concepts page, spec overview, contributing guide — v1.4
 - ✓ Mermaid diagrams on architecture page, tabbed install blocks — v1.4
 
+- ✓ release-please configuration for Node.js package with changelog sections — v1.5
+- ✓ GitHub Actions workflow for automated release PR creation on push to main — v1.5
+- ✓ CONTRIBUTING.md documenting conventional commit format for contributors — v1.5
+
 ### Active
 
 (None — planning next milestone)
@@ -54,16 +58,18 @@ Developers can codify and maintain domain knowledge alongside code so that AI as
 
 - MCP server — deferred post-MVP per ADR-003
 - Auto-generate domain context from code — domain context captures WHY, not WHAT
+- npm publish automation — deferred; release-please handles versioning, publish step is separate
 
 ## Current State
 
-v1.4 shipped. All 5 milestones complete. Project is feature-complete with documentation.
+v1.5 shipped. All 6 milestones complete. Project has automated versioning and releases.
 
 - v1.0: 5 skills, 8 templates, 1 validation script
 - v1.1: 2 hooks, 1 rule, 1 agent
 - v1.2: dc:extract skill, GSD bridge template, dc:init GSD detection
 - v1.3: npm installer (global/local/uninstall), 52-test suite, production README
 - v1.4: Starlight docs site (7 pages), GitHub Pages CI/CD, Mermaid diagrams, tabbed installs
+- v1.5: release-please config, GitHub Actions release workflow, CONTRIBUTING.md
 
 ## Context
 
@@ -113,6 +119,8 @@ v1.4 shipped. All 5 milestones complete. Project is feature-complete with docume
 | Three-group sidebar (Start Here, Guides, Reference) | Clear information architecture; autogenerate from directories | ✓ Good |
 | Lychee for CI link checking | Fast, supports --base for relative URLs, runs on GitHub Actions | ✓ Good |
 | No template: splash on landing | Splash template hides sidebar; standard doc layout with hero: frontmatter gives both sidebar and hero | ✓ Good |
+| release-please for versioning | Industry standard, handles changelog generation, version bumps, and GitHub Releases natively | ✓ Good |
+| CONTRIBUTING.md for commit format | Standard location; aligns with GitHub's auto-discovery of contributing guidelines | ✓ Good |
 
 ---
-*Last updated: 2026-03-18 after v1.4 milestone completed*
+*Last updated: 2026-03-19 after v1.5 milestone*

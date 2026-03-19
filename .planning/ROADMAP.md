@@ -7,6 +7,7 @@
 - ✅ **v1.2 GSD Integration** — Phases 14-16 (shipped 2026-03-17)
 - ✅ **v1.3 Installation & Distribution** — Phases 17-19 (shipped 2026-03-17)
 - ✅ **v1.4 Documentation** — Phases 20-24 (shipped 2026-03-18)
+- ✅ **v1.5 Release Please** — Phases 25-27 (shipped 2026-03-19)
 
 ## Phases
 
@@ -63,6 +64,17 @@ See .planning/milestones/ for archived phase details.
 
 </details>
 
+<details>
+<summary>✅ v1.5 Release Please (Phases 25-27) — SHIPPED 2026-03-19</summary>
+
+- [x] Phase 25: Release Please Configuration (1/1 plans) — completed 2026-03-19
+- [x] Phase 26: Release Workflow (1/1 plans) — completed 2026-03-19
+- [x] Phase 27: Conventional Commit Docs (1/1 plans) — completed 2026-03-19
+
+See .planning/milestones/ for archived phase details.
+
+</details>
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -72,3 +84,4 @@ See .planning/milestones/ for archived phase details.
 | 14-16 | v1.2 | 4/4 | Complete | 2026-03-17 |
 | 17-19 | v1.3 | 4/4 | Complete | 2026-03-17 |
 | 20-24 | v1.4 | 7/7 | Complete | 2026-03-18 |
+| 25-27 | v1.5 | 3/3 | Complete | 2026-03-19 |
