@@ -80,7 +80,9 @@ See .planning/milestones/ for archived phase details.
   1. release-please-config.json exists at repo root with release-type "node", package name "domain-context-cc", and changelog sections configured
   2. .release-please-manifest.json exists at repo root tracking version 1.3.0 as the baseline
   3. Running `release-please` locally (dry-run or CI) can parse both config files without errors
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 25-01-PLAN.md — Create release-please config and version manifest
 
 ### Phase 26: Release Workflow
 **Goal**: Pushing conventional commits to main automatically creates release PRs and GitHub Releases
@@ -111,6 +113,6 @@ See .planning/milestones/ for archived phase details.
 | 14-16 | v1.2 | 4/4 | Complete | 2026-03-17 |
 | 17-19 | v1.3 | 4/4 | Complete | 2026-03-17 |
 | 20-24 | v1.4 | 7/7 | Complete | 2026-03-18 |
-| 25 | v1.5 | 0/? | Not started | - |
+| 25 | v1.5 | 0/1 | Not started | - |
 | 26 | v1.5 | 0/? | Not started | - |
 | 27 | v1.5 | 0/? | Not started | - |
