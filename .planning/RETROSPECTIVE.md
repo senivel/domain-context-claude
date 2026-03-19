@@ -205,6 +205,45 @@
 
 ---
 
+## Milestone: v1.5 — Release Please
+
+**Shipped:** 2026-03-19
+**Phases:** 3 | **Plans:** 3
+
+### What Was Built
+- release-please-config.json with Node.js release type, 10 changelog sections (4 visible, 6 hidden)
+- .release-please-manifest.json tracking version 1.3.0 as baseline
+- GitHub Actions workflow (.github/workflows/release-please.yml) triggering release-please-action@v4 on push to main
+- CONTRIBUTING.md documenting conventional commit format, version bump rules, and examples
+
+### What Worked
+- All 3 phases correctly identified as infrastructure/docs — smart discuss skipped interactive questioning entirely
+- Single-plan phases kept execution tight: 1 plan per phase, 1 task per plan
+- Cross-phase wiring verified cleanly: config → workflow → docs all aligned on 10 commit types
+- 3-source requirements cross-reference (VERIFICATION + SUMMARY + REQUIREMENTS) confirmed 6/6 satisfied
+
+### What Was Inefficient
+- Phase 26 and 27 VERIFICATION.md files were temporarily "invisible" to the Read tool due to path resolution — required ls + absolute path workaround
+- VALIDATION.md nyquist_compliant frontmatter still not created — 6th consecutive milestone with this gap (research disabled)
+- Planning artifact (25-CONTEXT.md) claimed hidden-only commits create no PR, while shipped docs (CONTRIBUTING.md) correctly say PATCH bump — minor planning-vs-execution inconsistency
+
+### Patterns Established
+- Infrastructure phase detection: skip discuss when goal is "setup/configuration" + all success criteria are technical
+- Config-docs alignment verification: grep both files for the same set of keys/types to confirm consistency
+- Minimal 3-phase milestone for config → workflow → docs pipeline
+
+### Key Lessons
+1. Pure infrastructure milestones are the fastest to execute — no grey areas, no user-facing decisions, no interactive discuss
+2. Config → workflow → docs is a natural 3-phase pattern for CI/CD features — each phase's output is the next phase's input or reference
+3. Runtime verification (live GitHub Actions) cannot be automated from local filesystem — deferred human verification is acceptable for CI/CD phases
+
+### Cost Observations
+- Model mix: ~45% opus (orchestration, execution), ~40% sonnet (verification, plan checking, integration), ~15% sonnet (research skipped)
+- Single-session execution for entire milestone (4th consecutive)
+- Notable: Fastest milestone yet — 3 phases, 3 plans, ~20 minutes total execution
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -216,6 +255,7 @@
 | v1.2 | 3 | 4 | Lean scoping; smart discuss with prior-decision seeding |
 | v1.3 | 3 | 4 | TDD for installer; symmetric install/uninstall via shared manifest |
 | v1.4 | 5 | 7 | Content authoring from existing sources; parallel wave execution; custom component fallbacks |
+| v1.5 | 3 | 3 | Pure infrastructure; smart discuss skip; config→workflow→docs pipeline |
 
 ### Top Lessons (Verified Across Milestones)
 
@@ -226,3 +266,4 @@
 5. Nyquist VALIDATION.md sign-off should be automated — manual frontmatter updates are consistently missed (5 milestones running)
 6. Stub/incremental delivery enables early verification — ship the shape before the implementation (v1.3 Phase 17 validated this)
 7. Research should verify peer dependency compatibility with actual project versions — incompatibilities at execution time cause deviations (v1.4 astro-mermaid)
+8. Pure infrastructure milestones (config + workflow + docs) execute fastest — no grey areas, no interactive discuss, minimal verification overhead (v1.5 confirmed)
