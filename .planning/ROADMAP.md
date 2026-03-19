@@ -93,7 +93,9 @@ Plans:
   2. When conventional commits exist since last release, release-please opens a PR with version bump and auto-generated changelog
   3. Merging a release PR creates a GitHub Release with the changelog as the release body
   4. The workflow uses the google-github-actions/release-please-action with appropriate configuration
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 26-01-PLAN.md — Create release-please GitHub Action workflow
 
 ### Phase 27: Conventional Commit Docs
 **Goal**: Contributors know what commit format to use so release-please can generate correct changelogs
@@ -103,6 +105,9 @@ Plans:
   1. Contributing documentation explains conventional commit format (feat:, fix:, chore:, breaking changes)
   2. Documentation explains how commit messages map to version bumps (feat = minor, fix = patch, BREAKING CHANGE = major)
 **Plans**: TBD
+
+
+
 
 ## Progress
 
