@@ -9,6 +9,7 @@ Claude Code provides four extension points for adding capabilities. This project
 ## Key Attributes
 
 ### Skills (commands/)
+
 - Installed to `.claude/commands/{prefix}/`
 - Invoked as `/{prefix}:{name}` (e.g., `/dc:init`)
 - Markdown files with YAML frontmatter (`name`, `description`, `allowed-tools`, `argument-hint`)
@@ -16,6 +17,7 @@ Claude Code provides four extension points for adding capabilities. This project
 - Can reference other files via `@path` syntax in `<execution_context>`
 
 ### Hooks (hooks/)
+
 - Registered in `.claude/settings.json` under `hooks.{event}`
 - Events: `SessionStart`, `PreToolUse`, `PostToolUse`, `Notification`, `Stop`
 - Node.js scripts that read JSON from stdin and write JSON to stdout
@@ -23,12 +25,14 @@ Claude Code provides four extension points for adding capabilities. This project
 - MUST be timeout-safe and exit 0 on any error (graceful degradation)
 
 ### Agents (agents/)
+
 - Installed to `.claude/agents/`
 - Markdown files with `allowed-tools` frontmatter
 - Spawned as subagents by skills or the user
 - Can be read-only (tools: Read, Glob, Grep) or have write access
 
 ### Rules (rules/)
+
 - Installed to `.claude/rules/`
 - Markdown files with `globs` frontmatter for path matching
 - Automatically loaded when the agent reads/edits files matching the glob pattern

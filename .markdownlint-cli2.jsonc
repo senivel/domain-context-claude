@@ -1,0 +1,24 @@
+// .markdownlint-cli2.jsonc
+{
+  "config": {
+    "default": true,
+    // Line length - disabled for prose documentation
+    "MD013": false,
+    // Inline HTML - project uses custom XML tags in markdown
+    "MD033": false,
+    // First line heading - README uses badges, CLAUDE.md uses @import
+    "MD041": false,
+    // Table column style - project uses compact pipe style consistently
+    "MD060": false
+  },
+  "ignores": [
+    "node_modules/**",
+    "templates/**",
+    "commands/**",
+    "agents/**",
+    "rules/**",
+    "docs/**",
+    ".planning/**",
+    ".claude/**"
+  ]
+}

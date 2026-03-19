@@ -4,7 +4,7 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/) f
 
 ## Commit Message Format
 
-```
+```text
 type(scope): description
 
 optional body
@@ -47,19 +47,19 @@ The highest bump wins. If a release includes both `feat:` and `fix:` commits, th
 
 A simple feature:
 
-```
+```text
 feat: add dc:validate skill
 ```
 
 A fix with scope:
 
-```
+```text
 fix(hooks): handle missing stdin gracefully
 ```
 
 A breaking change:
 
-```
+```text
 feat!: rename dc:init to dc:setup
 
 BREAKING CHANGE: The dc:init command has been renamed to dc:setup.
@@ -68,7 +68,7 @@ Update any scripts or documentation that reference dc:init.
 
 A hidden type (won't appear in changelog):
 
-```
+```text
 chore: update dev dependencies
 ```
 
