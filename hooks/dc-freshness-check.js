@@ -19,7 +19,7 @@ const THRESHOLD_DAYS = 90;
 let input = '';
 const stdinTimeout = setTimeout(() => process.exit(0), 3000);
 process.stdin.setEncoding('utf8');
-process.stdin.on('data', chunk => input += chunk);
+process.stdin.on('data', (chunk) => (input += chunk));
 process.stdin.on('end', () => {
   clearTimeout(stdinTimeout);
   try {
@@ -56,7 +56,9 @@ process.stdin.on('end', () => {
         const month = parseInt(verifiedMatch[2], 10) - 1;
         const day = parseInt(verifiedMatch[3], 10);
         const verifiedDate = new Date(year, month, day);
-        const daysSince = Math.floor((now - verifiedDate) / (1000 * 60 * 60 * 24));
+        const daysSince = Math.floor(
+          (now - verifiedDate) / (1000 * 60 * 60 * 24),
+        );
 
         if (daysSince > THRESHOLD_DAYS) {
           const overdue = daysSince - THRESHOLD_DAYS;
@@ -72,15 +74,15 @@ process.stdin.on('end', () => {
 
     // Build warning message
     const header = `Domain Context: ${staleEntries.length} stale entries`;
-    const list = staleEntries.map(e => `  - ${e}`).join('\n');
+    const list = staleEntries.map((e) => `  - ${e}`).join('\n');
     const action = 'Run /dc:refresh to review and update verified dates.';
     const message = `${header}\n${list}\n${action}`;
 
     const output = {
       hookSpecificOutput: {
-        hookEventName: "SessionStart",
-        additionalContext: message
-      }
+        hookEventName: 'SessionStart',
+        additionalContext: message,
+      },
     };
 
     process.stdout.write(JSON.stringify(output));

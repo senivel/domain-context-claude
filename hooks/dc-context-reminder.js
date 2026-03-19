@@ -24,7 +24,7 @@ const EDIT_TOOLS = ['Edit', 'Write', 'MultiEdit'];
 let input = '';
 const stdinTimeout = setTimeout(() => process.exit(0), 3000);
 process.stdin.setEncoding('utf8');
-process.stdin.on('data', chunk => input += chunk);
+process.stdin.on('data', (chunk) => (input += chunk));
 process.stdin.on('end', () => {
   clearTimeout(stdinTimeout);
   try {
@@ -37,7 +37,12 @@ process.stdin.on('end', () => {
 
     // Extract file path from tool input
     let filePath = data.tool_input && data.tool_input.file_path;
-    if (!filePath && data.tool_input && Array.isArray(data.tool_input.edits) && data.tool_input.edits.length > 0) {
+    if (
+      !filePath &&
+      data.tool_input &&
+      Array.isArray(data.tool_input.edits) &&
+      data.tool_input.edits.length > 0
+    ) {
       filePath = data.tool_input.edits[0].file_path;
     }
     if (!filePath) {
@@ -63,8 +68,15 @@ process.stdin.on('end', () => {
 
     // Session-scoped debounce: one reminder per directory per session
     const sessionId = data.session_id || 'unknown';
-    const dirHash = crypto.createHash('md5').update(editedDir).digest('hex').slice(0, 8);
-    const debounceFile = path.join(os.tmpdir(), 'dc-reminder-' + sessionId + '-' + dirHash + '.json');
+    const dirHash = crypto
+      .createHash('md5')
+      .update(editedDir)
+      .digest('hex')
+      .slice(0, 8);
+    const debounceFile = path.join(
+      os.tmpdir(),
+      'dc-reminder-' + sessionId + '-' + dirHash + '.json',
+    );
 
     if (fs.existsSync(debounceFile)) {
       process.exit(0);
@@ -84,9 +96,9 @@ process.stdin.on('end', () => {
 
     const output = {
       hookSpecificOutput: {
-        hookEventName: "PostToolUse",
-        additionalContext: message
-      }
+        hookEventName: 'PostToolUse',
+        additionalContext: message,
+      },
     };
 
     process.stdout.write(JSON.stringify(output));
