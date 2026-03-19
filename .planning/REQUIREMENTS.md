@@ -9,8 +9,8 @@ Requirements for automated versioning and releasing via release-please.
 
 ### Release Config
 
-- [ ] **RLSE-01**: release-please-config.json defines Node.js release type with package name and version bump settings
-- [ ] **RLSE-02**: .release-please-manifest.json tracks current version starting at 1.3.0
+- [x] **RLSE-01**: release-please-config.json defines Node.js release type with package name and version bump settings
+- [x] **RLSE-02**: .release-please-manifest.json tracks current version starting at 1.3.0
 
 ### CI/CD
 
@@ -44,8 +44,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| RLSE-01 | Phase 25 | Pending |
-| RLSE-02 | Phase 25 | Pending |
+| RLSE-01 | Phase 25 | Complete |
+| RLSE-02 | Phase 25 | Complete |
 | CICD-01 | Phase 26 | Pending |
 | CICD-02 | Phase 26 | Pending |
 | CICD-03 | Phase 26 | Pending |
