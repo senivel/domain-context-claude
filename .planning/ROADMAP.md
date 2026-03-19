@@ -104,8 +104,9 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. Contributing documentation explains conventional commit format (feat:, fix:, chore:, breaking changes)
   2. Documentation explains how commit messages map to version bumps (feat = minor, fix = patch, BREAKING CHANGE = major)
-**Plans**: TBD
-
+**Plans**: 1 plan
+Plans:
+- [ ] 27-01-PLAN.md — Create CONTRIBUTING.md with conventional commit documentation
 
 
 
@@ -119,5 +120,5 @@ Plans:
 | 17-19 | v1.3 | 4/4 | Complete | 2026-03-17 |
 | 20-24 | v1.4 | 7/7 | Complete | 2026-03-18 |
 | 25 | 1/1 | Complete    | 2026-03-19 | - |
-| 26 | v1.5 | 1/1 | Complete | 2026-03-19 |
-| 27 | v1.5 | 0/? | Not started | - |
+| 26 | v1.5 | Complete    | 2026-03-19 | 2026-03-19 |
+| 27 | v1.5 | 0/1 | Not started | - |
