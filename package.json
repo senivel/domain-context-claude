@@ -9,7 +9,8 @@
     "format": "prettier --write \"**/*.js\"",
     "format:check": "prettier --check \"**/*.js\"",
     "lint:md": "markdownlint-cli2 \"**/*.md\"",
-    "lint:md:fix": "markdownlint-cli2 --fix \"**/*.md\""
+    "lint:md:fix": "markdownlint-cli2 --fix \"**/*.md\"",
+    "prepare": "husky || true"
   },
   "bin": {
     "domain-context-cc": "./bin/install.js"
@@ -43,7 +44,13 @@
     "eslint": "^10.0.3",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^17.4.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
     "markdownlint-cli2": "^0.21.0",
     "prettier": "^3.8.1"
+  },
+  "lint-staged": {
+    "*.js": ["eslint --fix", "prettier --write"],
+    "*.md": "markdownlint-cli2 --fix"
   }
 }
