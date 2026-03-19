@@ -43,7 +43,15 @@ Developers can codify and maintain domain knowledge alongside code so that AI as
 
 ### Active
 
-(None — planning next milestone)
+#### Current Milestone: v1.5 Release Please
+
+**Goal:** Automate versioning and GitHub Releases via release-please and GitHub Actions
+
+**Target features:**
+- release-please configuration for Node.js package
+- GitHub Action workflow for automated release PR creation
+- GitHub Releases with auto-generated changelogs
+- .release-please-manifest.json version tracking
 
 ### Future
 
@@ -54,6 +62,7 @@ Developers can codify and maintain domain knowledge alongside code so that AI as
 
 - MCP server — deferred post-MVP per ADR-003
 - Auto-generate domain context from code — domain context captures WHY, not WHAT
+- npm publish automation — deferred to future milestone after release-please is established
 
 ## Current State
 
@@ -115,4 +124,4 @@ v1.4 shipped. All 5 milestones complete. Project is feature-complete with docume
 | No template: splash on landing | Splash template hides sidebar; standard doc layout with hero: frontmatter gives both sidebar and hero | ✓ Good |
 
 ---
-*Last updated: 2026-03-18 after v1.4 milestone completed*
+*Last updated: 2026-03-18 after v1.5 milestone started*
