@@ -414,7 +414,7 @@ describe('Integration: file copying', () => {
   });
 
   it('__dirname usage: source files resolved relative to bin/../ not cwd', () => {
-    const src = require('../bin/install.js');
+    const _src = require('../bin/install.js');
     // INSTALL_MAP exists and PKG_ROOT should be resolvable
     assert.ok(
       INSTALL_MAP.length >= 6,

@@ -86,7 +86,7 @@ process.stdin.on('end', () => {
     };
 
     process.stdout.write(JSON.stringify(output));
-  } catch (e) {
+  } catch (_e) {
     // Silent fail -- never block session start
     process.exit(0);
   }

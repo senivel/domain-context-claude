@@ -102,7 +102,7 @@ process.stdin.on('end', () => {
     };
 
     process.stdout.write(JSON.stringify(output));
-  } catch (e) {
+  } catch (_e) {
     // Silent fail -- never block tool use
     process.exit(0);
   }

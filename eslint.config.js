@@ -14,6 +14,7 @@ module.exports = defineConfig([
       'rules/',
       'docs/',
       '.planning/',
+      '.claude/',
     ],
   },
   {
@@ -25,6 +26,16 @@ module.exports = defineConfig([
       globals: {
         ...globals.node,
       },
+    },
+    rules: {
+      'no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
     },
   },
   eslintConfigPrettier,

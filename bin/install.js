@@ -299,7 +299,7 @@ function updateSettings(settingsPath, dcEntries) {
     const raw = fs.readFileSync(settingsPath, 'utf8');
     try {
       settings = JSON.parse(raw);
-    } catch (err) {
+    } catch (_err) {
       // Back up corrupt file and warn
       const bakPath = settingsPath + '.bak';
       fs.copyFileSync(settingsPath, bakPath);
