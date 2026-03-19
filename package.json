@@ -3,6 +3,12 @@
   "version": "1.3.0",
   "description": "Domain Context tooling for Claude Code — skills, hooks, agents, and installer",
   "type": "commonjs",
+  "scripts": {
+    "lint": "eslint .",
+    "lint:fix": "eslint --fix .",
+    "format": "prettier --write \"**/*.js\"",
+    "format:check": "prettier --check \"**/*.js\""
+  },
   "bin": {
     "domain-context-cc": "./bin/install.js"
   },
@@ -29,5 +35,12 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/senivel/domain-context-claude"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.0.3",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.4.0",
+    "prettier": "^3.8.1"
   }
 }

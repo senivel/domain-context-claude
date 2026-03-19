@@ -1,0 +1,7 @@
+node_modules/
+templates/
+commands/
+agents/
+rules/
+docs/
+.planning/
