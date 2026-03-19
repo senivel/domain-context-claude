@@ -44,18 +44,18 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| RLSE-01 | — | Pending |
-| RLSE-02 | — | Pending |
-| CICD-01 | — | Pending |
-| CICD-02 | — | Pending |
-| CICD-03 | — | Pending |
-| DOCS-01 | — | Pending |
+| RLSE-01 | Phase 25 | Pending |
+| RLSE-02 | Phase 25 | Pending |
+| CICD-01 | Phase 26 | Pending |
+| CICD-02 | Phase 26 | Pending |
+| CICD-03 | Phase 26 | Pending |
+| DOCS-01 | Phase 27 | Pending |
 
 **Coverage:**
 - v1.5 requirements: 6 total
-- Mapped to phases: 0
-- Unmapped: 6 ⚠️
+- Mapped to phases: 6
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-18*
-*Last updated: 2026-03-18 after initial definition*
+*Last updated: 2026-03-18 after roadmap creation*
