@@ -162,6 +162,49 @@
 
 ---
 
+## Milestone: v1.4 — Documentation
+
+**Shipped:** 2026-03-18
+**Phases:** 5 | **Plans:** 7
+
+### What Was Built
+- Starlight (Astro 6) documentation site with 7 pages: landing, quickstart, user guide, CLI reference, architecture, spec overview, contributing guide
+- GitHub Actions CI/CD pipeline: build → lychee link check → GitHub Pages deploy
+- Custom Mermaid.astro component for architecture diagrams with dark/light theme support
+- Tabbed install blocks (Global/Local/Uninstall) using Starlight's built-in Tabs component
+- Custom CSS layout fixing right sidebar proportions
+
+### What Worked
+- Autonomous execution from Phase 22 onward — discuss → plan → execute → verify for 3 phases without intervention
+- Parallel agent execution in Phase 23 (two plans in same wave) cut wall-clock time nearly in half
+- Content sourcing from existing skill files and README — every page had authoritative material to draw from
+- Verifier caught a real bug (broken cross-link in contributing.mdx) — fixed inline without a gap closure cycle
+
+### What Was Inefficient
+- `astro-mermaid` incompatibility with Astro 6 wasn't caught during research — executor had to pivot to custom component at execution time
+- `template: splash` on landing page hid the sidebar — required post-phase debugging to discover root cause
+- Playwright screenshots couldn't render Starlight's custom elements (tabs showed as raw HTML) — limited automated visual verification
+- VALIDATION.md nyquist_compliant frontmatter still not flipped — 5th consecutive milestone with this gap
+
+### Patterns Established
+- Custom Astro component for client-side rendering when plugins are incompatible (MutationObserver for theme detection)
+- `syncKey` prop on Tabs for cross-page tab synchronization
+- `sidebar: { order: N }` frontmatter for explicit page ordering within autogenerate groups
+- CSS custom property overrides (`--sl-content-width`, `--sl-sidebar-width`) scoped to `.main-pane` for layout control
+
+### Key Lessons
+1. Research agents should verify package peer dependency compatibility with the actual project version — astro-mermaid's Astro 4/5 peer dep wasn't flagged
+2. Starlight's `template: splash` removes the sidebar entirely — use `hero:` frontmatter without splash template to get both sidebar and hero
+3. Content phases benefit from autonomous mode — well-specified content (tone, structure, sources) doesn't need human checkpoints
+4. Post-phase fixes (layout CSS, splash removal) should be tracked as mini-phases or noted in SUMMARYs for audit trail
+
+### Cost Observations
+- Model mix: ~45% opus (orchestration, execution), ~35% sonnet (verification, plan checking, integration), ~20% sonnet (research)
+- Two sessions: first completed all 5 phases + partial audit; second completed audit + milestone lifecycle
+- Notable: 7 plans in 5 phases — average 1.4 plans per phase, leanest ratio yet
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -172,6 +215,7 @@
 | v1.1 | 4 | 4 | Autonomous execution mode; pattern reuse across phases |
 | v1.2 | 3 | 4 | Lean scoping; smart discuss with prior-decision seeding |
 | v1.3 | 3 | 4 | TDD for installer; symmetric install/uninstall via shared manifest |
+| v1.4 | 5 | 7 | Content authoring from existing sources; parallel wave execution; custom component fallbacks |
 
 ### Top Lessons (Verified Across Milestones)
 
@@ -179,5 +223,6 @@
 2. Integration verification at milestone boundary catches cross-phase wiring issues that per-phase verification misses
 3. Pattern reuse between phases accelerates both planning and execution — establish patterns early in a milestone
 4. Human verification of Claude Code skills remains the primary gap — a testable environment is needed (3 milestones running)
-5. Nyquist VALIDATION.md sign-off should be automated — manual frontmatter updates are consistently missed (4 milestones running)
+5. Nyquist VALIDATION.md sign-off should be automated — manual frontmatter updates are consistently missed (5 milestones running)
 6. Stub/incremental delivery enables early verification — ship the shape before the implementation (v1.3 Phase 17 validated this)
+7. Research should verify peer dependency compatibility with actual project versions — incompatibilities at execution time cause deviations (v1.4 astro-mermaid)

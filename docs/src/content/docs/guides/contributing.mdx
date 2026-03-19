@@ -1,0 +1,96 @@
+---
+title: Contributing
+description: How to set up a local development environment, follow code conventions, and submit pull requests.
+sidebar:
+  order: 4
+---
+
+Contributions are welcome -- whether it's a bug fix, a new feature, or an improvement to the documentation. This guide covers everything you need to get started.
+
+## Local development setup
+
+1. **Clone the repository**
+
+   ```bash
+   git clone https://github.com/senivel/domain-context-claude.git
+   cd domain-context-claude
+   ```
+
+2. **Install skills and hooks locally**
+
+   ```bash
+   node bin/install.js --local
+   ```
+
+   This copies skills, hooks, agents, rules, and templates into the project's `.claude/` directory so you can test changes immediately.
+
+3. **Run the context validator**
+
+   ```bash
+   bash tools/validate-context.sh .
+   ```
+
+   Checks that `.context/MANIFEST.md` is in sync with the files on disk -- catches broken links, orphans, and stale entries.
+
+4. **Test the full npm package flow**
+
+   ```bash
+   npm pack && npx ./domain-context-cc-*.tgz
+   ```
+
+   Builds a tarball and installs from it, simulating what users experience with `npx domain-context-cc`.
+
+## Project structure
+
+```
+commands/dc/    Six slash commands (/dc:init, /dc:explore, etc.)
+hooks/          Session-start and edit-time lifecycle hooks
+agents/         Domain validator subagent
+rules/          Path-specific editing guidance for .context/ files
+templates/      Scaffolding files copied by /dc:init
+tools/          Standalone validation script
+bin/            npm installer entry point
+docs/           Documentation site (Astro/Starlight)
+```
+
+This project produces **configuration files only** -- markdown skills, Node.js hooks, and shell scripts. There is no runtime library code.
+
+## Code conventions
+
+### Skills
+
+Markdown files with YAML frontmatter (`name`, `description`, `allowed-tools`) followed by `<objective>`, `<execution_context>`, and `<process>` sections. All skill names use the `dc:` prefix.
+
+### Hooks
+
+Node.js scripts that read JSON from stdin and write JSON to stdout. Hooks must be timeout-safe and must always exit 0 on error -- they should never block the user's workflow.
+
+### Templates
+
+Plain markdown with `{placeholder}` tokens. Templates are copied to the target project by `/dc:init` and filled in during scaffolding.
+
+### Rules
+
+Markdown files in `.claude/rules/` with a `globs` frontmatter field for path matching. Rules provide editing guidance when Claude Code modifies files inside `.context/`.
+
+### Naming and dependencies
+
+- **kebab-case** for all file names
+- **`dc:` prefix** for all skill names
+- **No runtime dependencies** -- Node.js built-ins only
+
+## Pull request process
+
+- Fork the repository and branch from `main`
+- Use imperative mood in commit messages (e.g., "add freshness check hook", not "added" or "adding")
+- Context changes (`.context/` files) go through the same review process as code
+- Open a PR with a clear description of what changed and why
+
+:::tip
+Run `bash tools/validate-context.sh .` before submitting to make sure your changes haven't broken any domain context references.
+:::
+
+## Further reading
+
+- [Architecture and Concepts](/domain-context-claude/guides/architecture/) -- understanding the system design and integration model
+- [CLI Reference](/domain-context-claude/reference/cli/) -- full details on every command

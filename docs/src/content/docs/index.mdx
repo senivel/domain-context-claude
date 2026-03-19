@@ -1,0 +1,67 @@
+---
+title: Domain Context for Claude Code
+description: Codify and maintain domain knowledge alongside code so AI assistants always have accurate business context.
+hero:
+  tagline: Make Claude Code natively aware of your project's domain knowledge.
+  actions:
+    - text: Get Started
+      link: /domain-context-claude/getting-started/quickstart/
+      icon: right-arrow
+    - text: View on GitHub
+      link: https://github.com/senivel/domain-context-claude
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
+
+## Install
+
+<Tabs syncKey="install">
+  <TabItem label="Global (recommended)">
+    ```bash
+    npx domain-context-cc
+    ```
+  </TabItem>
+  <TabItem label="Local">
+    ```bash
+    npx domain-context-cc --local
+    ```
+  </TabItem>
+</Tabs>
+
+## What you get
+
+<CardGrid>
+  <Card title="Initialize" icon="pencil">
+    Scaffold `.context/` directories, wire AGENTS.md and CLAUDE.md.
+  </Card>
+  <Card title="Explore" icon="open-book">
+    Browse domain knowledge with freshness tracking and keyword search.
+  </Card>
+  <Card title="Validate" icon="approve-check-circle">
+    Detect broken links, orphan files, and stale entries.
+  </Card>
+  <Card title="Add" icon="document">
+    Create domain concepts, architecture decisions, and constraints.
+  </Card>
+  <Card title="Refresh" icon="setting">
+    Review stale entries and update them against current code.
+  </Card>
+  <Card title="Extract" icon="rocket">
+    Promote knowledge from GSD planning artifacts into permanent context.
+  </Card>
+</CardGrid>
+
+## What gets installed
+
+- **Skills** -- six slash commands for managing domain context (`/dc:init`, `/dc:explore`, `/dc:validate`, `/dc:add`, `/dc:refresh`, `/dc:extract`)
+- **Hooks** -- session-start freshness warnings, edit-time CONTEXT.md reminders
+- **Agent** -- domain validator for checking code against business rules
+- **Rules** -- formatting guidance when editing `.context/` files
+- **Templates** -- scaffolding files used by `/dc:init`
+
+## Links
+
+- [Domain Context Specification](https://github.com/senivel/domain-context) -- the spec this tool implements
+- [GSD (Get Shit Done)](https://github.com/cyanheads/get-shit-done-cc) -- AI-native project management that integrates with domain context

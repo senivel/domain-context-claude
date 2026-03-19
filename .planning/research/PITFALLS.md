@@ -1,208 +1,135 @@
-# Domain Pitfalls
+# Pitfalls Research
 
-**Domain:** npm packaging and Node.js installer for a Claude Code extension
+**Domain:** Adding a documentation site to an existing npm package (domain-context-cc v1.4)
 **Researched:** 2026-03-17
-**Confidence:** HIGH (based on direct analysis of this project's file layout, hook registration patterns, existing settings.json structure, Node.js built-in behavior, and npm packaging behavior)
-
-> **Note:** This file covers pitfalls specific to the v1.3 milestone: npm packaging, the `bin/install.js` installer, and settings.json hook merge. Prior milestone pitfalls (1-28) are archived but not repeated here.
-
----
+**Confidence:** HIGH
 
 ## Critical Pitfalls
 
-### Pitfall 29: `files` Array in package.json Missing Entire Directory Trees
+### Pitfall 1: npm Package Bloat from docs/ Directory
 
-**What goes wrong:** The installer copies files to `~/.claude/commands/dc/`, `~/.claude/hooks/`, `~/.claude/agents/`, `~/.claude/rules/`, and `~/.claude/domain-context/templates/` — but if `commands/`, `hooks/`, `agents/`, `rules/`, or `templates/` directories are not listed in the `files` array, `npm pack` silently omits them. The published package installs cleanly but the copied files are simply not present. The user sees no error during `npx domain-context-cc`; the install appears to succeed.
+**What goes wrong:**
+The documentation site source files (markdown, images, framework config, node_modules, build output) get published to npm, inflating the package size from kilobytes to megabytes. Users installing via `npx domain-context-cc` download documentation assets they never use.
 
-**Why it happens:** The `files` array uses globs relative to package root. Developers list individual files or top-level names but forget subdirectories. `"files": ["bin", "hooks"]` does NOT include `commands/dc/` because `commands` was omitted.
-
-**Consequences:** Silent partial install. Skills missing, hooks missing. User opens Claude Code, `/dc:init` doesn't exist. Debugging is non-obvious because the install script reports success.
+**Why it happens:**
+Developers add a `docs/` directory without checking whether the npm publish whitelist covers it. If using `.npmignore`, adding it silently replaces `.gitignore` rules entirely. If the `files` array in package.json is misconfigured, everything not in `.gitignore` ships.
 
 **How to avoid:**
-- List every directory explicitly: `"files": ["bin", "commands", "hooks", "agents", "rules", "templates", "tools"]`
-- After writing package.json, run `npm pack --dry-run` and manually verify every required file appears in the output list
-- The install script should verify source files exist before copying — if `commands/dc/init.md` is missing from the npm package, throw a clear error: "Package is missing expected file: commands/dc/init.md — re-install the package"
+This project already uses a `files` whitelist in package.json (`commands/`, `agents/`, `hooks/`, `rules/`, `templates/`, `tools/`, `bin/`). As long as `docs/` is NOT added to this array, the docs directory is automatically excluded from the npm tarball. Verify with `npm pack --dry-run` after adding the docs directory. Do NOT add a `.npmignore` file -- the `files` whitelist is the safer approach and is already in place.
 
-**Warning signs:** `npm pack --dry-run` output is shorter than expected. Install completes but skill files are absent from `~/.claude/commands/dc/`.
+**Warning signs:**
+- `npm pack --dry-run` shows `docs/` files in the tarball listing
+- Package size jumps from ~50KB to multiple MB
+- `npm publish` warnings about package size
 
-**Phase to address:** Package Configuration phase (package.json authoring).
+**Phase to address:**
+Phase 1 (project scaffolding) -- confirm `files` whitelist excludes docs before any content is written.
 
 ---
 
-### Pitfall 30: settings.json Clobbering Existing Hooks
+### Pitfall 2: Wrong baseUrl Causes Broken Site on GitHub Pages
 
-**What goes wrong:** The installer writes a new `settings.json` (or overwrites the existing one) instead of merging into it. The user has other hooks registered — for example, GSD hooks (`gsd-check-update.js`, `gsd-context-monitor.js`) or hooks from other extensions. After install, those hooks are gone. The user notices only when GSD stops working.
+**What goes wrong:**
+The documentation site works perfectly at `localhost:4321` during development but shows 404 errors, broken CSS, broken images, and broken internal links when deployed to GitHub Pages. The site renders as unstyled HTML or a blank page.
 
-**Why it happens:** `JSON.parse` + `JSON.stringify` + `fs.writeFileSync` is the path of least resistance. A first-pass installer writes the template settings.json directly.
-
-**Consequences:** Silent data loss. Existing hooks stop firing. If the user doesn't have the hooks backed up, they must manually reconstruct their settings.json from memory.
+**Why it happens:**
+GitHub Pages serves project sites at `https://{user}.github.io/{repo}/`, adding a path prefix. Most doc frameworks default to `base: "/"` which resolves assets from the root domain, not the repo subdirectory. Every absolute link, CSS import, and image reference breaks.
 
 **How to avoid:**
-- Always read the existing settings.json first (if it exists)
-- Use deep array merge for hook arrays: append dc hook entries to existing `SessionStart` and `PostToolUse` arrays rather than replacing them
-- Before appending, check whether an identical hook command already exists in the array — if so, skip (idempotency)
-- Never overwrite top-level keys (`statusLine`, `permissions`, `env`, etc.) unless they are absent
-- Write a backup of the original settings.json to `settings.json.bak` before any modification
+Set the base URL in the framework config to match the repository name on day one. For Starlight/Astro: `base: '/domain-context-claude'` in `astro.config.mjs`. Test the production build locally with the base path before the first deployment. Run `npm run build && npx serve dist` (or equivalent preview command) to catch path issues before pushing.
 
-**Warning signs:** User reports "my other hooks stopped working after install." Running `--install` twice produces duplicate hook entries.
+**Warning signs:**
+- Site loads but CSS/JS is missing (view source shows paths starting with `/assets/` instead of `/domain-context-claude/assets/`)
+- Internal navigation links produce 404 errors
+- Images show broken icons
 
-**Phase to address:** Installer Logic phase (settings.json merge).
+**Phase to address:**
+Phase 1 (project scaffolding) -- set base URL in initial framework configuration. Never defer this.
 
 ---
 
-### Pitfall 31: Hook Commands Use Relative Paths That Break Outside the Source Directory
+### Pitfall 3: GitHub Actions Workflow Deploys Wrong Artifact or Directory
 
-**What goes wrong:** The existing development settings.json uses relative paths: `"command": "node hooks/dc-freshness-check.js"`. This works when Claude Code's working directory is the project root. When the same command is injected by the installer into the global `~/.claude/settings.json`, the relative path breaks — `hooks/dc-freshness-check.js` no longer resolves to anything because the user's project root is not the install location.
+**What goes wrong:**
+The GitHub Actions workflow runs successfully (green check) but the deployed site is empty, shows the README, or shows wrong content. Alternatively, the workflow fails with cryptic permission errors.
 
-**Why it happens:** The hooks were developed and tested from the project root. The path worked in development, so it gets copied as-is into the installer output.
-
-**Consequences:** The installed hooks silently fail on every invocation (exit non-zero or error to stderr). Because the hooks use `exit 0` on error, the user may never notice the hooks are broken — they simply never fire. The freshness check never warns. The context reminder never fires.
+**Why it happens:**
+Three common causes: (1) The workflow uploads the wrong directory (e.g., `docs/` instead of `docs/dist/`). (2) GitHub Pages is configured to "Deploy from a branch" instead of "GitHub Actions" as the source. (3) The workflow is missing the `pages: write` and `id-token: write` permissions, or is missing the `actions/configure-pages` step.
 
 **How to avoid:**
-- The installer must inject absolute paths into settings.json, not relative paths
-- For global install (`--global`): `"command": "node /Users/alice/.claude/hooks/dc-freshness-check.js"`
-- For local install (`--local`): `"command": "node .claude/hooks/dc-freshness-check.js"` (relative to project root, which is Claude Code's cwd)
-- Use `os.homedir()` or the resolved install destination to compute the absolute path at install time
-- Test by running the injected command string verbatim from a random directory — if it fails, the path is wrong
+Use the official GitHub Pages deployment pattern with three steps: `actions/configure-pages`, `actions/upload-pages-artifact` (pointing at the correct build output directory), and `actions/deploy-pages`. Set the Pages source to "GitHub Actions" in repository settings BEFORE the first workflow run. Include explicit permissions in the workflow YAML. Test the workflow on a branch before merging to main.
 
-**Warning signs:** Hooks installed but staleness warnings never appear. PostToolUse hook never fires context reminder. No error messages (because hooks exit 0 silently).
+**Warning signs:**
+- Workflow succeeds but site shows 404
+- Workflow fails with "Error: Resource not accessible by integration"
+- Deployed site shows raw markdown or repo README instead of built docs
 
-**Phase to address:** Installer Logic phase (hook command path resolution).
+**Phase to address:**
+Phase 2 (CI/CD setup) -- configure GitHub Action and repository settings together as a single task.
 
 ---
 
-### Pitfall 32: `__dirname` vs `process.cwd()` in the Installer Itself
+### Pitfall 4: docs/ Dev Dependencies Leak into Project Root
 
-**What goes wrong:** The installer script (`bin/install.js`) uses `process.cwd()` to locate its own bundled files (skills, hooks, templates). This resolves to wherever the user invoked `npx`, not where the package is installed. When run via `npx domain-context-cc`, `process.cwd()` is the user's current directory — the package files are in a temporary npx cache directory, not in cwd.
+**What goes wrong:**
+Running `npm install` in the project root installs hundreds of documentation framework dependencies (Astro, Vite, React, etc.), polluting the project's zero-dependency development environment. Lock file diffs become enormous. CI time increases.
 
-**Why it happens:** `process.cwd()` is familiar and works during local development (when you run `node bin/install.js` from the package root). It fails when the script is run as an npm bin entry from a different location.
-
-**Consequences:** Installer cannot find its own bundled files. Errors like "ENOENT: no such file or directory, open '/Users/alice/myproject/commands/dc/init.md'".
+**Why it happens:**
+Developers add the docs framework as a devDependency in the root `package.json` instead of keeping it isolated. This project currently has zero dependencies by design, and mixing docs framework deps into the root breaks this core constraint.
 
 **How to avoid:**
-- Always use `__dirname` (or `path.dirname(new URL(import.meta.url).pathname)` for ESM) to locate files relative to the script itself
-- `const SOURCE_ROOT = path.resolve(__dirname, '..')` gives the package root regardless of invocation directory
-- Verify by running `npx .` from a subdirectory during testing — not just from the package root
+Keep the docs site in a self-contained subdirectory (`docs/`) with its own `package.json`, its own `node_modules/`, and its own lock file. The root `package.json` should never reference docs framework packages. The GitHub Action installs docs dependencies separately: `cd docs && npm ci && npm run build`. Add `docs/node_modules/` to `.gitignore`.
 
-**Warning signs:** Install works when run from the package root (`node bin/install.js`) but fails when run via `npx domain-context-cc` from a different directory.
+**Warning signs:**
+- Root `package.json` gains `devDependencies` for the first time
+- `npm install` at root takes noticeably longer
+- Root `node_modules/` appears or grows significantly
+- Root `package-lock.json` appears or changes
 
-**Phase to address:** Installer Logic phase (path resolution).
+**Phase to address:**
+Phase 1 (project scaffolding) -- establish the isolated `docs/package.json` pattern from the start. This is a structural decision that is painful to change later.
 
 ---
 
-### Pitfall 33: Uninstall Leaving Orphan Hook Entries in settings.json
+### Pitfall 5: Docs Drift from Actual CLI Behavior
 
-**What goes wrong:** The `--uninstall` flag removes files from `~/.claude/commands/dc/`, `~/.claude/hooks/`, etc., but does not remove the corresponding hook entries from `~/.claude/settings.json`. On the next session start, Claude Code tries to execute `node ~/.claude/hooks/dc-freshness-check.js`, fails (file not found), and may produce error output that confuses the user.
+**What goes wrong:**
+Documentation describes features, flags, or behaviors that no longer match the actual code. Users follow the quickstart guide and it fails. Command reference shows wrong syntax. Architecture diagrams are outdated.
 
-**Why it happens:** Uninstall is typically an afterthought. The hook-removal logic mirrors the hook-injection logic but is not implemented, or the developer assumes "just delete the files."
-
-**Consequences:** Broken session starts. Error output from missing hook commands. User must manually edit settings.json to clean up.
+**Why it happens:**
+Documentation and code live in the same repo but have no automated coupling. A developer updates a skill's behavior but forgets to update the corresponding docs page. This is especially acute for domain-context-cc where skills are markdown files -- changes feel small and "not worth a docs update."
 
 **How to avoid:**
-- The `--uninstall` path must mirror `--install` in reverse: parse settings.json, filter out the exact hook command strings that were injected, write back the result
-- Keep the injected command strings in a known format so they can be identified and removed precisely (e.g., always use the same path pattern)
-- Test uninstall by running install followed by uninstall and asserting settings.json is identical to the pre-install state
+Structure docs pages to mirror the code directory structure so the mapping is obvious. Keep a documentation checklist in the PR template: "If you changed a skill/hook/template, did you update the corresponding docs page?" Consider a CI step that checks modification timestamps -- if files in `commands/` changed but `docs/` did not, emit a warning (not a blocker).
 
-**Warning signs:** After `--uninstall`, `settings.json` still contains dc hook entries. Session start produces "command not found" or "ENOENT" errors for dc hooks.
+**Warning signs:**
+- User issues reporting "docs say X but actual behavior is Y"
+- Docs reference features or flags that no longer exist
+- Quickstart guide fails on a clean install
 
-**Phase to address:** Installer Logic phase (uninstall cleanup).
+**Phase to address:**
+Phase 3 (content creation) -- establish the docs-to-code mapping convention. Phase 4 (polish) -- add CI warning check.
 
 ---
 
-### Pitfall 34: The `bin` Entry in package.json Points to a Non-Executable Script
+### Pitfall 6: Trailing Slash Inconsistency Causes Duplicate Pages or 404s
 
-**What goes wrong:** `"bin": {"domain-context-cc": "./bin/install.js"}` — but `bin/install.js` is missing a shebang (`#!/usr/bin/env node`) or has incorrect Unix permissions (not executable). When the user runs `npx domain-context-cc`, they get a "permission denied" or the script is run by the wrong interpreter.
+**What goes wrong:**
+Some links work with trailing slashes (`/guide/quickstart/`) but not without (`/guide/quickstart`), or vice versa. GitHub Pages redirects inconsistently. Search engines index both variants, diluting SEO. Users bookmark one form and it breaks when the other becomes canonical.
 
-**Why it happens:** The file is created normally (permissions 644) and lacks a shebang. Works fine when invoked explicitly as `node bin/install.js` but fails as a bin entry.
-
-**Consequences:** `npx domain-context-cc` fails with a cryptic permission error or interpreter error.
-
-**How to avoid:**
-- Add `#!/usr/bin/env node` as the first line of `bin/install.js`
-- Set file permissions: `chmod +x bin/install.js` (or ensure package.json does not override)
-- npm automatically sets execute bits for bin entries during install, but the shebang is still required for direct execution
-- Test via `npm pack && npx ./domain-context-cc-*.tgz` as documented in AGENTS.md
-
-**Warning signs:** `npx domain-context-cc` returns "permission denied" or "bad interpreter." The script runs fine as `node bin/install.js` but not as `npx`.
-
-**Phase to address:** Package Configuration phase (bin entry setup).
-
----
-
-## Moderate Pitfalls
-
-### Pitfall 35: Template Files Overwriting User-Customized Copies on Re-Install
-
-**What goes wrong:** The installer copies templates to `~/.claude/domain-context/templates/`. If the user has customized those templates (e.g., added their own sections to `domain-concept.md`), a subsequent re-install overwrites their customizations silently.
-
-**Why it happens:** Simple `fs.copyFileSync` with no existence check.
-
-**How to avoid:** Before copying each template, check if a file already exists at the destination. If it does, skip it by default. Add a `--force` flag that allows overwriting. Log which files were skipped so the user knows their customizations are preserved.
-
-**Phase to address:** Installer Logic phase (file copy behavior).
-
----
-
-### Pitfall 36: Global vs Local Install Destination Confusion
-
-**What goes wrong:** `--global` installs to `~/.claude/`. `--local` installs to `.claude/` in the current working directory. A user who runs `npx domain-context-cc --global` from inside a project expects the project's Claude Code config to gain the skills, not their home directory. Or vice versa.
-
-**Why it happens:** The distinction is non-obvious, especially since Claude Code itself uses `~/.claude/` for user-level config and `.claude/` for project-level config — but users may not know this.
+**Why it happens:**
+GitHub Pages has specific behavior around trailing slashes and `index.html` files. If the docs framework generates `quickstart/index.html`, GitHub Pages expects the trailing slash. If it generates `quickstart.html`, it does not. Most frameworks have a `trailingSlash` config option but the default varies and often mismatches GitHub Pages behavior.
 
 **How to avoid:**
-- Print the resolved destination path before copying: "Installing to /Users/alice/.claude/ (global)"
-- After install, print where to restart Claude Code or how to verify the install worked
-- Make `--global` the default for `npx` invocations (users reaching this via npx are likely doing a one-time global install)
+Explicitly set the trailing slash configuration in the framework config to match what GitHub Pages expects. For Starlight/Astro: set `trailingSlash: 'always'` in `astro.config.mjs` (Astro generates directory-style output by default, matching GitHub Pages expectations). Test both URL forms on the deployed site.
 
-**Phase to address:** Installer Logic phase (destination resolution and UX).
+**Warning signs:**
+- Same page accessible at two different URLs
+- Redirects adding or removing trailing slashes
+- Broken internal links that work in development but not production
 
----
-
-### Pitfall 37: Symlinks Created by Global npm Install Break `__dirname` Resolution
-
-**What goes wrong:** When installed globally via `npm install -g domain-context-cc`, npm creates a symlink from `/usr/local/bin/domain-context-cc` to the actual script in the npm global package directory. On some systems, `__dirname` in a symlinked script resolves to the symlink's location (the bin directory), not the actual package directory. `path.resolve(__dirname, '..', 'commands')` then points to the wrong place.
-
-**Why it happens:** Node.js resolves `__dirname` to the real path (via `fs.realpath`) in most cases, but behavior can differ with certain Node.js versions and symlink configurations.
-
-**How to avoid:**
-- Use `fs.realpathSync(__dirname)` to normalize the path before computing relative paths: `const realDir = fs.realpathSync(__dirname)`
-- Test global install scenario explicitly (not just `node bin/install.js` from the dev directory)
-
-**Phase to address:** Installer Logic phase (path resolution).
-
----
-
-### Pitfall 38: `npm pack` Includes `.planning/`, `.context/`, and Development Artifacts
-
-**What goes wrong:** Without an explicit `files` array (or with an overly broad one), `npm pack` includes `.planning/`, `.context/`, `.claude/`, `PLAN.md`, research files, and other development artifacts. The published package becomes multi-megabyte and leaks internal project context to npm registry.
-
-**Why it happens:** Developers test locally where all files are present and forget that `npm pack` includes everything not in `.npmignore` unless `files` is set.
-
-**How to avoid:**
-- Use the `files` array (more explicit than `.npmignore`)
-- Or use `.npmignore` with explicit exclusions for `.planning/`, `.context/`, `.claude/`, `*.md` (except README), etc.
-- `files` array takes precedence over `.npmignore` — use one, not both
-- Run `npm pack --dry-run` and audit the file list before publishing
-
-**Phase to address:** Package Configuration phase (files list).
-
----
-
-### Pitfall 39: The Install Script Fails Silently When Target Directories Don't Exist
-
-**What goes wrong:** The installer tries to copy `hooks/dc-freshness-check.js` to `~/.claude/hooks/dc-freshness-check.js` but `~/.claude/hooks/` doesn't exist yet. `fs.copyFileSync` throws ENOENT. The installer catches the error and exits 0 silently (following the "never block" hook safety pattern), leaving files uncopied.
-
-**Why it happens:** The "exit 0 on error" pattern is correct for hooks but wrong for the installer. A hook silently failing is acceptable; an installer silently failing is a serious usability bug.
-
-**Consequences:** User believes install succeeded. Commands are missing. No indication of what went wrong.
-
-**How to avoid:**
-- The installer is NOT a hook — do not apply the "exit 0 on error" pattern here
-- Use `fs.mkdirSync(dest, {recursive: true})` before each copy operation to ensure directories exist
-- Throw (or `process.exit(1)`) on installer errors with a descriptive message
-- Print each copied file to stdout so the user can see what was installed
-
-**Phase to address:** Installer Logic phase (directory creation and error handling).
+**Phase to address:**
+Phase 1 (project scaffolding) -- set trailing slash config alongside base URL.
 
 ---
 
@@ -210,85 +137,106 @@
 
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
 |----------|-------------------|----------------|-----------------|
-| Overwrite settings.json without merging | Simpler code | Destroys user's existing hooks on re-install | Never |
-| Relative paths in injected hook commands | Works in dev | Hooks silently fail post-install | Never |
-| Skip `npm pack --dry-run` verification | Faster iteration | Publishes incomplete package silently | Never |
-| No `--uninstall` flag in v1 | Faster to ship | Orphan settings.json entries; no clean removal | Acceptable only if README documents manual cleanup |
-| Copy templates unconditionally | Simpler code | Overwrites user customizations | Never after v1.0 |
-| Use `process.cwd()` for source path | Works in dev | Fails when invoked via npx from other dirs | Never |
-
----
+| Hardcoding content instead of generating from source | Faster initial content creation | Every code change requires manual docs update | MVP only -- add generation for CLI reference later |
+| Skipping link checking in CI | Simpler pipeline | Broken internal links accumulate silently | Never -- add a link checker from the start |
+| Using default theme without customization | Ship faster | Docs look generic, no brand identity | Phase 1 only -- customize in polish phase |
+| Committing `docs/node_modules/` | Avoids npm install in CI | Massive repo bloat, merge conflicts, slow clones | Never |
+| Single monolithic docs page | No sidebar/navigation decisions needed | Unusable once content exceeds 3 pages | Never -- structure from day one |
+| Skipping `docs/package-lock.json` from git | Smaller diffs | Non-reproducible builds, CI installs different versions | Never -- always commit the lock file |
 
 ## Integration Gotchas
 
 | Integration | Common Mistake | Correct Approach |
 |-------------|----------------|------------------|
-| Claude Code settings.json | Treat as write-only target | Read first, deep-merge arrays, write back |
-| npm bin entries | Assume file is executable | Add shebang + `chmod +x` + test via `npx .` |
-| npm `files` array | List only top-level files | List all directory names; run `--dry-run` audit |
-| Global npm symlinks | Trust `__dirname` directly | Resolve via `fs.realpathSync(__dirname)` |
-| SessionStart / PostToolUse hook arrays | Replace the array | Append entries; check for duplicates first |
-| Template destination | Always overwrite | Check existence; skip if present; offer `--force` |
+| GitHub Pages source setting | Leaving on "Deploy from a branch" while using Actions workflow | Set to "GitHub Actions" in repo Settings > Pages > Source |
+| GitHub Actions permissions | Relying on default permissions (insufficient for Pages) | Explicitly set `permissions: { pages: write, id-token: write, contents: read }` |
+| npm publish pipeline | Docs build failure blocks npm publish | Keep docs deployment as a separate workflow file, not gated on npm publish |
+| `.gitignore` vs npm `files` | Adding docs to `.gitignore` thinking it handles npm exclusion | The `files` whitelist in package.json handles npm exclusion independently |
+| GitHub Actions caching | Not caching docs `node_modules` | Cache based on `docs/package-lock.json` hash to avoid 2-3 min install per build |
+| Astro/Starlight build output | Uploading `docs/` instead of `docs/dist/` | Verify the exact output directory name in the framework docs |
 
----
+## Performance Traps
+
+| Trap | Symptoms | Prevention | When It Breaks |
+|------|----------|------------|----------------|
+| Large unoptimized images | Slow page loads, artifact size limit hit | Use compressed PNGs/SVGs, avoid screenshots when diagrams suffice | Perceived performance degrades at 5MB+ per page |
+| No dependency caching in GitHub Actions | Every build reinstalls all deps from scratch | Cache `docs/node_modules` keyed on `docs/package-lock.json` | Immediately -- every push takes 3+ minutes |
+| Importing entire icon libraries | Bundle size bloats, build takes 30s+ | Import only specific icons used | When docs framework pulls in hundreds of unused SVGs |
+
+## Security Mistakes
+
+| Mistake | Risk | Prevention |
+|---------|------|------------|
+| Exposing internal paths or secrets in docs screenshots | Leaks directory structure or credentials | Review all images before committing; use sanitized examples |
+| GitHub Actions workflow with excessive permissions | Compromised action could write to repo | Use minimal permissions; pin action versions to commit SHA, not tags |
+| Not pinning action versions | Supply chain attack via compromised tag | Pin to full SHA: `uses: actions/deploy-pages@abc123` |
+
+## UX Pitfalls
+
+| Pitfall | User Impact | Better Approach |
+|---------|-------------|-----------------|
+| No visible version indicator | Users unsure if docs match their installed version | Show version in footer or sidebar, link to changelog |
+| Dark mode flash on page load (FOUC) | Page flashes white then switches to dark | Starlight handles this via inline script reading preference before render -- do not customize this behavior |
+| Sidebar too deep (3+ nesting levels) | Users get lost navigating | Keep sidebar to 2 levels max; use separate sections for major topics |
+| Code examples without copy button | Users manually select and copy, introducing errors | Starlight includes copy buttons by default -- verify they work |
+| Missing "Edit this page" link | Users who spot errors cannot contribute fixes | Enable `editLink` in Starlight config pointing to GitHub source |
+| Search not keyboard accessible | Power users cannot use Cmd+K to search | Starlight provides Cmd+K by default -- do not break this |
+| No 404 page with navigation | Users who hit a broken link are stranded | Configure a custom 404 page that includes site navigation |
 
 ## "Looks Done But Isn't" Checklist
 
-- [ ] **`npm pack --dry-run` audit:** Every file in `commands/dc/`, `hooks/`, `agents/`, `rules/`, `templates/`, `tools/`, `bin/` appears in the pack output — verify before publishing
-- [ ] **Cross-directory invocation:** Run `npx .` from a subdirectory of the project, not just the root — verify installer finds its bundled files via `__dirname`
-- [ ] **Merge, not overwrite:** Install with an existing settings.json containing GSD hooks — verify GSD hooks are still present after install
-- [ ] **Idempotency:** Run `--install` twice — verify no duplicate hook entries in settings.json
-- [ ] **Uninstall cleanup:** Run install then uninstall — verify settings.json is returned to pre-install state
-- [ ] **Absolute paths in injected hooks:** After install, inspect settings.json and confirm hook commands use absolute paths (not `node hooks/...`)
-- [ ] **Missing target directory:** Delete `~/.claude/hooks/` then run install — verify installer creates the directory rather than failing silently
-- [ ] **Template preservation:** Customize a template file after install, then re-install — verify the customized file is not overwritten
-- [ ] **Shebang present:** Run `head -1 bin/install.js` — must be `#!/usr/bin/env node`
-- [ ] **Bin permissions:** Run `ls -la bin/install.js` — must be executable (755 or 644 via npm; shebang is the real guard)
-
----
+- [ ] **Deployment:** Site renders on GitHub Pages -- verify CSS/JS loads, not just that HTML appears
+- [ ] **Base URL:** Internal links work on deployed site, not just localhost -- click through every sidebar link
+- [ ] **Search:** Search returns actual results on production build -- test with a real query like "install"
+- [ ] **Mobile:** Site is readable on mobile viewport -- check sidebar collapse, code blocks do not overflow
+- [ ] **Dark mode:** Both themes render correctly -- check code blocks, callouts, and admonitions in both modes
+- [ ] **404 page:** Custom 404 exists with navigation back to docs -- test by visiting a broken URL
+- [ ] **Trailing slashes:** URLs work consistently -- test with and without trailing slashes
+- [ ] **npm package size:** `npm pack --dry-run` still shows only intended files -- docs directory is excluded
+- [ ] **Favicon:** Custom favicon is set, not the framework default -- visible in browser tabs
+- [ ] **Open Graph tags:** Sharing a docs link on Slack/Discord shows title and description, not a blank card
+- [ ] **Link checker:** No broken internal links -- run a link checker against the built site
+- [ ] **Root package.json unchanged:** No new dependencies added to root -- `git diff package.json` shows no changes
 
 ## Recovery Strategies
 
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| `files` array missing directories | MEDIUM | Re-publish package with corrected files array; users must re-run `npx domain-context-cc` |
-| settings.json clobbered | LOW | User restores from `settings.json.bak` (if installer created one) or manually re-adds lost hooks |
-| Relative paths in hooks | MEDIUM | Re-publish; users re-run install; manually edit `~/.claude/settings.json` to replace relative with absolute paths |
-| Uninstall orphans | LOW | User manually removes dc hook entries from `~/.claude/settings.json` (3-4 lines) |
-| Templates overwritten | MEDIUM | User must manually recreate customizations; no recovery if no backup |
-| Silent install failure (missing dirs) | LOW | Re-run install after ensuring `~/.claude/` exists |
-
----
+| Docs deps in root package.json | MEDIUM | Create `docs/package.json`, move deps, update CI, remove from root, regenerate lock file |
+| Wrong base URL deployed | LOW | Fix config, redeploy -- but broken links may be cached by users and search engines |
+| npm package includes docs | MEDIUM | Fix `files` array, publish patch version -- previous bloated version persists on npm |
+| GitHub Actions permissions wrong | LOW | Update workflow YAML, re-run -- first deployment may require manual repo settings change |
+| Stale documentation | HIGH | Audit all pages against current code -- time-consuming, prevention is far cheaper |
+| Broken search index | LOW | Rebuild and redeploy -- usually a config fix |
+| Trailing slash mismatch | MEDIUM | Fix framework config, redeploy, but old URLs may be bookmarked or indexed |
 
 ## Pitfall-to-Phase Mapping
 
 | Pitfall | Prevention Phase | Verification |
 |---------|------------------|--------------|
-| P29: `files` array missing directories | Package Configuration | `npm pack --dry-run` — all expected files present |
-| P30: settings.json clobbered | Installer Logic | Install with pre-existing settings.json; diff before/after |
-| P31: Relative paths in hooks | Installer Logic | Inspect injected commands; run hook from unrelated directory |
-| P32: `__dirname` vs `process.cwd()` | Installer Logic | Run `npx .` from subdirectory; installer finds files |
-| P33: Uninstall orphans | Installer Logic | Install + uninstall; settings.json diff equals zero |
-| P34: Non-executable bin entry | Package Configuration | `npx domain-context-cc` succeeds (not just `node bin/install.js`) |
-| P35: Template overwrite on re-install | Installer Logic | Customize template; re-install; customization preserved |
-| P36: Global vs local confusion | Installer UX | Print resolved destination before copying |
-| P37: Symlink `__dirname` | Installer Logic | Test `npm install -g .` scenario; `realpathSync` used |
-| P38: Dev artifacts in package | Package Configuration | `npm pack --dry-run` shows no `.planning/`, `.context/`, `.claude/` |
-| P39: Silent failure on missing dirs | Installer Logic | Delete target dir; run install; dir created; no silent skip |
-
----
+| npm package bloat | Phase 1 (scaffolding) | `npm pack --dry-run` shows no docs files |
+| Wrong base URL | Phase 1 (scaffolding) | Production build serves correctly with `/domain-context-claude/` prefix |
+| Wrong GitHub Actions artifact | Phase 2 (CI/CD) | Workflow deploys and site loads on GitHub Pages |
+| Docs deps in root package.json | Phase 1 (scaffolding) | Root `package.json` has zero new dependencies |
+| Docs drift from code | Phase 3 (content) + Phase 4 (polish) | Docs pages mirror code directory; CI warns on mismatch |
+| Trailing slash inconsistency | Phase 1 (scaffolding) | Framework configured with explicit trailingSlash setting |
+| Broken search | Phase 2 (CI/CD) | Search returns results on production build |
+| Dark mode flash | Phase 1 (scaffolding) | No FOUC when loading in dark-preferred browser |
+| Broken internal links | Phase 2 (CI/CD) | Link checker passes in CI |
+| Missing mobile responsiveness | Phase 4 (polish) | Manual check on mobile viewport |
+| GitHub Actions permissions | Phase 2 (CI/CD) | First workflow run succeeds without manual intervention |
 
 ## Sources
 
-- Direct analysis of `/Users/alevine/code/domain-context-claude/hooks/dc-freshness-check.js` and `dc-context-reminder.js`: hook path patterns, stdin contract, exit 0 on error convention
-- Direct analysis of `/Users/alevine/code/domain-context-claude/.claude/settings.json`: existing hook registration format (SessionStart array, PostToolUse array with matcher), GSD and dc hooks co-registered
-- Direct analysis of `/Users/alevine/code/domain-context-claude/.claude/package.json`: current `{"type":"commonjs"}` — confirms CommonJS module format for all JS files
-- npm documentation (training data, HIGH confidence): `files` array behavior, `.npmignore` precedence, `npm pack --dry-run`, bin entry requirements, symlink handling
-- Node.js documentation (training data, HIGH confidence): `__dirname` behavior in CommonJS modules, `fs.realpathSync`, `fs.mkdirSync({recursive: true})`
-- AGENTS.md (this project): `npm pack && npx ./domain-context-cc-*.tgz` as documented test install procedure
-- PROJECT.md v1.3 milestone scope: installer flags (`--global`, `--local`, `--uninstall`), settings.json hook merge requirement
-- Claude Code settings.json structure (observed in project): `hooks.SessionStart` and `hooks.PostToolUse` as arrays, `matcher` field on PostToolUse entries
+- [Docusaurus deployment documentation](https://docusaurus.io/docs/deployment) -- base URL and GitHub Pages configuration patterns
+- [npm files and ignores documentation](https://github.com/npm/cli/wiki/Files-&-Ignores) -- `files` whitelist behavior, `.npmignore` precedence
+- [Jeff Dickey: "Don't use .npmignore"](https://medium.com/@jdxcode/for-the-love-of-god-dont-use-npmignore-f93c08909d8d) -- whitelist vs blacklist for npm publish
+- [GitHub Pages 404 troubleshooting](https://docs.github.com/en/pages/getting-started-with-github-pages/troubleshooting-404-errors-for-github-pages-sites)
+- [actions/deploy-pages](https://github.com/actions/deploy-pages) -- official GitHub Pages deployment action
+- [VitePress site config](https://vitepress.dev/reference/site-config) -- dark mode appearance settings, FOUC prevention
+- [InfoQ: Continuous Documentation](https://www.infoq.com/articles/continuous-documentation/) -- docs-code sync strategies
+- Direct analysis of project `package.json` `files` whitelist: `["commands/", "agents/", "hooks/", "rules/", "templates/", "tools/", "bin/"]` -- docs automatically excluded
 
 ---
-*Pitfalls research for: npm packaging and installer (v1.3 milestone)*
+*Pitfalls research for: Adding documentation site to domain-context-cc npm package (v1.4)*
 *Researched: 2026-03-17*

@@ -1,17 +1,12 @@
 # Feature Research
 
-**Domain:** CLI tool installer / npm package for a Claude Code extension
+**Domain:** Developer tool documentation site (for a Claude Code extension)
 **Researched:** 2026-03-17
-**Confidence:** HIGH — based on existing GSD installer pattern in the same ecosystem, Claude Code hooks/settings.json verified in live environment, and established npm/npx conventions
+**Confidence:** HIGH
 
 ## Scope
 
-This file covers the v1.3 milestone features only:
-- `package.json` — npm packaging configuration
-- `bin/install.js` — Node.js installer (--global, --local, --uninstall, settings.json merge)
-- Final `README.md` — install instructions, quick start, command reference, GSD integration
-
-Features from v1.0–v1.2 (skills, hooks, rule, agent, templates) are prerequisites, not scope.
+This file covers the v1.4 milestone features only: a documentation site for domain-context-cc, deployed on GitHub Pages. Features from v1.0-v1.3 (skills, hooks, rule, agent, installer) are prerequisites, not scope.
 
 ---
 
@@ -19,107 +14,131 @@ Features from v1.0–v1.2 (skills, hooks, rule, agent, templates) are prerequisi
 
 ### Table Stakes (Users Expect These)
 
-Features users assume exist. Missing these = product feels incomplete.
+Features users assume exist on any developer documentation site in 2026. Missing these makes the project look amateur or unfinished.
 
 | Feature | Why Expected | Complexity | Notes |
 |---------|--------------|------------|-------|
-| `npx domain-context-cc` global install | Standard convention for Claude Code tools; README already promises this UX | LOW | Copies commands/, agents/, hooks/, rules/, templates/, tools/ to ~/.claude/ |
-| `--local` flag for project-scoped install | Developers want per-project installs; Claude Code supports both ~/.claude/ and ./.claude/ | LOW | Target is ./.claude/ instead of ~/.claude/ |
-| `--uninstall` flag | Users must be able to reverse the install; any tool without uninstall feels risky | MEDIUM | Remove dc-prefixed files only; avoid clobbering other installed tools |
-| settings.json hook registration (install) | Without this the SessionStart and PostToolUse hooks never fire; install is incomplete | MEDIUM | Must merge into existing settings.json without clobbering other hooks; append to arrays |
-| settings.json hook removal (uninstall) | Stale hook entries cause confusing session behavior after uninstall | MEDIUM | Parse JSON, filter out dc hook command strings, write back |
-| Idempotent install | Running `npx domain-context-cc` twice must not duplicate hook entries or files | LOW | Check if dc hooks already present before appending; overwriting files is safe |
-| package.json with correct `bin` entry | Required for `npx domain-context-cc` to resolve to the install script | LOW | `"bin": { "domain-context-cc": "bin/install.js" }` |
-| `files` list in package.json | Without it npm publishes everything including .planning/, .context/, test artifacts | LOW | Include: commands/, agents/, hooks/, rules/, templates/, tools/, bin/, README.md |
-| Success message with next step | Users don't know what to do after install; clear next-step instruction prevents abandonment | LOW | "Installed. Run /dc:init in any project to get started." |
-| Graceful degradation when settings.json missing | New Claude Code installs may not have settings.json; installer must handle absent file | LOW | `fs.existsSync()` check; create minimal `{ "hooks": { ... } }` if absent |
-| README install + quick start | First thing users read; must answer "how do I install" and "what do I do next" | LOW | Already drafted; needs final polish to match actual install command |
+| Sidebar navigation | Every doc site has one. Developers navigate by scanning headings, not reading linearly. | LOW | All major JS doc frameworks generate this from file structure or config. Zero custom code. |
+| Full-text search | Developers search, not browse. No search = users leave immediately. | LOW | Built-in with all modern frameworks. VitePress uses MiniSearch, Starlight uses Pagefind. Zero config. |
+| Dark/light mode toggle | Developer audience overwhelmingly uses dark mode. Must support both with a toggle. | LOW | Built into VitePress, Starlight, and Docusaurus default themes. Single config line. |
+| Code syntax highlighting | Documentation for a CLI/code tool without highlighted code blocks is unusable. | LOW | All frameworks use Shiki or Prism. Supports 100+ languages out of the box. |
+| Copy-to-clipboard on code blocks | Users copy install commands and code snippets constantly. Missing this is noticeable friction. | LOW | Built into VitePress and Starlight by default. |
+| Responsive/mobile layout | Users read docs on phones and on laptops with limited screen space. | LOW | All modern doc frameworks are responsive by default. No effort required. |
+| GitHub Pages deployment | Free, standard hosting for open-source projects. Users expect docs at a predictable URL. | LOW | All JS doc frameworks output static files. GitHub Actions workflow is straightforward. |
+| CI/CD automated builds | Docs must rebuild on push to main. Manual deployment is a maintenance failure waiting to happen. | LOW | Single GitHub Actions workflow file. Frameworks have official deploy guides. |
+| Quickstart page | First thing a new user looks for. Must get them from zero to working in under 5 minutes. | MEDIUM | Content effort, not framework effort. Existing README quickstart can be expanded. |
+| CLI command reference | For a tool with 6 commands, users need a reference page with descriptions, usage, and examples. | MEDIUM | Content effort. Each dc:* command needs its own section. Existing README has a compact version. |
+| Architecture/concepts page | Users need to understand how the bridge pattern works, what hooks do, what .context/ contains. | MEDIUM | Content effort. ARCHITECTURE.md exists but is written for contributors, not end users. |
+| Spec overview page | Users need to understand Domain Context without reading the full spec. | MEDIUM | Content effort. Summarize key concepts, link to full spec repo. |
+| Contributing guide | Open-source project without contribution docs discourages community involvement. | LOW | Content effort. Standard structure: setup, conventions, PR process. |
+| Landing/home page | First impression. Must communicate what the tool does and how to install it in seconds. | LOW | Hero section with tagline, install command, and feature highlights. Framework-provided layout. |
 
 ### Differentiators (Competitive Advantage)
 
-Features that set the product apart. Not required, but valuable.
+Features that would make this doc site stand out from typical small-project documentation.
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| Uninstall removes only dc-prefixed files | Safe uninstall — users trust it won't wreck other Claude Code tools | MEDIUM | Match dc- prefix for hooks, dc/ subdir for commands, domain-context.md for rules, domain-validator.md for agents |
-| Installer copies templates/ and tools/ subdirectory | dc:init and dc:validate need these files at runtime; most Claude Code tools don't have runtime assets | LOW | Copy to {target}/domain-context/templates/ and {target}/domain-context/tools/ — not directly to .claude/ root |
-| README GSD integration section | Target audience uses GSD; documenting the bridge pattern is key to adoption | LOW | AGENTS.md bridge explanation + /dc:extract workflow already drafted in current README |
-| README command reference table | All 6 commands documented in one place; reduces "what can this do?" friction | LOW | Already exists in README; verify it's complete and accurate |
+| Architecture diagrams (Mermaid) | Visual representation of the AGENTS.md bridge pattern and hook lifecycle. Makes "how it works" immediately clear. | LOW | Mermaid renders natively in VitePress and Starlight. Embed in markdown. |
+| Tabbed content blocks | Show install commands for global vs local, or before/after examples. Reduces page clutter. | LOW | Built into VitePress (code groups), Starlight (Tabs component). |
+| "Edit this page" links | Each page links to its GitHub source. Lowers the contribution barrier for doc fixes. | LOW | Single config option in all major frameworks. |
+| Terminal demo recordings | Showing dc:init creating a .context/ directory is worth 1000 words. Animated SVG recordings make the tool tangible. | MEDIUM | Requires recording terminal sessions with asciinema or similar. Content creation effort. |
+| Diataxis content architecture | Separating tutorials, explanations, how-tos, and reference following the Diataxis framework. Most small projects dump everything into one flat structure. | MEDIUM | Content organization effort. Requires deliberate information architecture decisions. |
+| Spec cross-references | Link documentation back to the Domain Context specification. Unique positioning as the reference implementation. | LOW | Internal linking between doc pages. Content effort only. |
 
 ### Anti-Features (Commonly Requested, Often Problematic)
 
-Features that seem good but create problems.
+Features that seem good but create problems for a project of this scope.
 
 | Feature | Why Requested | Why Problematic | Alternative |
 |---------|---------------|-----------------|-------------|
-| Auto-run `/dc:init` during install | "Zero configuration" appeal | install.js runs outside Claude Code — cannot invoke skills; also not all users want to init immediately | Print "Run /dc:init in any project to initialize" in success message |
-| Interactive prompts during install | Friendly UX for global vs local choice | Breaks `npx` piped/CI usage; Node.js readline adds complexity | Use explicit flags: default = global, `--local` for local |
-| Post-install script that edits CLAUDE.md or AGENTS.md | Feels magical | Crosses a boundary — installer should not modify project source files; only ~/.claude/ config | Leave project-level changes to `/dc:init` which the user invokes consciously |
-| MCP server registration during install | Future capability | ADR-003 explicitly deferred; Claude Code MCP config is separate from hooks settings.json | Document as future work; keep installer focused on file copy + settings.json merge |
-| `--dry-run` flag | Safety verification | Low value for a file-copy installer; adds test surface area | Print a banner listing what will be installed before doing it |
-| Version pinning individual skill files | "I want dc:init v1.2 but dc:validate v1.3" | No real use case; all files are a coherent release | Version the package as a whole; semver the npm package |
+| Version selector / versioned docs | "Users on old versions need matching docs" | Project is pre-1.0 in adoption terms. Versioned docs add build complexity, maintenance burden, and confuse users when only one meaningful version exists. | Add a Changelog page later. Version docs only when breaking changes affect a real user population. |
+| Blog section | "Announce releases and share updates" | Blog content goes stale, creates maintenance burden, splits attention from core docs. GitHub Releases serves the same purpose for a small project. | Link to GitHub Releases from the docs. |
+| i18n / multilingual | "Reach international audience" | Translation maintenance is enormous. One stale translation is worse than no translation. This project targets English-speaking Claude Code users. | Keep English-only. Accept community translation PRs only with a maintenance commitment. |
+| Custom theme / heavy branding | "Stand out visually" | Custom CSS requires maintenance, breaks on framework upgrades, and delays launch. Modern doc framework defaults look professional. | Use framework default theme with minor color/logo customization only. |
+| API docs auto-generation | "Generate docs from code comments" | This project has no runtime API. It is markdown skills, Node.js hooks, and shell scripts. JSDoc generation adds complexity for zero value. | Write CLI reference manually. The 6 commands are stable and well-defined. |
+| Comments / discussion on pages | "Let users ask questions in context" | Adds third-party dependency (Giscus/Disqus), moderation burden, fragments discussion away from GitHub Issues. | Link to GitHub Issues from pages. |
+| Full CMS / WYSIWYG editing | "Easy for non-technical contributors" | All contributors are developers. Markdown in Git is the natural workflow. A CMS adds deployment complexity for no audience benefit. | Standard Git workflow with "Edit this page" links. |
 
 ---
 
 ## Feature Dependencies
 
 ```
-[package.json with bin + files]
-    └──enables──> [npx domain-context-cc invocation]
-                      └──requires──> [bin/install.js exists]
-                                         ├──copies──> [commands/, agents/, hooks/, rules/]
-                                         ├──copies──> [templates/, tools/ into domain-context/ subdir]
-                                         └──merges──> [settings.json hook registration]
+[Framework Setup + Config]
+    ├──enables──> [Sidebar Navigation] (auto-generated)
+    ├──enables──> [Full-Text Search] (built-in)
+    ├──enables──> [Dark/Light Mode] (built-in)
+    ├──enables──> [Code Highlighting + Copy] (built-in)
+    ├──enables──> [Responsive Design] (built-in)
+    └──enables──> [Content Pages]
+                      ├── [Landing Page]
+                      ├── [Quickstart Guide]
+                      ├── [User Guide]
+                      ├── [CLI Command Reference]
+                      ├── [Architecture/Concepts Page]
+                      ├── [Spec Overview Page]
+                      └── [Contributing Guide]
 
-[settings.json hook merge]
-    └──activates──> [dc-freshness-check.js (SessionStart)]
-    └──activates──> [dc-context-reminder.js (PostToolUse)]
-    depends on   -> [live settings.json schema: hooks.SessionStart[].hooks[].command]
+[GitHub Pages + CI/CD]
+    └──requires──> [Framework Setup]
 
-[--uninstall flag]
-    └──reverses──> [file copy] (dc-prefixed hook files, dc/ commands, domain-context/ subdir)
-    └──reverses──> [settings.json hook merge] (filter out dc hook command strings)
+[Mermaid Diagrams] ──enhances──> [Architecture/Concepts Page]
+    └──requires──> [Framework Setup] (plugin/config)
 
-[README.md final polish]
-    └──documents──> [npx install command from package.json]
-    └──documents──> [all 6 dc:* skills from v1.0-v1.2]
-    └──documents──> [GSD integration from v1.2]
-    no code dependencies — documentation only
+[Tabbed Content] ──enhances──> [CLI Command Reference]
+    └──requires──> [Framework Setup]
+
+[Terminal Demos] ──enhances──> [Quickstart Guide]
+    └──independent of──> [Framework] (external recordings embedded as images/SVG)
+
+["Edit This Page" Links]
+    └──requires──> [GitHub Pages Deploy Config]
 ```
 
 ### Dependency Notes
 
-- **bin/install.js must know the final file list**: All source directories (commands/, agents/, hooks/, rules/, templates/, tools/) are stable from v1.0–v1.2. No new skills are being added in v1.3. File list is safe to hardcode.
-- **settings.json merge requires matching live schema**: The live `~/.claude/settings.json` uses `hooks.SessionStart[].hooks[]` array nesting — verified directly. Installer must emit this exact structure.
-- **package.json `files` must include `bin/`**: The `bin/` directory does not yet exist in the repo. Creating `bin/install.js` and `package.json` together is the natural first task of this milestone.
-- **templates/ and tools/ are runtime assets, not just install-time files**: Unlike commands/ and hooks/, these are read by dc:init and dc:validate at skill invocation time. They must land at a predictable sub-path inside .claude/ (e.g., `domain-context/templates/`) not at the .claude/ root.
-- **Uninstall requires predictable naming**: The dc-prefix convention (already established) makes file removal reliable. Hooks match `dc-*.js`, commands are in `dc/` subdir, rule is `domain-context.md`, agent is `domain-validator.md`.
+- **Framework setup is the critical path**: Every other feature depends on having the doc framework initialized. This must be the first task.
+- **Content pages are independent of each other**: Quickstart, CLI reference, architecture page, etc. can be written in parallel once the framework is set up.
+- **Built-in features come free with framework setup**: Sidebar, search, dark mode, code highlighting, copy button, and responsive design require zero custom implementation. They are configuration, not code.
+- **CI/CD depends on framework setup**: The GitHub Actions workflow needs to know the build command and output directory.
+- **Mermaid diagrams need a framework plugin/config**: Not all frameworks support Mermaid out of the box, but both VitePress and Starlight have trivial plugin setup.
 
 ---
 
 ## MVP Definition
 
-### Launch With (v1.3)
+### Launch With (v1.4)
 
-Minimum viable product — what's needed to distribute the package.
+Minimum viable documentation site -- what is needed to replace the README as the primary documentation surface.
 
-- [ ] `package.json` — name, version, bin entry, files list, no runtime deps declared
-- [ ] `bin/install.js` — global install (default), --local flag, --uninstall flag, file copy, settings.json merge, idempotent
-- [ ] Final `README.md` — install command, quick start (3 steps), command reference table, GSD integration section, links
+- [ ] Framework initialized with build tooling -- foundation for everything else
+- [ ] GitHub Pages deployment with GitHub Actions CI/CD -- docs are live and auto-update
+- [ ] Landing/home page -- project overview, value prop, install command
+- [ ] Quickstart guide -- expanded from README, get users from zero to working
+- [ ] User guide -- how to use each feature in a workflow context
+- [ ] CLI command reference -- all 6 dc:* commands with descriptions, usage, examples
+- [ ] Architecture/concepts page -- bridge pattern, hook lifecycle, .context/ structure
+- [ ] Domain Context spec overview -- what the spec is and how this tool implements it
+- [ ] Contributing guide -- setup, conventions, PR process
+- [ ] Sidebar navigation, search, dark/light mode, code highlighting, copy button, responsive design -- all framework defaults, no custom work
 
 ### Add After Validation (v1.x)
 
-Features to add once core is working.
+Features to add once the docs site is live and receiving traffic.
 
-- [ ] `--check` flag that reports what is installed without making changes — trigger: user feedback about wanting to verify install state
-- [ ] Installer prints version on success — trigger: if users report confusion about which version is installed
+- [ ] Mermaid architecture diagrams -- when users report confusion about component relationships
+- [ ] Tabbed content blocks -- when CLI reference benefits from global/local variants side by side
+- [ ] "Edit this page" links -- when contribution rate is low and docs have known gaps
+- [ ] Terminal demo recordings -- when quickstart page bounce rate suggests users need visual guidance
 
 ### Future Consideration (v2+)
 
-Features to defer until product-market fit is established.
+Features to defer until the project has meaningful adoption.
 
-- [ ] MCP server registration during install — explicitly deferred by ADR-003; significant complexity
-- [ ] Auto-update check on session start — adds hook weight; GSD already does this pattern but it is not needed for dc MVP
+- [ ] Versioned documentation -- only when breaking changes affect a real installed base
+- [ ] Blog / announcements section -- only if GitHub Releases proves insufficient
+- [ ] Changelog page -- only when release history warrants a dedicated page
 
 ---
 
@@ -127,52 +146,81 @@ Features to defer until product-market fit is established.
 
 | Feature | User Value | Implementation Cost | Priority |
 |---------|------------|---------------------|----------|
-| package.json with bin + files | HIGH | LOW | P1 |
-| bin/install.js global file copy | HIGH | LOW | P1 |
-| settings.json hook merge (add) | HIGH | MEDIUM | P1 |
-| Idempotent install (no duplicate hooks) | HIGH | LOW | P1 |
-| --local flag | MEDIUM | LOW | P1 |
-| --uninstall flag + file removal | MEDIUM | MEDIUM | P1 |
-| settings.json hook removal on uninstall | HIGH | MEDIUM | P1 |
-| Graceful degradation (missing settings.json) | MEDIUM | LOW | P1 |
-| Success message with next step | MEDIUM | LOW | P1 |
-| README.md final polish | HIGH | LOW | P1 |
-| --check / inspection flag | LOW | MEDIUM | P3 |
+| Framework setup + config | HIGH | MEDIUM | P1 |
+| GitHub Pages + CI/CD workflow | HIGH | LOW | P1 |
+| Landing page | HIGH | LOW | P1 |
+| Quickstart guide | HIGH | MEDIUM | P1 |
+| CLI command reference | HIGH | MEDIUM | P1 |
+| User guide | HIGH | MEDIUM | P1 |
+| Architecture/concepts page | MEDIUM | MEDIUM | P1 |
+| Spec overview page | MEDIUM | LOW | P1 |
+| Contributing guide | MEDIUM | LOW | P1 |
+| Sidebar navigation | HIGH | LOW | P1 (framework default) |
+| Full-text search | HIGH | LOW | P1 (framework default) |
+| Dark/light mode | MEDIUM | LOW | P1 (framework default) |
+| Code highlighting + copy | HIGH | LOW | P1 (framework default) |
+| Responsive design | MEDIUM | LOW | P1 (framework default) |
+| Mermaid architecture diagrams | MEDIUM | LOW | P2 |
+| Tabbed content blocks | LOW | LOW | P2 |
+| "Edit this page" links | LOW | LOW | P2 |
+| Terminal demo recordings | MEDIUM | MEDIUM | P2 |
+| Versioned docs | LOW | HIGH | P3 |
+| Blog section | LOW | MEDIUM | P3 |
+| i18n | LOW | HIGH | P3 |
 
 **Priority key:**
-- P1: Must have for launch
-- P2: Should have, add when possible
-- P3: Nice to have, future consideration
+- P1: Must have for launch -- these define the v1.4 milestone
+- P2: Should have, add when possible -- low-effort enhancements post-launch
+- P3: Nice to have, future consideration -- only with demonstrated need
 
 ---
 
-## Comparable Pattern: GSD Installer
+## Competitor Feature Analysis
 
-The GSD project (`get-shit-done-cc`) is the closest analog — same ecosystem, same install target, same hook registration pattern. Installed files visible at `~/.claude/get-shit-done/`. Key observations from the live install:
+| Feature | Material for MkDocs (reference) | VitePress | Starlight (Astro) | Our Approach |
+|---------|--------------------------------|-----------|-------------------|--------------|
+| Sidebar nav | Config-based, collapsible | Config or auto-gen, collapsible | Auto-gen from file structure | Use framework auto-generation |
+| Search | Built-in, runs in browser | MiniSearch, one-line config | Pagefind, zero config | Framework built-in, no external service |
+| Dark/light mode | Toggle built-in | Toggle built-in | Dark default, toggle available | Framework default toggle |
+| Code highlighting | Pygments | Shiki (100+ languages) | Shiki | Framework default (Shiki preferred) |
+| Copy button | Built-in | Built-in | Built-in | Framework default |
+| Tabs | Built-in | Code groups (code blocks only) | Starlight Tabs component (any content) | Framework's tab mechanism |
+| Versioning | mike plugin | No built-in | No built-in | Skip for v1.4 |
+| Mermaid diagrams | Plugin available | Plugin available | Plugin available | Add as P2 enhancement |
+| Deploy to GitHub Pages | Supported | Official guide | Official guide | GitHub Pages with Actions |
+| Language ecosystem | Python/pip | Node.js/npm | Node.js/npm | Must be Node.js (matches project stack) |
 
-| Aspect | GSD Pattern | domain-context-cc Plan |
-|--------|-------------|------------------------|
-| Install target (global) | `~/.claude/` | Same |
-| Install target (local) | `./.claude/` | Same |
-| Hook schema | `hooks.SessionStart[].hooks[].command` | Same (verified from live settings.json) |
-| Existing hooks in settings.json | gsd-check-update.js, gsd-context-monitor.js | Must coexist; installer must not clobber |
-| Runtime asset subdir | `~/.claude/get-shit-done/` | `~/.claude/domain-context/` for templates/ and tools/ |
-| Command files | `~/.claude/commands/gsd/` | `~/.claude/commands/dc/` |
+**Key insight:** Material for MkDocs requires Python, which conflicts with this project's Node.js ecosystem. VitePress and Starlight are both Node.js-native and provide all table-stakes features out of the box. The framework choice is a STACK.md decision, not a features decision.
 
-**Critical finding:** GSD and domain-context-cc both register PostToolUse hooks. The settings.json merge must append to the existing `hooks.PostToolUse[0].hooks[]` array (or create new entries), not replace the array. This was confirmed by inspecting the live settings.json which contains both gsd-context-monitor.js and the dc hooks from a manual install test.
+---
+
+## Content Inventory (Existing Assets)
+
+Content that already exists and can be adapted for the doc site, reducing content creation effort.
+
+| Target Page | Source | Adaptation Needed |
+|-------------|--------|-------------------|
+| Landing page | README.md | Extract hero content, badges, value prop |
+| Quickstart | README.md "Quick Start" section | Expand with more detail and expected output |
+| CLI command reference | README.md "Commands" section | Split into per-command sections with examples and edge cases |
+| Architecture/concepts | ARCHITECTURE.md | Restructure for external audience (less contributor-focused) |
+| GSD integration | README.md "GSD Integration" section | Expand into standalone user guide section |
+| Spec overview | ~/code/domain-context/SPEC.md | Summarize key concepts, link to full spec |
+| Installation details | README.md "Installation" + "Uninstall" sections | Document all modes (global/local/uninstall) with examples |
+| What gets installed | README.md "What Gets Installed" section | Expand into architecture explanation |
 
 ---
 
 ## Sources
 
-- Live `~/.claude/settings.json` inspected directly (2026-03-17) — confirms hook schema: `hooks.SessionStart[].hooks[].command`, `hooks.PostToolUse[].hooks[].command` — HIGH confidence
-- `PLAN.md` Phase 5 specification — authoritative installer requirements for this project — HIGH confidence
-- `PROJECT.md` v1.3 milestone definition — confirms scope boundaries — HIGH confidence
-- `README.md` current state — install commands already defined; implementation must match — HIGH confidence
-- Existing hooks `dc-freshness-check.js` and `dc-context-reminder.js` — confirm Node.js stdin/stdout pattern and graceful degradation requirements — HIGH confidence
-- `~/.claude/` directory structure inspected — confirms GSD install layout as reference pattern — HIGH confidence
+- [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/) -- reference site, feature inventory
+- [VitePress](https://vitepress.dev/) -- framework features, config options, markdown extensions
+- [Starlight by Astro](https://starlight.astro.build/) -- framework features, built-in search and i18n
+- [Docusaurus](https://docusaurus.io/docs/) -- framework comparison baseline
+- [Starlight vs Docusaurus - LogRocket](https://blog.logrocket.com/starlight-vs-docusaurus-building-documentation/) -- framework feature comparison
+- [VitePress vs Starlight - DEV Community](https://dev.to/kevinbism/coding-the-perfect-documentation-deciding-between-vitepress-and-astro-starlight-2i11) -- framework comparison
+- [Documentation Generator Comparison 2025](https://okidoki.dev/documentation-generator-comparison) -- multi-framework overview
 
 ---
-*Feature research for: npm installer and packaging for domain-context-cc Claude Code extension*
+*Feature research for: domain-context-cc documentation site (v1.4 milestone)*
 *Researched: 2026-03-17*
-*Milestone scope: v1.3 — installer, packaging, and final README*

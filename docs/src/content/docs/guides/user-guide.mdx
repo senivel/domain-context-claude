@@ -1,0 +1,123 @@
+---
+title: User Guide
+description: Complete workflow for managing domain context -- from initialization to knowledge extraction.
+sidebar:
+  order: 1
+---
+
+Domain Context lets you codify business knowledge alongside your code so Claude Code always has accurate context. This guide walks through the complete workflow -- from initializing a project to extracting knowledge from planning artifacts. See the [Quickstart](/domain-context-claude/getting-started/quickstart/) if you haven't installed yet.
+
+## Initializing a project
+
+Run `/dc:init` to set up Domain Context in any project. This creates the `.context/` directory structure with MANIFEST.md, domain/, decisions/, and constraints/ subdirectories. It also scaffolds ARCHITECTURE.md, wires AGENTS.md with the domain-context snippet, and creates CLAUDE.md with an `@AGENTS.md` pointer.
+
+The command detects your project automatically -- it reads `package.json`, `pyproject.toml`, or other config files to infer a project description for the templates.
+
+:::tip
+If your project uses [GSD](https://github.com/cyanheads/get-shit-done-cc) and has a `.planning/PROJECT.md` file, `/dc:init` adds the GSD bridge snippet to AGENTS.md automatically.
+:::
+
+See the [CLI Reference](/domain-context-claude/reference/cli/#dcinit) for full usage details.
+
+## Exploring domain context
+
+Run `/dc:explore` to see a summary of all domain context entries with their freshness status. Each entry shows its name, section, and how recently it was verified.
+
+```
+/dc:explore
+```
+
+You can also search by keyword. For example, `/dc:explore caching` filters entries whose name, description, or content matches the search term. If exactly one entry matches, its full content is shown immediately.
+
+The explore command supports progressive disclosure -- after viewing the summary, you can drill into any section and read individual entries without leaving the flow.
+
+See the [CLI Reference](/domain-context-claude/reference/cli/#dcexplore) for full usage details.
+
+## Adding new entries
+
+Run `/dc:add` to create a new domain concept, architecture decision, or constraint from a freeform description. You describe what you want to add in plain language, and Claude extracts the structured content into the right template.
+
+Three entry types are supported:
+- **Domain concept** -- business rules, lifecycle models, domain terminology
+- **Architecture decision** -- significant tradeoffs with lasting impact (auto-numbered as ADRs)
+- **Constraint** -- external requirements from regulations, APIs, or security policies
+
+```
+/dc:add We chose PostgreSQL over MongoDB because our data is highly relational
+```
+
+The command creates the file in `.context/`, updates MANIFEST.md, and offers to commit the changes. It also detects potentially confidential entries and can store them in `.context.local/` instead.
+
+See the [CLI Reference](/domain-context-claude/reference/cli/#dcadd) for full usage details.
+
+## Validating integrity
+
+Run `/dc:validate` to check the structural integrity of your domain context. The command reports issues grouped by type:
+
+- **Broken links** -- MANIFEST.md entries pointing to files that don't exist
+- **Orphan files** -- files in `.context/` subdirectories not referenced in MANIFEST.md
+- **Stale entries** -- entries with verified dates older than 90 days
+- **Missing AGENTS.md imports** -- recommended `@` imports not found in AGENTS.md
+
+After reporting issues, the command offers to fix each group interactively. You can remove broken entries or create missing files from templates, register orphans in MANIFEST.md, bump stale dates, or add missing imports.
+
+See the [CLI Reference](/domain-context-claude/reference/cli/#dcvalidate) for full usage details.
+
+## Refreshing stale entries
+
+Run `/dc:refresh` to review entries that haven't been verified in over 90 days. For each stale entry, the command:
+
+1. Reads the entry's content
+2. Searches the codebase for relevant source code
+3. Assesses whether the entry is still accurate or has drifted
+4. Presents findings with code snippets and a recommendation
+
+You can bump the verified date if the entry is still accurate, apply proposed updates if it has drifted, or make manual edits. The command updates verified dates in both MANIFEST.md and the context file's inline comment.
+
+:::note
+If no entries are stale, the command reports a clean state and exits. Run `/dc:validate` first to fix any structural issues before refreshing.
+:::
+
+See the [CLI Reference](/domain-context-claude/reference/cli/#dcrefresh) for full usage details.
+
+## Extracting from GSD
+
+Run `/dc:extract` to scan completed [GSD](https://github.com/cyanheads/get-shit-done-cc) phase artifacts and extract durable domain knowledge into `.context/` entries. The command reads CONTEXT.md, SUMMARY.md, RESEARCH.md, and RETROSPECTIVE.md from completed phases.
+
+Findings are classified into domain concepts, architecture decisions, and constraints. You see a proposal table with source attribution, then accept or reject each proposal individually.
+
+```
+/dc:extract
+```
+
+You can also target specific phases:
+
+```
+/dc:extract 5-8
+```
+
+:::tip
+Run `/dc:extract` after completing a GSD milestone to capture domain knowledge before it fades into planning history.
+:::
+
+See the [CLI Reference](/domain-context-claude/reference/cli/#dcextract) for full usage details.
+
+## GSD integration
+
+Domain Context integrates with GSD through the AGENTS.md bridge pattern. The flow works like this:
+
+1. `/dc:init` adds domain context pointers to your AGENTS.md
+2. CLAUDE.md imports AGENTS.md via `@AGENTS.md`
+3. GSD agents read CLAUDE.md -- they see domain context -- they make domain-aware decisions
+4. After completing GSD phases, run `/dc:extract` to promote new domain knowledge from `.planning/` into `.context/`
+
+No GSD configuration changes are needed. If your project already uses GSD, `/dc:init` detects `.planning/PROJECT.md` and adds the bridge snippet automatically.
+
+## Passive awareness
+
+Domain Context includes hooks that work automatically after installation -- no commands needed:
+
+- **Session-start freshness check** -- when you open Claude Code, a hook reads `.context/MANIFEST.md` and warns about stale entries
+- **Edit-time CONTEXT.md reminders** -- when you edit files near a `CONTEXT.md`, a hook reminds you to keep it up to date
+
+These hooks run silently in the background. They never block your workflow -- if anything goes wrong, they degrade gracefully and exit without errors.

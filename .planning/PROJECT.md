@@ -35,9 +35,15 @@ Developers can codify and maintain domain knowledge alongside code so that AI as
 - ✓ Production README with badges, command reference, quick start, and uninstall docs — v1.3
 - ✓ 52-test suite covering install, reinstall, and uninstall — v1.3
 
+- ✓ Starlight (Astro) documentation site with sidebar nav, search, dark/light mode, responsive layout — v1.4
+- ✓ GitHub Pages deployment with GitHub Actions CI/CD and lychee link checker — v1.4
+- ✓ Landing page, quickstart guide, user guide, CLI reference for all 6 commands — v1.4
+- ✓ Architecture/concepts page, spec overview, contributing guide — v1.4
+- ✓ Mermaid diagrams on architecture page, tabbed install blocks — v1.4
+
 ### Active
 
-(None — all current requirements shipped)
+(None — planning next milestone)
 
 ### Future
 
@@ -51,25 +57,25 @@ Developers can codify and maintain domain knowledge alongside code so that AI as
 
 ## Current State
 
-v1.3 shipped. All 4 milestones complete. Project is feature-complete for initial release.
+v1.4 shipped. All 5 milestones complete. Project is feature-complete with documentation.
 
 - v1.0: 5 skills, 8 templates, 1 validation script
 - v1.1: 2 hooks, 1 rule, 1 agent
 - v1.2: dc:extract skill, GSD bridge template, dc:init GSD detection
 - v1.3: npm installer (global/local/uninstall), 52-test suite, production README
+- v1.4: Starlight docs site (7 pages), GitHub Pages CI/CD, Mermaid diagrams, tabbed installs
 
 ## Context
 
-- v1.0 shipped: 5 skills, 8 templates, 1 validation script (1,342 LOC markdown + shell)
-- v1.1 shipped: 2 hooks, 1 rule, 1 agent (318 LOC JS + markdown)
-- v1.2 shipped: dc:extract skill, GSD bridge template, dc:init GSD detection (675 LOC markdown + shell)
-- v1.3 shipped: npm package, Node.js installer (241 LOC), 52-test suite, production README + LICENSE
+- v1.0-v1.3: Core tooling (6 skills, 2 hooks, 1 agent, 1 rule, installer, 52 tests)
+- v1.4: Documentation site at docs/ (920 LOC MDX/Astro/CSS), deployed to GitHub Pages
 - The Domain Context spec lives at ~/code/domain-context/SPEC.md
 - Skills follow Claude Code format: YAML frontmatter + `<objective>`, `<execution_context>`, `<process>` sections
 - Hooks follow Claude Code format: Node.js scripts reading JSON stdin, writing JSON stdout
 - Templates read from install location (`~/.claude/domain-context/templates/` or `.claude/domain-context/templates/`)
 - No runtime dependencies — Node.js built-ins only for hooks/installer
 - All files use kebab-case naming, `dc:` prefix for skill/hook/agent names
+- Docs use Astro 6 + Starlight with custom Mermaid.astro component (astro-mermaid incompatible with Astro 6)
 
 ## Constraints
 
@@ -101,6 +107,12 @@ v1.3 shipped. All 4 milestones complete. Project is feature-complete for initial
 | Filter-then-append hook merging | Guarantees idempotency by removing old dc entries before adding fresh ones | ✓ Good |
 | INSTALL_MAP-driven install/uninstall | Same directory manifest drives both directions for symmetric behavior | ✓ Good |
 | node:test for test framework | Built-in, zero dependencies, aligns with project constraints | ✓ Good |
+| Starlight (Astro) for docs | Modern, batteries-included (search, dark/light, sidebar), Astro static output | ✓ Good |
+| Isolated docs/ directory | Own package.json, excluded from npm tarball, independent of root project | ✓ Good |
+| Custom Mermaid.astro component | astro-mermaid incompatible with Astro 6; client-side rendering with MutationObserver for theme | ✓ Good |
+| Three-group sidebar (Start Here, Guides, Reference) | Clear information architecture; autogenerate from directories | ✓ Good |
+| Lychee for CI link checking | Fast, supports --base for relative URLs, runs on GitHub Actions | ✓ Good |
+| No template: splash on landing | Splash template hides sidebar; standard doc layout with hero: frontmatter gives both sidebar and hero | ✓ Good |
 
 ---
-*Last updated: 2026-03-17 after v1.3 milestone completed*
+*Last updated: 2026-03-18 after v1.4 milestone completed*

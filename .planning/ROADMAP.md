@@ -6,6 +6,7 @@
 - ✅ **v1.1 Hooks, Rules & Agent** — Phases 10-13 (shipped 2026-03-17)
 - ✅ **v1.2 GSD Integration** — Phases 14-16 (shipped 2026-03-17)
 - ✅ **v1.3 Installation & Distribution** — Phases 17-19 (shipped 2026-03-17)
+- ✅ **v1.4 Documentation** — Phases 20-24 (shipped 2026-03-18)
 
 ## Phases
 
@@ -49,6 +50,19 @@ See .planning/milestones/ for archived phase details.
 
 </details>
 
+<details>
+<summary>✅ v1.4 Documentation (Phases 20-24) — SHIPPED 2026-03-18</summary>
+
+- [x] Phase 20: Scaffold Starlight Site (1/1 plans) — completed 2026-03-17
+- [x] Phase 21: CI/CD and GitHub Pages (1/1 plans) — completed 2026-03-18
+- [x] Phase 22: User-Facing Content (2/2 plans) — completed 2026-03-18
+- [x] Phase 23: Conceptual and Contributor Content (2/2 plans) — completed 2026-03-18
+- [x] Phase 24: Visual Enhancements (1/1 plans) — completed 2026-03-18
+
+See .planning/milestones/ for archived phase details.
+
+</details>
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -57,3 +71,4 @@ See .planning/milestones/ for archived phase details.
 | 10-13 | v1.1 | 4/4 | Complete | 2026-03-17 |
 | 14-16 | v1.2 | 4/4 | Complete | 2026-03-17 |
 | 17-19 | v1.3 | 4/4 | Complete | 2026-03-17 |
+| 20-24 | v1.4 | 7/7 | Complete | 2026-03-18 |

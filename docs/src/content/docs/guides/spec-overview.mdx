@@ -1,0 +1,78 @@
+---
+title: Spec Overview
+description: The Domain Context specification -- a standard format for storing domain knowledge alongside code.
+sidebar:
+  order: 3
+---
+
+:::note
+Domain Context is an open specification. Read the full spec at [github.com/senivel/domain-context](https://github.com/senivel/domain-context).
+:::
+
+## What the spec is
+
+The Domain Context specification defines a standard format for storing domain knowledge alongside code. It is language-agnostic and tool-agnostic -- any project, any AI assistant.
+
+**The spec defines the format; this tool automates the workflow.**
+
+The specification tells you what files to create, where to put them, and how to structure them. This tool (`domain-context-cc`) provides the slash commands, hooks, and automation that make working with that format fast and practical.
+
+## Three pillars
+
+The spec organizes domain knowledge into three categories:
+
+- **Domain concepts** (`domain/`) -- business rules, models, terminology, and relationships. These are the concepts developers need to understand but that live outside the code.
+- **Decisions** (`decisions/`) -- architecture decision records (ADRs) with context, rationale, and tradeoffs. These capture the "why" behind significant choices.
+- **Constraints** (`constraints/`) -- external requirements, API contracts, regulatory needs, and security policies. These are facts the codebase must respect.
+
+## Required directory structure
+
+Every project following the spec includes this structure:
+
+```
+.context/
+  MANIFEST.md
+  domain/
+  decisions/
+  constraints/
+```
+
+**MANIFEST.md** is the index. It lists every entry with a brief description and a verified date. At roughly 300 tokens, it enables progressive disclosure -- AI tools scan the index first, then load individual files on demand based on task relevance.
+
+## Example domain concept file
+
+A domain concept file follows a simple structure:
+
+```markdown
+# Billing Model
+
+<!-- verified: 2026-03-15 -->
+
+## What This Is
+[Description of the domain concept]
+
+## Key Attributes
+[Business rules, lifecycle, relationships]
+
+## Business Rules
+[Invariants and constraints]
+```
+
+The `<!-- verified: 2026-03-15 -->` comment tracks freshness. Hooks and commands use this date to detect stale entries -- anything older than 90 days gets flagged for review.
+
+## How this tool implements the spec
+
+Domain Context for Claude Code provides six commands that automate the spec's workflow:
+
+- **/dc:init** -- creates the `.context/` directory structure and wires AGENTS.md
+- **/dc:explore** -- browses and searches existing domain context entries
+- **/dc:add** -- creates new domain concepts, decisions, or constraints from plain language
+- **/dc:validate** -- checks structural integrity (broken links, orphans, stale entries)
+- **/dc:refresh** -- reviews and updates stale entries with codebase evidence
+- **/dc:extract** -- promotes knowledge from GSD planning artifacts into `.context/`
+
+See the [CLI Reference](/domain-context-claude/reference/cli/) for detailed command documentation and the [User Guide](/domain-context-claude/guides/user-guide/) for the complete workflow.
+
+---
+
+For the full specification, visit [github.com/senivel/domain-context](https://github.com/senivel/domain-context).

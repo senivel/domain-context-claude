@@ -1,0 +1,71 @@
+---
+title: Quickstart
+description: Go from zero to a working .context/ directory in under 5 minutes.
+---
+
+import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+## Prerequisites
+
+- Node.js 20+
+- [Claude Code](https://claude.ai/code)
+
+## Install and initialize
+
+<Steps>
+
+1. **Install domain-context-cc:**
+
+   <Tabs syncKey="install">
+     <TabItem label="Global (recommended)">
+       ```bash
+       npx domain-context-cc
+       ```
+     </TabItem>
+     <TabItem label="Local">
+       ```bash
+       npx domain-context-cc --local
+       ```
+     </TabItem>
+     <TabItem label="Uninstall">
+       ```bash
+       npx domain-context-cc --uninstall
+       ```
+     </TabItem>
+   </Tabs>
+
+2. **Open your project in Claude Code and run:**
+
+   ```
+   /dc:init
+   ```
+
+   This creates the `.context/` directory with MANIFEST.md, domain/, decisions/, and constraints/ subdirectories. It also scaffolds ARCHITECTURE.md, wires AGENTS.md, and creates CLAUDE.md.
+
+3. **Start working -- Claude Code is now domain-context-aware.**
+
+   Domain context hooks will remind you to keep `.context/` files up to date as you work.
+
+</Steps>
+
+## What just happened
+
+The `/dc:init` command set up the complete Domain Context structure in your project. It created the `.context/` directory for storing domain knowledge, scaffolded root-level files that wire everything together, and configured `.gitignore` to exclude local context.
+
+```
+Domain Context initialized:
+  .context/MANIFEST.md     created
+  .context/domain/         created
+  .context/decisions/      created
+  .context/constraints/    created
+  ARCHITECTURE.md          created
+  AGENTS.md                created
+  CLAUDE.md                created
+  .gitignore               updated
+```
+
+## Next steps
+
+- [User Guide](/domain-context-claude/guides/user-guide/) -- learn the full workflow: explore, validate, add, refresh, extract
+- [CLI Reference](/domain-context-claude/reference/cli/) -- detailed usage for all 6 commands
+- [Domain Context Spec](https://github.com/senivel/domain-context) -- the specification this tool implements

@@ -1,18 +1,76 @@
 # Stack Research
 
-**Domain:** npm packaging and Node.js installer for Claude Code extension
+**Domain:** Documentation site for Claude Code extension (npm package)
 **Researched:** 2026-03-17
 **Confidence:** HIGH
 
 ---
 
-## What Changed in v1.3
+## Decision: Use Starlight (Astro) for Documentation
 
-This is a focused delta from the v1.2 research. All prior content (skills, hooks, agents, rules, templates) remains valid and unchanged. This document covers only what is needed for THREE new artifacts:
+**Recommendation: Starlight** because it delivers every Material for MkDocs feature out of the box (sidebar nav, Pagefind search, dark/light toggle, code blocks, responsive layout) with zero configuration, ships the lightest pages of any JS doc framework (<50KB first load), has first-party GitHub Pages deployment via `withastro/action@v5`, and keeps the docs site completely isolated from the main npm package (no React/Vue runtime leaking into `domain-context-cc`).
 
-1. **`package.json`** — npm package configuration (bin entry, files list, engines)
-2. **`bin/install.js`** — Node.js installer script (--global, --local, --uninstall, settings.json merge)
-3. **`README.md`** — Final documentation (no new technology, just content)
+---
+
+## Comparison: Starlight vs VitePress vs Docusaurus
+
+| Criterion | Starlight (Astro) | VitePress | Docusaurus |
+|-----------|-------------------|-----------|------------|
+| **Version** | 0.38.1 (active development, pre-1.0) | 1.6.4 (stable) | 3.9.2 (stable) |
+| **Weekly npm downloads** | ~98K | ~220K | ~320K |
+| **Built-in search** | Pagefind (full-text, zero config) | MiniSearch (local, zero config) | Algolia plugin (requires account) or community local search |
+| **Dark/light mode** | Built-in toggle, zero config | Built-in toggle, zero config | Built-in toggle, zero config |
+| **Sidebar nav** | Config-driven + auto-generated from file structure | Config-driven + auto-generated | Config-driven + auto-generated |
+| **Code blocks** | Shiki syntax highlighting, line highlights, diffs, titles | Shiki highlighting, line highlights, code groups | Prism (default) or Shiki, tabs |
+| **Responsive** | Yes, built-in | Yes, built-in | Yes, built-in |
+| **First-load size** | <50KB compressed | ~100KB compressed | ~200KB+ compressed (React runtime) |
+| **Build speed** | Fast (Go-based Astro compiler) | Fast (Vite) | Slow (Webpack-based, React SSR) |
+| **Content format** | Markdown, MDX, Markdoc | Markdown (Vue components inline) | Markdown, MDX |
+| **JS framework** | Framework-agnostic (Astro) | Vue.js required for customization | React required for customization |
+| **GitHub Pages action** | Official `withastro/action@v5` | Manual workflow (standard actions) | Manual workflow (standard actions) |
+| **i18n** | Built-in | Built-in | Built-in |
+| **Node.js requirement** | >=20.3.0 (Astro 5.x) | >=18.0.0 | >=18.0.0 |
+
+### Why Starlight wins for this project
+
+1. **Zero-config features match MkDocs parity requirements.** Pagefind search, dark/light toggle, sidebar navigation, and responsive design are all enabled by default. No plugins to configure, no third-party accounts (unlike Docusaurus's Algolia dependency for good search).
+
+2. **Framework-agnostic is the right fit.** This project has zero frontend framework dependencies. Docusaurus locks you into React. VitePress locks you into Vue. Starlight runs on Astro, which outputs static HTML and ships zero JS runtime by default. If you need interactive components later, you can use any framework (React, Vue, Svelte) via Astro islands.
+
+3. **Lightest output.** First load under 50KB. For a documentation site that should feel fast and professional (like Material for MkDocs), this matters. Docusaurus ships the entire React runtime (~200KB+).
+
+4. **First-party GitHub Pages support.** `withastro/action@v5` is maintained by the Astro team. One YAML file, no custom build scripts. VitePress and Docusaurus require assembling your own workflow from generic actions.
+
+5. **Best code block support.** Shiki-based highlighting with line numbers, diff highlighting, code titles, and frame styles (terminal vs code) -- all features that matter for a CLI tool's documentation.
+
+### Why NOT VitePress
+
+VitePress is an excellent tool and would be the second choice. It loses on two points:
+- **Vue dependency.** Customizing VitePress beyond config requires writing Vue components. This project has no Vue expertise context and no reason to adopt Vue.
+- **No official deploy action.** You write your own workflow, which is straightforward but more maintenance than `withastro/action@v5`.
+
+VitePress would be the right choice if this were a Vue ecosystem project or if Starlight's pre-1.0 status is a dealbreaker.
+
+### Why NOT Docusaurus
+
+Docusaurus is disqualified for this project:
+- **React runtime overhead.** Ships ~200KB+ of React to the browser for a static documentation site. Antithetical to the "lightweight, zero-dependency" philosophy of `domain-context-cc`.
+- **Slow builds.** Webpack-based build is noticeably slower than Vite/Astro-based alternatives.
+- **Search requires Algolia.** The built-in search is basic; real search requires an Algolia account and API key, or a community plugin.
+- **Heavier dependency tree.** `npm install` pulls hundreds of transitive dependencies.
+
+Docusaurus would be the right choice for a large enterprise project with versioned docs, blog, plugin ecosystem needs, and existing React investment.
+
+### Pre-1.0 risk assessment for Starlight
+
+Starlight is at v0.38.1, not yet 1.0. This is a real consideration. Mitigating factors:
+- **Active development.** Published 2 days ago as of research date. Monthly releases.
+- **98K weekly downloads.** Widely adopted despite pre-1.0 label.
+- **Astro itself is stable.** Astro 5.x is mature. Starlight is a theme on top of stable Astro.
+- **Breaking changes are config-only.** Starlight API surface is small (astro.config.mjs + frontmatter). Upgrades are `@astrojs/upgrade` + minor config fixes.
+- **Our docs are simple.** We use zero custom components. Risk of breaking changes affecting us is minimal.
+
+**Verdict:** The pre-1.0 label is a formality, not a real risk for this use case.
 
 ---
 
@@ -22,233 +80,187 @@ This is a focused delta from the v1.2 research. All prior content (skills, hooks
 
 | Technology | Version | Purpose | Why Recommended |
 |------------|---------|---------|-----------------|
-| Node.js | `>=20.0.0` minimum; v24 Active LTS current | Runtime for installer script | v20 and v22 are Maintenance LTS; v24 is Active LTS as of 2026. `fs.cpSync` (added v16.7.0) and `fs.rmSync` (added v14.14.0) are both available across all supported LTS versions. Matches existing hook runtime. |
-| npm | bundled with Node | Package registry and npx distribution | `npx domain-context-cc` downloads and runs the `bin` entry without a separate install step. Zero user friction. `files` whitelist controls what ships in the tarball. |
+| Astro | 5.x (latest) | Static site framework | Go-based compiler, zero JS runtime by default, official GitHub Pages action |
+| @astrojs/starlight | 0.38.x (latest) | Documentation theme | Full-featured docs theme: search, dark/light, sidebar, code blocks, responsive -- all zero-config |
+| Node.js | >=20.3.0 | Build-time runtime | Matches existing project constraint (`engines.node: ">=20.0.0"` in package.json). Astro 5.x requires >=20.3.0. |
 
-### Node.js Built-in APIs
+### Built-in Features (no additional packages needed)
 
-All needed functionality is covered by Node.js built-ins. Verified functional in v24.14.0 (current dev environment).
+| Feature | Provider | Notes |
+|---------|----------|-------|
+| Full-text search | Pagefind (bundled with Starlight) | Indexes at build time, serves from static files. No external service. |
+| Dark/light mode | Starlight built-in | Toggle in header, respects system preference, zero config. |
+| Sidebar navigation | Starlight built-in | Auto-generated from file structure or manually configured in astro.config.mjs. |
+| Syntax highlighting | Shiki (bundled with Astro) | Line numbers, line highlights, diff markers, code titles, terminal frames. |
+| Responsive layout | Starlight built-in | Mobile-first, collapsible sidebar on mobile. |
+| SEO | Astro built-in | Automatic sitemap, meta tags from frontmatter. |
+| Table of contents | Starlight built-in | Right sidebar, auto-generated from headings. |
 
-| API | Module | Purpose | Notes |
-|-----|--------|---------|-------|
-| `fs.cpSync(src, dest, opts)` | `fs` | Recursive directory copy for installer | Added v16.7.0. Use `{recursive: true, force: true}`. `force: true` overwrites on reinstall. |
-| `fs.rmSync(path, opts)` | `fs` | Remove installed directories on uninstall | Added v14.14.0. Use `{recursive: true, force: true}`. |
-| `fs.existsSync(path)` | `fs` | Check if settings.json or install dir exists before reading | Available since Node.js 0.x. |
-| `fs.readFileSync(path, enc)` | `fs` | Read settings.json for merge | Synchronous I/O is correct here — installer is a one-shot CLI, not a server. |
-| `fs.writeFileSync(path, data)` | `fs` | Write merged settings.json | Pair with `JSON.stringify(obj, null, 2)` to keep file human-readable. |
-| `fs.mkdirSync(path, opts)` | `fs` | Create target directories if missing | Use `{recursive: true}` to create nested dirs without checking intermediate existence. |
-| `path.join(...parts)` | `path` | Construct platform-safe file paths | Use for all path construction. Never string concatenation. |
-| `path.dirname(p)` | `path` | Resolve directory from `__filename` or a path | Used to locate source files relative to the installed script. |
-| `os.homedir()` | `os` | Resolve `~/.claude` for global install target | More reliable than `process.env.HOME` which can be unset in some environments. |
-| `process.argv` | built-in | CLI flag parsing (--global, --local, --uninstall) | A `for` loop over `process.argv.slice(2)` handles all 3 flags with 5 lines of code. |
-| `process.exit(code)` | built-in | Exit with error code on failure | Use `process.exit(1)` on hard errors; `process.exit(0)` on success or expected early exit. |
-| `JSON.parse` / `JSON.stringify` | built-in | Parse and re-serialize settings.json | `JSON.stringify(obj, null, 2)` produces 2-space-indented output consistent with Claude Code's own format. |
+### Development Dependencies
 
-### Supporting Libraries
+| Package | Purpose | Install Location |
+|---------|---------|------------------|
+| `astro` | Core framework + dev server | `docs/package.json` devDependencies |
+| `@astrojs/starlight` | Documentation theme | `docs/package.json` devDependencies |
+| `sharp` | Image optimization (Astro peer dep) | `docs/package.json` devDependencies |
 
-**None.** Zero runtime dependencies. This is a hard project constraint — and the right architectural choice for an installer:
+### GitHub Actions Dependencies
 
-- Installers that pull transitive deps break when npm registry is unreachable or slow
-- All needed APIs are built-in to Node.js (verified above)
-- Existing hooks use zero deps — installer must match this pattern
+| Action | Version | Purpose |
+|--------|---------|---------|
+| `actions/checkout@v5` | v5 | Clone repository |
+| `withastro/action@v5` | v5 | Build Astro site + upload Pages artifact |
+| `actions/deploy-pages@v4` | v4 | Deploy artifact to GitHub Pages |
 
 ---
 
-## package.json Configuration
+## Project Structure: Isolated docs/ Subdirectory
 
-The complete set of fields needed for npm distribution:
+**Critical decision: The docs site MUST live in a `docs/` subdirectory with its own `package.json`, NOT in the project root.**
+
+Rationale:
+- The main `package.json` has `"files"` whitelist controlling the npm tarball. Adding Astro dependencies to root would either bloat the published package or require careful exclusion.
+- The main package has zero runtime dependencies as a hard constraint. Docs dependencies (astro, starlight, sharp) must not appear in the published package.
+- Separate `docs/package.json` means `npm install` in root remains unchanged. Docs build is independent.
+- GitHub Action installs docs dependencies in `docs/` only.
+
+```
+domain-context-cc/
+  package.json              # npm package (unchanged, zero deps)
+  docs/
+    package.json            # docs-only dependencies (astro, starlight)
+    astro.config.mjs        # Starlight configuration
+    src/
+      content/
+        docs/               # Markdown content files
+          index.mdx         # Landing page
+          getting-started/
+          guides/
+          reference/
+    public/                 # Static assets (logo, favicon)
+```
+
+### docs/package.json
 
 ```json
 {
-  "name": "domain-context-cc",
-  "version": "1.3.0",
-  "description": "Claude Code extension for Domain Context specification — skills, hooks, agents, and installer",
-  "type": "commonjs",
-  "bin": {
-    "domain-context-cc": "./bin/install.js"
+  "name": "domain-context-cc-docs",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
   },
-  "files": [
-    "bin/",
-    "commands/",
-    "hooks/",
-    "agents/",
-    "rules/",
-    "templates/"
-  ],
-  "engines": {
-    "node": ">=20.0.0"
-  },
-  "keywords": ["claude", "claude-code", "domain-context"],
-  "license": "MIT"
+  "dependencies": {
+    "astro": "^5.0.0",
+    "@astrojs/starlight": "^0.38.0",
+    "sharp": "^0.33.0"
+  }
 }
 ```
 
-**`bin` field:** Maps the package name to the installer entry point. When a user runs `npx domain-context-cc`, npm downloads the package and executes `bin/install.js`. The file must have `#!/usr/bin/env node` as its first line. npm automatically sets the executable bit during install.
-
-**`files` field:** Whitelist of what ships in the tarball. Omitting `.planning/`, `.context/`, `.git/`, `tools/`, root `.md` files keeps the tarball small and avoids shipping development artifacts. Note: `README.md`, `package.json`, and `LICENSE` are always included by npm regardless of `files`.
-
-**`engines` field:** `>=20.0.0` targets the Maintenance LTS minimum. This is a soft advisory — npm warns if violated but does not block install. The installer can add a hard runtime check: `if (parseInt(process.version.slice(1)) < 20) { process.exit(1); }`.
-
-**`type: "commonjs"`:** Explicit declaration prevents Node.js module resolution ambiguity. Existing hooks use `require()` — this must match.
-
-**No `main` field needed:** The package is not a library. `bin` is the entry point.
+`"private": true` prevents accidental publishing of the docs package.
 
 ---
 
-## Node.js Patterns for Installer
+## Installation
 
-### CLI flag parsing
+```bash
+# From project root — docs site setup
+cd docs
+npm install
 
-```javascript
-const args = process.argv.slice(2);
-const flags = {};
-for (const arg of args) {
-  if (arg.startsWith('--')) flags[arg.slice(2)] = true;
-}
+# Development server
+npm run dev
 
-// Default: global install (no flags = --global behavior)
-const isGlobal  = flags.global || (!flags.local && !flags.uninstall);
-const isLocal   = flags.local;
-const isUninstall = flags.uninstall;
+# Production build (outputs to docs/dist/)
+npm run build
+
+# Preview production build locally
+npm run preview
 ```
 
-Default to global install because `npx domain-context-cc` (no flags) is the primary use case.
+**Do NOT add docs dependencies to the root package.json.** The root package is the npm-published artifact. Docs dependencies are build-time only and must stay isolated.
 
-### Install target paths
+---
 
-```javascript
-const path = require('path');
-const os   = require('os');
+## GitHub Actions Workflow
 
-const GLOBAL_DIR = path.join(os.homedir(), '.claude');
-const LOCAL_DIR  = path.join(process.cwd(), '.claude');
+```yaml
+# .github/workflows/docs.yml
+name: Deploy docs to GitHub Pages
 
-const installDir   = isGlobal ? GLOBAL_DIR : LOCAL_DIR;
-const commandsDir  = path.join(installDir, 'commands', 'dc');
-const hooksDir     = path.join(installDir, 'hooks');
-const agentsDir    = path.join(installDir, 'agents');
-const rulesDir     = path.join(installDir, 'rules');
-// Templates namespaced to avoid collision with other tools' templates
-const templatesDir = path.join(installDir, 'domain-context', 'templates');
-const settingsPath = path.join(installDir, 'settings.json');
+on:
+  push:
+    branches: [main]
+    paths: ['docs/**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: withastro/action@v5
+        with:
+          path: ./docs
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
 ```
 
-The `domain-context/templates/` subdirectory namespacing is already established in existing skills (they look up templates from `~/.claude/domain-context/templates/`). Keep this consistent.
+Key configuration points:
+- `paths: ['docs/**']` ensures the workflow only triggers on docs changes, not on every push.
+- `path: ./docs` tells the Astro action where the Astro project lives.
+- `withastro/action@v5` auto-detects package manager from lockfile presence.
+- `concurrency` prevents parallel deployments from conflicting.
 
-### File copy (install)
+---
 
-```javascript
-const fs   = require('fs');
-
-const srcRoot = path.join(__dirname, '..');  // package root
-
-fs.mkdirSync(commandsDir,  { recursive: true });
-fs.mkdirSync(hooksDir,     { recursive: true });
-fs.mkdirSync(agentsDir,    { recursive: true });
-fs.mkdirSync(rulesDir,     { recursive: true });
-fs.mkdirSync(templatesDir, { recursive: true });
-
-fs.cpSync(path.join(srcRoot, 'commands', 'dc'), commandsDir,  { recursive: true, force: true });
-fs.cpSync(path.join(srcRoot, 'hooks'),          hooksDir,     { recursive: true, force: true });
-fs.cpSync(path.join(srcRoot, 'agents'),         agentsDir,    { recursive: true, force: true });
-fs.cpSync(path.join(srcRoot, 'rules'),          rulesDir,     { recursive: true, force: true });
-fs.cpSync(path.join(srcRoot, 'templates'),      templatesDir, { recursive: true, force: true });
-```
-
-`force: true` enables idempotent reinstall — existing files are overwritten with the new version.
-
-### settings.json merge
-
-The actual `~/.claude/settings.json` structure (observed directly) uses arrays of hook entry objects. The merge must append without duplicating, and use absolute paths for global installs.
+## Astro Configuration
 
 ```javascript
-function mergeSettings(settingsPath, hookEvent, entry) {
-  let settings = {};
-  if (fs.existsSync(settingsPath)) {
-    try {
-      settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
-    } catch (e) {
-      // Malformed settings.json — start fresh rather than corrupt it further
-      settings = {};
-    }
-  }
-  if (!settings.hooks) settings.hooks = {};
-  if (!settings.hooks[hookEvent]) settings.hooks[hookEvent] = [];
+// docs/astro.config.mjs
+import { defineConfig } from 'astro/config';
+import starlight from '@astrojs/starlight';
 
-  // Idempotency: skip if this command is already registered
-  const newCommand = entry.hooks[0].command;
-  const alreadyRegistered = settings.hooks[hookEvent].some(
-    e => e.hooks && e.hooks.some(h => h.command === newCommand)
-  );
-  if (!alreadyRegistered) {
-    settings.hooks[hookEvent].push(entry);
-  }
-
-  fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + '\n', 'utf8');
-}
-
-// Build entries using absolute paths (prevents breakage across cwd changes)
-const sessionStartEntry = {
-  hooks: [{
-    type: 'command',
-    command: `node "${path.join(hooksDir, 'dc-freshness-check.js')}"`
-  }]
-};
-
-const postToolUseEntry = {
-  matcher: 'Edit|Write|MultiEdit',
-  hooks: [{
-    type: 'command',
-    command: `node "${path.join(hooksDir, 'dc-context-reminder.js')}"`
-  }]
-};
-
-mergeSettings(settingsPath, 'SessionStart', sessionStartEntry);
-mergeSettings(settingsPath, 'PostToolUse',  postToolUseEntry);
+export default defineConfig({
+  site: 'https://senivel.github.io',
+  base: '/domain-context-claude',
+  integrations: [
+    starlight({
+      title: 'Domain Context',
+      social: [
+        { icon: 'github', label: 'GitHub', href: 'https://github.com/senivel/domain-context-claude' },
+      ],
+      sidebar: [
+        { label: 'Getting Started', autogenerate: { directory: 'getting-started' } },
+        { label: 'Guides', autogenerate: { directory: 'guides' } },
+        { label: 'Reference', autogenerate: { directory: 'reference' } },
+      ],
+    }),
+  ],
+});
 ```
 
-**Why absolute paths:** The observed `~/.claude/settings.json` uses absolute quoted paths for global hooks (e.g., `node "/Users/alevine/.claude/hooks/gsd-check-update.js"`). Relative paths break when Claude Code changes working directory between sessions.
-
-### Uninstall
-
-```javascript
-function uninstall(installDir, settingsPath) {
-  // Remove only the files this installer placed — never touch .context/
-  const dirsToRemove = [
-    path.join(installDir, 'commands', 'dc'),
-    path.join(installDir, 'domain-context', 'templates'),
-  ];
-  const filesToRemove = [
-    path.join(installDir, 'hooks', 'dc-freshness-check.js'),
-    path.join(installDir, 'hooks', 'dc-context-reminder.js'),
-    path.join(installDir, 'agents', 'dc-domain-validator.md'),
-    path.join(installDir, 'rules',  'dc-context-editing.md'),
-  ];
-
-  for (const dir of dirsToRemove) {
-    if (fs.existsSync(dir)) fs.rmSync(dir, { recursive: true, force: true });
-  }
-  for (const file of filesToRemove) {
-    if (fs.existsSync(file)) fs.rmSync(file);
-  }
-
-  // Remove hook entries from settings.json
-  if (fs.existsSync(settingsPath)) {
-    const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
-    const commandsToRemove = ['dc-freshness-check.js', 'dc-context-reminder.js'];
-    for (const event of Object.keys(settings.hooks || {})) {
-      settings.hooks[event] = (settings.hooks[event] || []).filter(
-        entry => !entry.hooks || !entry.hooks.some(
-          h => commandsToRemove.some(cmd => h.command && h.command.includes(cmd))
-        )
-      );
-    }
-    fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + '\n', 'utf8');
-  }
-}
-```
-
-**Critical:** Never remove `.context/` directories. Those are user data created by dc:init in target projects, not installer artifacts.
+- `site` + `base` are required for GitHub Pages deployment on a project repository.
+- `autogenerate` creates sidebar entries from the file structure automatically.
 
 ---
 
@@ -256,15 +268,14 @@ function uninstall(installDir, settingsPath) {
 
 | Avoid | Why | Use Instead |
 |-------|-----|-------------|
-| `chalk`, `ora`, `kleur` | Runtime dep violates constraint; installer output is minimal | `process.stdout.write()` with plain text |
-| `commander`, `yargs`, `minimist` | Deps for 3 boolean flags is wasteful | `process.argv.slice(2)` loop (5 lines) |
-| `fs-extra` | Wraps `fs` — no benefit now that `fs.cpSync` exists natively | `fs.cpSync` with `{recursive: true}` |
-| `glob` / `fast-glob` | Only needed for dynamic file discovery — installer copies a known static directory layout | Hardcoded `fs.cpSync` calls per directory |
-| `rimraf` | `fs.rmSync(dir, {recursive: true})` added in Node 14.14.0 covers the need natively | `fs.rmSync` built-in |
-| `shelljs` | Shell command wrapper — no shell commands needed | Direct `fs` API calls |
-| `json-merge-patch`, `deepmerge` | settings.json merge is shallow (append to arrays) — no deep-merge needed | `Array.prototype.some` + `Array.prototype.push` |
-| `semver` | Engine version check is a single integer comparison | `parseInt(process.version.slice(1))` |
-| ESM / `import`/`export` | Hooks use CommonJS `require()` — mixing module systems creates confusion | `require()` throughout, `"type": "commonjs"` in package.json |
+| Docusaurus | Ships React runtime (~200KB+), slow Webpack builds, Algolia search dependency | Starlight (lighter, faster, search built-in) |
+| VitePress | Vue lock-in, no official deploy action | Starlight (framework-agnostic, official action) |
+| Tailwind CSS | Starlight's built-in styling covers all documentation needs. Adding Tailwind introduces config overhead for zero gain. | Starlight CSS variables for minor tweaks |
+| Custom React/Vue components | No interactive features needed for static docs | Starlight's built-in components (Cards, Tabs, Aside, etc.) |
+| Algolia DocSearch | Requires external account, API key management, indexing setup | Pagefind (bundled, zero config, runs locally) |
+| `@astrojs/mdx` separately | Starlight bundles MDX support already | Starlight's built-in MDX |
+| Docs deps in root package.json | Would bloat npm tarball or require exclusion complexity | Separate `docs/package.json` |
+| Monorepo tools (Turborepo, Lerna) | Two package.jsons do not warrant monorepo tooling. `cd docs && npm install` is sufficient. | Direct `cd docs` commands |
 
 ---
 
@@ -272,45 +283,40 @@ function uninstall(installDir, settingsPath) {
 
 | Recommended | Alternative | When to Use Alternative |
 |-------------|-------------|-------------------------|
-| `fs.cpSync` | Manual recursive walk with `fs.readdirSync` + `fs.copyFileSync` | If targeting Node < 16.7 (not needed — LTS minimum is 20) |
-| Manual `process.argv` parsing | `commander` or `minimist` | If CLI needed >5 flags, subcommands, `--help` generation, or value-bearing flags — overkill for 3 boolean flags |
-| `JSON.parse` / `JSON.stringify` | `json5`, `jsonc-parser` | If settings.json had comments — Claude Code's settings.json is strict JSON with no comments |
-| `os.homedir()` | `process.env.HOME` | If targeting Windows explicitly — `os.homedir()` works on all platforms |
-| Array-append merge | Full JSON deep-merge library | If settings had arbitrary nested structures to merge — only hook arrays need appending |
-| Absolute hook paths in settings.json | Relative paths | If the installer only supported local install — global install requires absolute paths for cross-session reliability |
-
----
-
-## Development Workflow
-
-| Tool | Purpose | Command |
-|------|---------|---------|
-| `npm pack` | Test package before publish; verify `files` list | `npm pack` → produces `domain-context-cc-X.Y.Z.tgz` |
-| `npx ./domain-context-cc-*.tgz` | Simulate end-user `npx domain-context-cc` invocation locally | Run after `npm pack` |
-| `npm publish --dry-run` | Verify what would be uploaded to registry | Run before first publish |
+| Starlight (Astro) | VitePress | If you need Vue ecosystem integration or if Starlight pre-1.0 status becomes a blocking concern for your team |
+| Starlight (Astro) | Docusaurus | If you need doc versioning (v1, v2 side-by-side), blog integration, or are already invested in React |
+| Starlight (Astro) | Material for MkDocs | If you prefer Python tooling over JS. MkDocs is what the reference site uses and is excellent, but introduces a Python dependency into a Node.js project |
+| Separate docs/ dir | Root-level Astro | Never for this project. Root package.json must stay clean for npm publishing. |
+| Pagefind (Starlight built-in) | Algolia DocSearch | If you have >10K pages and need server-side search with analytics |
+| GitHub Pages | Netlify / Vercel | If you need server-side rendering, edge functions, or preview deploys for PRs. GitHub Pages is sufficient for static docs. |
 
 ---
 
 ## Version Compatibility
 
-| Component | Version | Notes |
-|-----------|---------|-------|
-| Node.js 20 (Maintenance LTS) | `fs.cpSync`, `fs.rmSync` | cpSync added v16.7.0, rmSync added v14.14.0 — both available. |
-| Node.js 22 (Maintenance LTS) | All APIs used | No compatibility issues. |
-| Node.js 24 (Active LTS) | All APIs used | Verified locally in dev environment. |
-| npm 10+ | `files` whitelist, `bin` entry | No special npm version requirements for these fields. |
-| Claude Code | current (2026) | settings.json hook format verified from live `~/.claude/settings.json`. |
+| Package | Compatible With | Notes |
+|---------|-----------------|-------|
+| Astro 5.x | Node.js >=20.3.0 | Project already requires >=20.0.0. The 0.3.0 difference is negligible. |
+| @astrojs/starlight 0.38.x | Astro 5.x | Starlight tracks Astro major versions. |
+| withastro/action@v5 | Astro 5.x | Official action, auto-detects package manager. |
+| sharp 0.33.x | Node.js >=18.17.0 | Image optimization peer dependency. Well within our Node range. |
+| Pagefind (bundled) | Any (static output) | Generates a search index at build time. No runtime dependency. |
 
 ---
 
 ## Sources
 
-- https://nodejs.org/docs/latest-v24.x/api/fs.html — `fs.cpSync` verified: added v16.7.0, supports `{recursive: true, force: true}` options. HIGH confidence.
-- https://nodejs.org/en/about/previous-releases — Node.js 24 is Active LTS, 22 and 20 are Maintenance LTS as of 2026-03-17. HIGH confidence.
-- `/Users/alevine/.claude/settings.json` (read directly) — Verified settings.json structure: hooks arrays with `{hooks: [{type, command}]}` entries, absolute quoted paths for global hooks. HIGH confidence.
-- Local `node -e` verification — `fs.cpSync` with `{recursive: true}` functional in Node 24.14.0; `typeof fs.cpSync === 'function'` confirmed. HIGH confidence.
-- Existing hooks in this repo (`hooks/dc-freshness-check.js`) — Confirmed `require()` / CommonJS pattern, `process.stdin` / `process.stdout` usage. HIGH confidence.
+- https://starlight.astro.build/ -- Starlight official docs. Built-in features (Pagefind search, dark/light, sidebar, i18n) verified. HIGH confidence.
+- https://starlight.astro.build/getting-started/ -- Install command and beta status confirmed. HIGH confidence.
+- https://docs.astro.build/en/guides/deploy/github/ -- Official GitHub Pages deployment guide with `withastro/action@v5`. HIGH confidence.
+- https://github.com/withastro/action -- Official Astro GitHub Action, v5 verified. HIGH confidence.
+- https://vitepress.dev/ -- VitePress 1.6.4 features verified. HIGH confidence.
+- https://docusaurus.io/versions -- Docusaurus 3.9.2 confirmed. HIGH confidence.
+- https://www.npmjs.com/package/@astrojs/starlight -- v0.38.1, ~98K weekly downloads. MEDIUM confidence (npm 403'd direct fetch, data from search results).
+- https://blog.logrocket.com/starlight-vs-docusaurus-building-documentation/ -- Performance comparison (build speed, bundle size). MEDIUM confidence.
+- https://distr.sh/blog/distr-docs/ -- Real-world Docusaurus-to-Starlight migration case study. MEDIUM confidence.
+- https://astro.build/blog/whats-new-february-2026/ -- Astro ecosystem activity confirmed current as of Feb 2026. HIGH confidence.
 
 ---
-*Stack research for: npm packaging and Node.js installer (domain-context-cc v1.3)*
+*Stack research for: Documentation site (domain-context-cc v1.4)*
 *Researched: 2026-03-17*
