@@ -96,6 +96,15 @@ function getDcHookEntries(targetDir, isLocal) {
           },
         ],
       },
+      {
+        matcher: 'Edit|Write|MultiEdit',
+        hooks: [
+          {
+            type: 'command',
+            command: `node ${quote}${path.join(hooksDir, 'dc-lint-check.js')}${quote}`,
+          },
+        ],
+      },
     ],
   };
 }

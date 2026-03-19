@@ -206,6 +206,12 @@ describe('getDcHookEntries', () => {
     const cmd = entries.PostToolUse[0].hooks[0].command;
     assert.ok(cmd.includes('dc-context-reminder.js'));
   });
+
+  it('PostToolUse has dc-lint-check command', () => {
+    const entries = getDcHookEntries('/some/path', false);
+    const cmd = entries.PostToolUse[1].hooks[0].command;
+    assert.ok(cmd.includes('dc-lint-check.js'));
+  });
 });
 
 // ---------------------------------------------------------------------------
