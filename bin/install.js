@@ -16,7 +16,7 @@ const INSTALL_MAP = [
   { src: 'hooks', dest: 'hooks', filter: (f) => f.startsWith('dc-') },
   { src: 'agents', dest: 'agents', filter: (f) => f.startsWith('dc-') },
   { src: 'rules', dest: 'rules', filter: (f) => f.startsWith('dc-') },
-  { src: 'templates', dest: 'templates' },
+  { src: 'templates', dest: 'domain-context/templates' },
   { src: 'tools', dest: 'tools', filter: (f) => f.startsWith('validate-') },
 ];
 
@@ -188,7 +188,7 @@ function chmodShellScripts(dir) {
  * Remove dc-owned files from the target directory.
  * Uses INSTALL_MAP to determine which files belong to dc. For entries with
  * a filter, only matching files are removed. For entries without a filter
- * (commands/dc, templates), all files are removed.
+ * (commands/dc, domain-context/templates), all files are removed.
  * @param {string} targetDir - The target .claude/ directory path
  * @returns {string[]} Array of absolute paths of removed files
  */
@@ -199,7 +199,10 @@ function removeDcFiles(targetDir) {
     const dir = path.join(targetDir, mapping.dest);
     if (!fs.existsSync(dir)) continue;
 
-    if (mapping.dest === 'commands/dc') {
+    if (
+      mapping.dest === 'commands/dc' ||
+      mapping.dest === 'domain-context/templates'
+    ) {
       // dc-owned directory: remove all contents then the directory itself
       const files = fs.readdirSync(dir, { withFileTypes: true });
       for (const entry of files) {
