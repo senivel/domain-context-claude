@@ -35,6 +35,7 @@
     "documentation"
   ],
   "license": "MIT",
+  "homepage": "https://senivel.github.io/domain-context-claude",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/senivel/domain-context-claude.git"
