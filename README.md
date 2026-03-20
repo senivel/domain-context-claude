@@ -1,5 +1,5 @@
 [![npm version](https://img.shields.io/npm/v/domain-context-cc)](https://www.npmjs.com/package/domain-context-cc)
-[![license](https://img.shields.io/npm/l/domain-context-cc)](https://github.com/senivel/domain-context-claude/blob/main/LICENSE)
+[![license](https://img.shields.io/github/license/senivel/domain-context-claude)](https://github.com/senivel/domain-context-claude/blob/main/LICENSE)
 
 # Domain Context for Claude Code
 
