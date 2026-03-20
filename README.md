@@ -72,6 +72,19 @@ No GSD configuration changes needed.
 - **Rules**: formatting guidance when editing `.context/` files
 - **Templates**: scaffolding files used by `/dc:init`
 
+## Development
+
+For contributors working on domain-context-cc itself, use `--link` to symlink source files instead of copying. Edits to skills, hooks, and templates are immediately live — no re-install needed.
+
+```bash
+# Clone and link
+git clone https://github.com/senivel/domain-context-claude.git
+cd domain-context-claude
+node bin/install.js --link
+```
+
+`--link` works with `--local` for project-scoped dev installs. Use `--uninstall` to remove symlinks the same way as copies.
+
 ## Uninstall
 
 ```bash

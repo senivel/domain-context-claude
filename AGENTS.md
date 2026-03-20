@@ -3,6 +3,7 @@
 ## Build & Run
 
 - No build step — this project is markdown skills, Node.js hooks, and an install script
+- Dev install (symlinks, edits are live): `node bin/install.js --link`
 - Install locally: `node bin/install.js --local`
 - Install globally: `node bin/install.js --global`
 - Validate context: `bash tools/validate-context.sh .`

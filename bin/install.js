@@ -27,12 +27,13 @@ const INSTALL_MAP = [
 /**
  * Parse CLI arguments.
  * @param {string[]} argv - Arguments (typically process.argv.slice(2))
- * @returns {{ isLocal: boolean, isUninstall: boolean }}
+ * @returns {{ isLocal: boolean, isUninstall: boolean, isLink: boolean }}
  */
 function parseArgs(argv) {
   return {
     isLocal: argv.includes('--local'),
     isUninstall: argv.includes('--uninstall'),
+    isLink: argv.includes('--link'),
   };
 }
 
@@ -168,6 +169,58 @@ function copyFiles(targetDir) {
 }
 
 /**
+ * Create symlinks from package source to target directory (dev mode).
+ * Unfiltered entries get a directory symlink; filtered entries get
+ * per-file symlinks for matching files only.
+ * @param {string} targetDir - The target .claude/ directory path
+ */
+function linkFiles(targetDir) {
+  for (const mapping of INSTALL_MAP) {
+    const srcDir = path.join(PKG_ROOT, mapping.src);
+    const destDir = path.join(targetDir, mapping.dest);
+
+    if (!fs.existsSync(srcDir)) {
+      continue;
+    }
+
+    // Remove existing dest (copy or stale symlink) before linking
+    if (fs.existsSync(destDir) || isSymlink(destDir)) {
+      fs.rmSync(destDir, { recursive: true, force: true });
+    }
+
+    if (mapping.filter) {
+      // Filtered: create dest dir, symlink individual matching files
+      fs.mkdirSync(destDir, { recursive: true });
+      const files = fs.readdirSync(srcDir);
+      for (const file of files) {
+        if (mapping.filter(file)) {
+          const srcFile = path.join(srcDir, file);
+          const destFile = path.join(destDir, file);
+          fs.symlinkSync(srcFile, destFile);
+        }
+      }
+    } else {
+      // Unfiltered: symlink the entire directory
+      fs.mkdirSync(path.dirname(destDir), { recursive: true });
+      fs.symlinkSync(srcDir, destDir);
+    }
+  }
+}
+
+/**
+ * Check if a path is a symlink (even if the target doesn't exist).
+ * @param {string} p - Path to check
+ * @returns {boolean}
+ */
+function isSymlink(p) {
+  try {
+    return fs.lstatSync(p).isSymbolicLink();
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Recursively chmod any .sh files to 755.
  * @param {string} dir - Directory to scan
  */
@@ -197,7 +250,15 @@ function removeDcFiles(targetDir) {
 
   for (const mapping of INSTALL_MAP) {
     const dir = path.join(targetDir, mapping.dest);
-    if (!fs.existsSync(dir)) continue;
+    if (!fs.existsSync(dir) && !isSymlink(dir)) continue;
+
+    // Symlinked directory (--link install): remove the symlink only
+    if (isSymlink(dir)) {
+      fs.unlinkSync(dir);
+      removed.push(dir);
+      console.log(`  removed: ${dir} (symlink)`);
+      continue;
+    }
 
     if (
       mapping.dest === 'commands/dc' ||
@@ -214,7 +275,7 @@ function removeDcFiles(targetDir) {
       // Remove the dc/ subdirectory itself
       fs.rmSync(dir, { recursive: true, force: true });
     } else {
-      // For filtered dirs, remove only matching files; for unfiltered (templates), remove all
+      // For filtered dirs, remove individual dc-owned files (or symlinks to them)
       const files = fs.readdirSync(dir);
       for (const file of files) {
         const shouldRemove = mapping.filter ? mapping.filter(file) : true;
@@ -278,9 +339,14 @@ function removeHooks(settingsPath) {
 /**
  * Print success message after install.
  * @param {string} targetDir - The target directory path
+ * @param {boolean} [isLink=false] - Whether this was a symlink install
  */
-function printInstallSuccess(targetDir) {
-  console.log(`\ndomain-context-cc installed to ${targetDir}\n`);
+function printInstallSuccess(targetDir, isLink) {
+  const verb = isLink ? 'linked' : 'installed';
+  console.log(`\ndomain-context-cc ${verb} to ${targetDir}\n`);
+  if (isLink) {
+    console.log('Dev mode: source files are symlinked. Edits are live.');
+  }
   console.log('Next steps:');
   console.log('  1. Start a Claude Code session');
   console.log('  2. Run /dc:init in your project to set up domain context');
@@ -331,7 +397,7 @@ function updateSettings(settingsPath, dcEntries) {
 // ---------------------------------------------------------------------------
 
 function main() {
-  const { isLocal, isUninstall } = parseArgs(process.argv.slice(2));
+  const { isLocal, isUninstall, isLink } = parseArgs(process.argv.slice(2));
   const targetDir = getTargetDir(isLocal);
   const settingsPath = path.join(targetDir, 'settings.json');
 
@@ -343,14 +409,19 @@ function main() {
     return;
   }
 
-  console.log(`Installing domain-context-cc to ${targetDir}`);
+  const mode = isLink ? 'Linking' : 'Installing';
+  console.log(`${mode} domain-context-cc to ${targetDir}`);
 
-  copyFiles(targetDir);
+  if (isLink) {
+    linkFiles(targetDir);
+  } else {
+    copyFiles(targetDir);
+  }
 
   const dcEntries = getDcHookEntries(targetDir, isLocal);
   updateSettings(settingsPath, dcEntries);
 
-  printInstallSuccess(targetDir);
+  printInstallSuccess(targetDir, isLink);
 }
 
 // ---------------------------------------------------------------------------
@@ -366,6 +437,7 @@ if (typeof module !== 'undefined') {
     getTargetDir,
     INSTALL_MAP,
     copyFiles,
+    linkFiles,
     updateSettings,
     removeDcFiles,
     removeHooks,
