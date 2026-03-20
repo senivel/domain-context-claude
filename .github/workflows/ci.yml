@@ -42,3 +42,6 @@ jobs:
 
       - name: Validate templates
         run: bash tools/validate-templates.sh
+
+      - name: Publish dry-run
+        run: npm publish --dry-run
