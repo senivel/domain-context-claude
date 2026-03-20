@@ -213,22 +213,11 @@ module.exports = defineConfig([
   // Test 7: Malformed JSON stdin exits silently
   // ---------------------------------------------------------------------------
   it('exits silently on malformed JSON stdin', () => {
-    let stdout;
-    try {
-      stdout = execFileSync('node', [HOOK_PATH], {
-        input: 'not valid json{{{',
-        encoding: 'utf8',
-        timeout: 10000,
-      });
-    } catch (err) {
-      // Should exit 0 even on bad input
-      assert.strictEqual(
-        err.status,
-        null,
-        'Should not exit with non-zero code',
-      );
-      stdout = err.stdout || '';
-    }
+    const stdout = execFileSync('node', [HOOK_PATH], {
+      input: 'not valid json{{{',
+      encoding: 'utf8',
+      timeout: 10000,
+    });
 
     assert.strictEqual(
       stdout,
