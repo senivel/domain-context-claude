@@ -209,7 +209,7 @@ function removeDcFiles(targetDir) {
         console.log(`  removed: ${filePath}`);
       }
       // Remove the dc/ subdirectory itself
-      fs.rmdirSync(dir);
+      fs.rmSync(dir, { recursive: true, force: true });
     } else {
       // For filtered dirs, remove only matching files; for unfiltered (templates), remove all
       const files = fs.readdirSync(dir);
