@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.5.0](https://github.com/senivel/domain-context-claude/compare/domain-context-cc-v1.4.0...domain-context-cc-v1.5.0) (2026-03-20)
+
+
+### Features
+
+* automated npm publishing with provenance ([#7](https://github.com/senivel/domain-context-claude/issues/7)) ([c450672](https://github.com/senivel/domain-context-claude/commit/c4506728c6a67800eb103aa16ed898400a25d745))
+
+
+### Bug Fixes
+
+* replace restricted third-party actions in deploy-docs workflow ([f78f1bb](https://github.com/senivel/domain-context-claude/commit/f78f1bb37295d716e26311a9e66234cf05cd5263))
+* resolve offline link checking for base path and missing favicon ([bc5d7e2](https://github.com/senivel/domain-context-claude/commit/bc5d7e2b7aae8f9be71009c924578963e7bb11e1))
+* use --root-dir instead of --base for lychee offline check ([4ec121c](https://github.com/senivel/domain-context-claude/commit/4ec121c6f95f7f16ac5eabdaaa4e310e8ff75d0f))
+* use offline link checking in deploy-docs workflow ([0b06d73](https://github.com/senivel/domain-context-claude/commit/0b06d7318b09fc41556b05269e0c1764c99906ba))
+
 ## [1.4.0](https://github.com/senivel/domain-context-claude/compare/domain-context-cc-v1.3.0...domain-context-cc-v1.4.0) (2026-03-20)
 
 
