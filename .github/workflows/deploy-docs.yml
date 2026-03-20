@@ -22,10 +22,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Build Astro site
-        uses: withastro/action@v5
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          path: ./docs
+          node-version: 22
+          cache: npm
+          cache-dependency-path: docs/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ./docs
+
+      - name: Build Astro site
+        run: npm run build
+        working-directory: ./docs
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./docs/dist
 
   check-links:
     needs: build
@@ -43,12 +58,13 @@ jobs:
       - name: Extract artifact
         run: tar -xf ./dist/artifact.tar -C ./dist
 
+      - name: Install lychee
+        run: |
+          curl -sSfL https://github.com/lycheeverse/lychee/releases/latest/download/lychee-x86_64-unknown-linux-gnu.tar.gz \
+            | tar xz -C /usr/local/bin
+
       - name: Check links
-        uses: lycheeverse/lychee-action@v2
-        with:
-          args: '--offline --base ./dist --no-progress ./dist/**/*.html'
-          fail: true
-          jobSummary: true
+        run: lychee --offline --base ./dist --no-progress './dist/**/*.html'
 
   deploy:
     needs: [build, check-links]
