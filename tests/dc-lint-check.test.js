@@ -141,7 +141,52 @@ module.exports = defineConfig([
   });
 
   // ---------------------------------------------------------------------------
-  // Test 5: Missing ESLint binary exits silently
+  // Test 5: MultiEdit with JS files lints all unique files
+  // ---------------------------------------------------------------------------
+  it('lints JS files from MultiEdit edits array', () => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'dc-lint-multiedit-js-'));
+    const jsFile = path.join(tmpDir, 'bad.js');
+    fs.writeFileSync(jsFile, 'var unused_var = 1;\n');
+
+    fs.writeFileSync(
+      path.join(tmpDir, 'eslint.config.js'),
+      `const { defineConfig } = require('eslint/config');
+const js = require('@eslint/js');
+module.exports = defineConfig([
+  { files: ['**/*.js'], extends: [js.configs.recommended] },
+]);
+`,
+    );
+
+    fs.symlinkSync(
+      path.join(PROJECT_ROOT, 'node_modules'),
+      path.join(tmpDir, 'node_modules'),
+    );
+
+    const stdout = runHook(
+      {
+        tool_name: 'MultiEdit',
+        tool_input: {
+          edits: [{ file_path: jsFile, old_string: 'a', new_string: 'b' }],
+        },
+        cwd: tmpDir,
+      },
+      PROJECT_ROOT,
+    );
+
+    assert.ok(stdout.length > 0, 'Should produce output for lint violations');
+    const output = JSON.parse(stdout);
+    assert.ok(output.hookSpecificOutput, 'Should have hookSpecificOutput');
+    assert.ok(
+      output.hookSpecificOutput.additionalContext.includes('no-unused-vars'),
+      'Should report no-unused-vars violation',
+    );
+
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Test 6: Missing ESLint binary exits silently
   // ---------------------------------------------------------------------------
   it('exits silently when ESLint binary does not exist', () => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'dc-lint-no-eslint-'));
