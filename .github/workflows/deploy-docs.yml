@@ -46,7 +46,7 @@ jobs:
       - name: Check links
         uses: lycheeverse/lychee-action@v2
         with:
-          args: '--base https://senivel.github.io/domain-context-claude --no-progress ./dist/**/*.html'
+          args: '--offline --base ./dist --no-progress ./dist/**/*.html'
           fail: true
           jobSummary: true
 
