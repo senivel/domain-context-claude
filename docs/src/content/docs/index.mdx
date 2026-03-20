@@ -15,6 +15,22 @@ hero:
 
 import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 
+## The problem
+
+AI coding agents write syntactically correct but semantically wrong code because they lack business context. They don't know your domain model, your business rules, your regulatory constraints, or why your architecture looks the way it does.
+
+Existing tools solve parts of this — **AGENTS.md** tells agents *how* to work in your codebase, and **SDD frameworks** like GSD tell agents *what* to build next — but nothing tells them *why* the system works the way it does.
+
+| Concern | Content | Solved by |
+|---------|---------|-----------|
+| **The How** | Build commands, code style, workflow | AGENTS.md, CLAUDE.md |
+| **The What** | Feature specs, task plans, roadmaps | GSD, Spec Kit, BMAD |
+| **The Why** | Domain model, business rules, ADRs, constraints | **Domain Context** |
+
+Domain Context fills that gap. It defines a pattern for **codifying** domain knowledge — committing it to version control alongside code, reviewing it in PRs, tracking it for freshness, and structuring it for AI consumption.
+
+**This tool (`domain-context-cc`) automates that pattern for Claude Code.** The [Domain Context specification](https://github.com/senivel/domain-context) defines the format; this tool provides the slash commands, hooks, and automation that make working with it fast and practical.
+
 ## Install
 
 <Tabs syncKey="install">

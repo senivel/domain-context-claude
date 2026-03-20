@@ -3,6 +3,8 @@
 
 # Domain Context for Claude Code
 
+**[Read the full documentation](https://senivel.github.io/domain-context-claude)**
+
 > Make Claude Code and GSD natively aware of your project's domain knowledge.
 
 **domain-context-cc** provides skills, hooks, agents, and rules that integrate the [Domain Context specification](https://github.com/senivel/domain-context) into Claude Code. Initialize `.context/` directories, browse domain knowledge, validate integrity, and extract new knowledge from GSD planning artifacts.
@@ -84,5 +86,6 @@ Removes dc-prefixed skill files, hooks, agents, rules, and templates. Cleans dc 
 
 ## Links
 
+- [Documentation](https://senivel.github.io/domain-context-claude) -- guides, architecture, CLI reference
 - [Domain Context Specification](https://github.com/senivel/domain-context)
 - [GSD (Get Shit Done)](https://github.com/cyanheads/get-shit-done-cc)

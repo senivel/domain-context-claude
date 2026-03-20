@@ -11,19 +11,65 @@ Domain Context is an open specification. Read the full spec at [github.com/seniv
 
 ## What the spec is
 
-The Domain Context specification defines a standard format for storing domain knowledge alongside code. It is language-agnostic and tool-agnostic -- any project, any AI assistant.
+The Domain Context specification defines a standard format for **codifying** domain knowledge as version-controlled, machine-readable artifacts alongside code. It is language-agnostic and tool-agnostic -- any project, any AI assistant.
 
 **The spec defines the format; this tool automates the workflow.**
 
-The specification tells you what files to create, where to put them, and how to structure them. This tool (`domain-context-cc`) provides the slash commands, hooks, and automation that make working with that format fast and practical.
+The specification tells you what files to create, where to put them, and how to structure them. This tool (`domain-context-cc`) provides the slash commands, hooks, and automation that make working with that format fast and practical inside Claude Code.
 
-## Three pillars
+## The problem it solves
 
-The spec organizes domain knowledge into three categories:
+For decades, repository structure was optimized for human developers -- clean modules, good naming, design patterns -- all to reduce friction for a new hire or for yourself six months later. With AI agents becoming primary contributors, the intended audience has shifted.
+
+An AI agent has no institutional memory, cannot ask a colleague, and starts every session from zero. The assumptions behind human-first repo design break down:
+
+- Intent **cannot** be inferred from code structure alone
+- Tribal knowledge **doesn't exist** for an agent
+- Onboarding is **not** a one-time cost -- it happens every session
+
+The result: AI agents produce syntactically correct but semantically wrong code. They don't know your domain model, your business rules, or why your architecture looks the way it does. That knowledge lives in the minds of contributing developers, outdated wikis, and buried Slack threads.
+
+## Codification, not documentation
+
+The distinction between *documenting* and *codifying* domain knowledge is central to the spec:
+
+- **Documentation** lives in wikis, onboarding guides, and README files. It is loosely structured, rarely reviewed, and goes stale silently.
+- **Codification** means committing domain knowledge to version control alongside the code it governs, reviewing it in pull requests, tracking it for freshness, and structuring it for machine consumption.
+
+Codified context is treated as **load-bearing infrastructure** -- both AI agents and human developers depend on it to produce correct output.
+
+## Three concerns
+
+The spec recognizes three distinct categories of project knowledge that AI agents need:
+
+| Concern | Content | Lifespan | Existing Solutions |
+|---------|---------|----------|-------------------|
+| **The How** | Build commands, code style, workflow | Lifetime of project | AGENTS.md, CLAUDE.md, .cursorrules |
+| **The What** | Feature specs, task plans, roadmaps | Per-feature | GSD, Spec Kit, BMAD, Kiro |
+| **The Why** | Domain model, business rules, ADRs, constraints | Lifetime of project | **Domain Context** |
+
+The What is ephemeral -- a spec for "add Stripe integration" matters during that feature's development. The Why is durable -- "subscriptions follow a Trial -> Active -> Canceled lifecycle" is true regardless of which feature you're building.
+
+SDD frameworks do an excellent job of capturing intent for the current development effort. But the domain knowledge that surfaces during planning is trapped in feature-scoped artifacts. Once a feature ships, that knowledge is not readily available to the next feature's agent. Domain Context provides the persistent, cumulative layer that SDD artifacts can both consume from and contribute to.
+
+## Three pillars of domain knowledge
+
+The spec organizes knowledge into three categories:
 
 - **Domain concepts** (`domain/`) -- business rules, models, terminology, and relationships. These are the concepts developers need to understand but that live outside the code.
 - **Decisions** (`decisions/`) -- architecture decision records (ADRs) with context, rationale, and tradeoffs. These capture the "why" behind significant choices.
 - **Constraints** (`constraints/`) -- external requirements, API contracts, regulatory needs, and security policies. These are facts the codebase must respect.
+
+## AI-first design
+
+The spec designs for AI as the primary consumer. Every structural decision reflects this:
+
+- **MANIFEST.md** exists because an AI agent needs to determine what context is relevant *before* spending tokens loading files. A human would browse a directory; an agent needs a scannable index.
+- **Token budget guidance** exists because AI context windows are finite. Context files have size targets not for human readability but for token economics.
+- **Business rules are enumerated as discrete, testable statements** rather than embedded in prose, because agents parse structured content more reliably than natural language paragraphs.
+- **Freshness tracking** exists because an AI agent cannot judge whether knowledge "feels stale" the way a human can. It needs an explicit signal.
+
+The pattern is human-readable by design -- markdown is a dual-audience format. But the structural choices prioritize AI consumption.
 
 ## Required directory structure
 
@@ -38,6 +84,17 @@ Every project following the spec includes this structure:
 ```
 
 **MANIFEST.md** is the index. It lists every entry with a brief description and a verified date. At roughly 300 tokens, it enables progressive disclosure -- AI tools scan the index first, then load individual files on demand based on task relevance.
+
+## Progressive disclosure in action
+
+An AI agent working on a billing bug follows this path:
+
+1. Reads **AGENTS.md** (always loaded) -- knows build/test commands
+2. Reads **ARCHITECTURE.md** -- sees billing depends on subscriptions and payments
+3. Scans **MANIFEST.md** -- finds `domain/invoicing.md` and `constraints/payment-regulations.md` are relevant
+4. Loads the specific domain files -- gets the full business context
+
+Total cost: ~2,000-4,000 tokens (~1.5-2% of a 200k context window). Compare that to an agent spending 10,000+ tokens on exploratory file reads, trying to reverse-engineer business rules that might not even be visible in the code.
 
 ## Example domain concept file
 
@@ -59,6 +116,17 @@ A domain concept file follows a simple structure:
 ```
 
 The `<!-- verified: 2026-03-15 -->` comment tracks freshness. Hooks and commands use this date to detect stale entries -- anything older than 90 days gets flagged for review.
+
+## Confidential context
+
+Not all domain knowledge can be committed to a shared repository. The spec supports a **confidential overlay** via `.context.local/`:
+
+- `.context.local/` is gitignored by default
+- Entries in `.context.local/` follow the same structure as `.context/`
+- MANIFEST.md tracks confidential entries with an `[confidential]` access level
+- Teams can use a sync script to distribute confidential context from a private store
+
+This lets you codify sensitive business rules (pricing models, competitive strategy, internal compliance details) without exposing them in version control.
 
 ## How this tool implements the spec
 
