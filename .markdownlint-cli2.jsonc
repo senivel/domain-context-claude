@@ -19,6 +19,7 @@
     "rules/**",
     "docs/**",
     ".planning/**",
-    ".claude/**"
+    ".claude/**",
+    "CHANGELOG.md"
   ]
 }
