@@ -16,7 +16,7 @@ const THRESHOLD_DAYS = 90;
 
 // Stdin timeout guard: if stdin doesn't close within 3s (e.g. pipe issues),
 // exit silently instead of hanging until Claude Code kills the process.
-let input = '';
+let input = ''; // drain stdin (content unused — hook uses cwd instead)
 const stdinTimeout = setTimeout(() => process.exit(0), 3000);
 process.stdin.setEncoding('utf8');
 process.stdin.on('data', (chunk) => (input += chunk));
