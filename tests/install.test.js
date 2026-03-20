@@ -50,19 +50,30 @@ describe('parseArgs', () => {
 // ---------------------------------------------------------------------------
 describe('isDcHook', () => {
   it('returns true for dc-freshness-check hook', () => {
-    const entry = { hooks: [{ type: 'command', command: 'node /path/dc-freshness-check.js' }] };
+    const entry = {
+      hooks: [{ type: 'command', command: 'node /path/dc-freshness-check.js' }],
+    };
     assert.strictEqual(isDcHook(entry), true);
   });
 
   it('returns false for GSD hook', () => {
-    const entry = { hooks: [{ type: 'command', command: 'node .claude/hooks/gsd-check-update.js' }] };
+    const entry = {
+      hooks: [
+        { type: 'command', command: 'node .claude/hooks/gsd-check-update.js' },
+      ],
+    };
     assert.strictEqual(isDcHook(entry), false);
   });
 
   it('returns true for dc-context-reminder hook with matcher', () => {
     const entry = {
       matcher: 'Edit|Write|MultiEdit',
-      hooks: [{ type: 'command', command: 'node .claude/hooks/dc-context-reminder.js' }],
+      hooks: [
+        {
+          type: 'command',
+          command: 'node .claude/hooks/dc-context-reminder.js',
+        },
+      ],
     };
     assert.strictEqual(isDcHook(entry), true);
   });
@@ -80,7 +91,9 @@ describe('mergeHooks', () => {
   it('adds dc entries to empty settings', () => {
     const settings = {};
     const dcEntries = {
-      SessionStart: [{ hooks: [{ type: 'command', command: 'node dc-freshness-check.js' }] }],
+      SessionStart: [
+        { hooks: [{ type: 'command', command: 'node dc-freshness-check.js' }] },
+      ],
     };
     const result = mergeHooks(settings, dcEntries);
     assert.strictEqual(result.hooks.SessionStart.length, 1);
@@ -88,10 +101,16 @@ describe('mergeHooks', () => {
   });
 
   it('preserves GSD hooks when adding dc hooks', () => {
-    const gsdHook = { hooks: [{ type: 'command', command: 'node .claude/hooks/gsd-check-update.js' }] };
+    const gsdHook = {
+      hooks: [
+        { type: 'command', command: 'node .claude/hooks/gsd-check-update.js' },
+      ],
+    };
     const settings = { hooks: { SessionStart: [gsdHook] } };
     const dcEntries = {
-      SessionStart: [{ hooks: [{ type: 'command', command: 'node dc-freshness-check.js' }] }],
+      SessionStart: [
+        { hooks: [{ type: 'command', command: 'node dc-freshness-check.js' }] },
+      ],
     };
     const result = mergeHooks(settings, dcEntries);
     assert.strictEqual(result.hooks.SessionStart.length, 2);
@@ -99,25 +118,56 @@ describe('mergeHooks', () => {
   });
 
   it('replaces existing dc hooks (no duplicates)', () => {
-    const oldDcHook = { hooks: [{ type: 'command', command: 'node /old/path/dc-freshness-check.js' }] };
-    const gsdHook = { hooks: [{ type: 'command', command: 'node .claude/hooks/gsd-check-update.js' }] };
+    const oldDcHook = {
+      hooks: [
+        { type: 'command', command: 'node /old/path/dc-freshness-check.js' },
+      ],
+    };
+    const gsdHook = {
+      hooks: [
+        { type: 'command', command: 'node .claude/hooks/gsd-check-update.js' },
+      ],
+    };
     const settings = { hooks: { SessionStart: [gsdHook, oldDcHook] } };
     const dcEntries = {
-      SessionStart: [{ hooks: [{ type: 'command', command: 'node /new/path/dc-freshness-check.js' }] }],
+      SessionStart: [
+        {
+          hooks: [
+            {
+              type: 'command',
+              command: 'node /new/path/dc-freshness-check.js',
+            },
+          ],
+        },
+      ],
     };
     const result = mergeHooks(settings, dcEntries);
     assert.strictEqual(result.hooks.SessionStart.length, 2);
     assert.deepStrictEqual(result.hooks.SessionStart[0], gsdHook);
-    assert.ok(result.hooks.SessionStart[1].hooks[0].command.includes('/new/path/'));
+    assert.ok(
+      result.hooks.SessionStart[1].hooks[0].command.includes('/new/path/'),
+    );
   });
 
   it('is idempotent (same result on repeated calls)', () => {
-    const gsdHook = { hooks: [{ type: 'command', command: 'node .claude/hooks/gsd-check-update.js' }] };
-    const dcEntries = {
-      SessionStart: [{ hooks: [{ type: 'command', command: 'node dc-freshness-check.js' }] }],
+    const gsdHook = {
+      hooks: [
+        { type: 'command', command: 'node .claude/hooks/gsd-check-update.js' },
+      ],
     };
-    const settings1 = mergeHooks({ hooks: { SessionStart: [gsdHook] } }, dcEntries);
-    const settings2 = mergeHooks(JSON.parse(JSON.stringify(settings1)), dcEntries);
+    const dcEntries = {
+      SessionStart: [
+        { hooks: [{ type: 'command', command: 'node dc-freshness-check.js' }] },
+      ],
+    };
+    const settings1 = mergeHooks(
+      { hooks: { SessionStart: [gsdHook] } },
+      dcEntries,
+    );
+    const settings2 = mergeHooks(
+      JSON.parse(JSON.stringify(settings1)),
+      dcEntries,
+    );
     assert.deepStrictEqual(settings1, settings2);
   });
 });
@@ -129,14 +179,20 @@ describe('getDcHookEntries', () => {
   it('returns absolute paths for global install', () => {
     const entries = getDcHookEntries('/home/user/.claude', false);
     const cmd = entries.SessionStart[0].hooks[0].command;
-    assert.ok(cmd.startsWith('node "'), `Expected absolute quoted path, got: ${cmd}`);
+    assert.ok(
+      cmd.startsWith('node "'),
+      `Expected absolute quoted path, got: ${cmd}`,
+    );
     assert.ok(cmd.includes('/home/user/.claude/hooks/dc-freshness-check.js'));
   });
 
   it('returns relative paths for local install', () => {
     const entries = getDcHookEntries('./.claude', true);
     const cmd = entries.SessionStart[0].hooks[0].command;
-    assert.ok(cmd.startsWith('node .claude/hooks/'), `Expected relative path, got: ${cmd}`);
+    assert.ok(
+      cmd.startsWith('node .claude/hooks/'),
+      `Expected relative path, got: ${cmd}`,
+    );
     assert.ok(!cmd.includes('"'), 'Local paths should not be quoted');
   });
 
@@ -150,6 +206,12 @@ describe('getDcHookEntries', () => {
     const cmd = entries.PostToolUse[0].hooks[0].command;
     assert.ok(cmd.includes('dc-context-reminder.js'));
   });
+
+  it('PostToolUse has dc-lint-check command', () => {
+    const entries = getDcHookEntries('/some/path', false);
+    const cmd = entries.PostToolUse[1].hooks[0].command;
+    assert.ok(cmd.includes('dc-lint-check.js'));
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -158,13 +220,22 @@ describe('getDcHookEntries', () => {
 describe('getTargetDir', () => {
   it('returns path under home for global install', () => {
     const result = getTargetDir(false);
-    assert.ok(result.endsWith('.claude'), `Expected path ending in .claude, got: ${result}`);
-    assert.ok(result.startsWith(os.homedir()), 'Global should be under home dir');
+    assert.ok(
+      result.endsWith('.claude'),
+      `Expected path ending in .claude, got: ${result}`,
+    );
+    assert.ok(
+      result.startsWith(os.homedir()),
+      'Global should be under home dir',
+    );
   });
 
   it('returns path under cwd for local install', () => {
     const result = getTargetDir(true);
-    assert.ok(result.endsWith('.claude'), `Expected path ending in .claude, got: ${result}`);
+    assert.ok(
+      result.endsWith('.claude'),
+      `Expected path ending in .claude, got: ${result}`,
+    );
     assert.ok(result.startsWith(process.cwd()), 'Local should be under cwd');
   });
 });
@@ -174,7 +245,7 @@ describe('getTargetDir', () => {
 // ---------------------------------------------------------------------------
 describe('INSTALL_MAP', () => {
   it('has entries for all 6 directories', () => {
-    const dests = INSTALL_MAP.map(m => m.dest);
+    const dests = INSTALL_MAP.map((m) => m.dest);
     assert.ok(dests.includes('commands/dc'));
     assert.ok(dests.includes('hooks'));
     assert.ok(dests.includes('agents'));
@@ -184,7 +255,7 @@ describe('INSTALL_MAP', () => {
   });
 
   it('hooks entry has dc- filter', () => {
-    const hooks = INSTALL_MAP.find(m => m.dest === 'hooks');
+    const hooks = INSTALL_MAP.find((m) => m.dest === 'hooks');
     assert.ok(hooks.filter, 'hooks should have a filter');
     assert.strictEqual(hooks.filter('dc-freshness-check.js'), true);
     assert.strictEqual(hooks.filter('gsd-check-update.js'), false);
@@ -211,11 +282,19 @@ describe('Integration: file copying', () => {
 
     // Check a representative file from each directory
     assert.ok(fs.existsSync(path.join(targetDir, 'commands/dc/init.md')));
-    assert.ok(fs.existsSync(path.join(targetDir, 'hooks/dc-freshness-check.js')));
-    assert.ok(fs.existsSync(path.join(targetDir, 'agents/dc-domain-validator.md')));
-    assert.ok(fs.existsSync(path.join(targetDir, 'rules/dc-context-editing.md')));
+    assert.ok(
+      fs.existsSync(path.join(targetDir, 'hooks/dc-freshness-check.js')),
+    );
+    assert.ok(
+      fs.existsSync(path.join(targetDir, 'agents/dc-domain-validator.md')),
+    );
+    assert.ok(
+      fs.existsSync(path.join(targetDir, 'rules/dc-context-editing.md')),
+    );
     assert.ok(fs.existsSync(path.join(targetDir, 'templates/manifest.md')));
-    assert.ok(fs.existsSync(path.join(targetDir, 'tools/validate-templates.sh')));
+    assert.ok(
+      fs.existsSync(path.join(targetDir, 'tools/validate-templates.sh')),
+    );
   });
 
   it('global install: settings.json has dc hook entries with absolute paths', () => {
@@ -228,7 +307,10 @@ describe('Integration: file copying', () => {
     const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
     assert.ok(settings.hooks.SessionStart.length > 0);
     const cmd = settings.hooks.SessionStart[0].hooks[0].command;
-    assert.ok(cmd.includes(tmpDir), `Expected absolute path containing tmpDir, got: ${cmd}`);
+    assert.ok(
+      cmd.includes(tmpDir),
+      `Expected absolute path containing tmpDir, got: ${cmd}`,
+    );
   });
 
   it('local install creates all expected files under target .claude/', () => {
@@ -236,7 +318,9 @@ describe('Integration: file copying', () => {
     copyFiles(targetDir);
 
     assert.ok(fs.existsSync(path.join(targetDir, 'commands/dc/init.md')));
-    assert.ok(fs.existsSync(path.join(targetDir, 'hooks/dc-context-reminder.js')));
+    assert.ok(
+      fs.existsSync(path.join(targetDir, 'hooks/dc-context-reminder.js')),
+    );
     assert.ok(fs.existsSync(path.join(targetDir, 'templates/architecture.md')));
   });
 
@@ -249,7 +333,10 @@ describe('Integration: file copying', () => {
 
     const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
     const cmd = settings.hooks.SessionStart[0].hooks[0].command;
-    assert.ok(cmd.startsWith('node .claude/'), `Expected relative path, got: ${cmd}`);
+    assert.ok(
+      cmd.startsWith('node .claude/'),
+      `Expected relative path, got: ${cmd}`,
+    );
   });
 
   it('install preserves existing non-dc hooks in settings.json', () => {
@@ -261,7 +348,14 @@ describe('Integration: file copying', () => {
     const existing = {
       hooks: {
         SessionStart: [
-          { hooks: [{ type: 'command', command: 'node .claude/hooks/gsd-check-update.js' }] },
+          {
+            hooks: [
+              {
+                type: 'command',
+                command: 'node .claude/hooks/gsd-check-update.js',
+              },
+            ],
+          },
         ],
       },
     };
@@ -271,9 +365,15 @@ describe('Integration: file copying', () => {
     updateSettings(settingsPath, dcEntries);
 
     const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
-    const commands = settings.hooks.SessionStart.map(e => e.hooks[0].command);
-    assert.ok(commands.some(c => c.includes('gsd-')), 'GSD hook should be preserved');
-    assert.ok(commands.some(c => c.includes('dc-')), 'DC hook should be added');
+    const commands = settings.hooks.SessionStart.map((e) => e.hooks[0].command);
+    assert.ok(
+      commands.some((c) => c.includes('gsd-')),
+      'GSD hook should be preserved',
+    );
+    assert.ok(
+      commands.some((c) => c.includes('dc-')),
+      'DC hook should be added',
+    );
   });
 
   it('re-install is idempotent: running twice produces same settings.json', () => {
@@ -288,7 +388,11 @@ describe('Integration: file copying', () => {
     updateSettings(settingsPath, dcEntries);
     const after2 = fs.readFileSync(settingsPath, 'utf8');
 
-    assert.strictEqual(after1, after2, 'settings.json should be identical after second install');
+    assert.strictEqual(
+      after1,
+      after2,
+      'settings.json should be identical after second install',
+    );
   });
 
   it('install creates settings.json if it does not exist', () => {
@@ -296,7 +400,10 @@ describe('Integration: file copying', () => {
     fs.mkdirSync(targetDir, { recursive: true });
     const settingsPath = path.join(targetDir, 'settings.json');
 
-    assert.ok(!fs.existsSync(settingsPath), 'settings.json should not exist yet');
+    assert.ok(
+      !fs.existsSync(settingsPath),
+      'settings.json should not exist yet',
+    );
 
     const dcEntries = getDcHookEntries(targetDir, true);
     updateSettings(settingsPath, dcEntries);
@@ -313,9 +420,12 @@ describe('Integration: file copying', () => {
   });
 
   it('__dirname usage: source files resolved relative to bin/../ not cwd', () => {
-    const src = require('../bin/install.js');
+    const _src = require('../bin/install.js');
     // INSTALL_MAP exists and PKG_ROOT should be resolvable
-    assert.ok(INSTALL_MAP.length >= 6, 'INSTALL_MAP should have at least 6 entries');
+    assert.ok(
+      INSTALL_MAP.length >= 6,
+      'INSTALL_MAP should have at least 6 entries',
+    );
   });
 
   it('copied shell scripts retain executable permission', () => {
@@ -337,7 +447,10 @@ describe('Integration: file copying', () => {
     const hooksDir = path.join(targetDir, 'hooks');
     const files = fs.readdirSync(hooksDir);
     for (const f of files) {
-      assert.ok(f.startsWith('dc-'), `Only dc- hooks should be copied, found: ${f}`);
+      assert.ok(
+        f.startsWith('dc-'),
+        `Only dc- hooks should be copied, found: ${f}`,
+      );
     }
   });
 });
@@ -361,14 +474,23 @@ describe('removeDcFiles', () => {
     copyFiles(targetDir);
 
     // Add a non-dc file to hooks
-    fs.writeFileSync(path.join(targetDir, 'hooks/gsd-check-update.js'), '// gsd');
+    fs.writeFileSync(
+      path.join(targetDir, 'hooks/gsd-check-update.js'),
+      '// gsd',
+    );
 
     removeDcFiles(targetDir);
 
     const hooksDir = path.join(targetDir, 'hooks');
     const remaining = fs.readdirSync(hooksDir);
-    assert.ok(remaining.includes('gsd-check-update.js'), 'Non-dc file should survive');
-    assert.ok(!remaining.some(f => f.startsWith('dc-')), 'All dc- files should be removed');
+    assert.ok(
+      remaining.includes('gsd-check-update.js'),
+      'Non-dc file should survive',
+    );
+    assert.ok(
+      !remaining.some((f) => f.startsWith('dc-')),
+      'All dc- files should be removed',
+    );
   });
 
   it('removes commands/dc/ directory contents and the dc/ subdirectory', () => {
@@ -378,9 +500,15 @@ describe('removeDcFiles', () => {
     removeDcFiles(targetDir);
 
     // commands/dc/ should be removed (it is dc-owned)
-    assert.ok(!fs.existsSync(path.join(targetDir, 'commands/dc')), 'commands/dc/ should be removed');
+    assert.ok(
+      !fs.existsSync(path.join(targetDir, 'commands/dc')),
+      'commands/dc/ should be removed',
+    );
     // But commands/ parent should still exist
-    assert.ok(fs.existsSync(path.join(targetDir, 'commands')), 'commands/ parent should remain');
+    assert.ok(
+      fs.existsSync(path.join(targetDir, 'commands')),
+      'commands/ parent should remain',
+    );
   });
 
   it('removes templates/ contents but not the directory', () => {
@@ -390,7 +518,10 @@ describe('removeDcFiles', () => {
     removeDcFiles(targetDir);
 
     const templatesDir = path.join(targetDir, 'templates');
-    assert.ok(fs.existsSync(templatesDir), 'templates/ directory should remain');
+    assert.ok(
+      fs.existsSync(templatesDir),
+      'templates/ directory should remain',
+    );
     const remaining = fs.readdirSync(templatesDir);
     assert.strictEqual(remaining.length, 0, 'templates/ should be empty');
   });
@@ -401,7 +532,10 @@ describe('removeDcFiles', () => {
 
     removeDcFiles(targetDir);
 
-    assert.ok(!fs.existsSync(path.join(targetDir, 'tools/validate-templates.sh')), 'validate-templates.sh should be removed');
+    assert.ok(
+      !fs.existsSync(path.join(targetDir, 'tools/validate-templates.sh')),
+      'validate-templates.sh should be removed',
+    );
   });
 
   it('does NOT remove non-dc files from agents/', () => {
@@ -409,14 +543,23 @@ describe('removeDcFiles', () => {
     copyFiles(targetDir);
 
     // Add a non-dc agent
-    fs.writeFileSync(path.join(targetDir, 'agents/custom-agent.md'), '# custom');
+    fs.writeFileSync(
+      path.join(targetDir, 'agents/custom-agent.md'),
+      '# custom',
+    );
 
     removeDcFiles(targetDir);
 
     const agentsDir = path.join(targetDir, 'agents');
     const remaining = fs.readdirSync(agentsDir);
-    assert.ok(remaining.includes('custom-agent.md'), 'Non-dc agent should survive');
-    assert.ok(!remaining.some(f => f.startsWith('dc-')), 'All dc- agents should be removed');
+    assert.ok(
+      remaining.includes('custom-agent.md'),
+      'Non-dc agent should survive',
+    );
+    assert.ok(
+      !remaining.some((f) => f.startsWith('dc-')),
+      'All dc- agents should be removed',
+    );
   });
 
   it('does NOT remove parent directories', () => {
@@ -426,11 +569,26 @@ describe('removeDcFiles', () => {
     removeDcFiles(targetDir);
 
     // All parent directories should still exist
-    assert.ok(fs.existsSync(path.join(targetDir, 'hooks')), 'hooks/ should remain');
-    assert.ok(fs.existsSync(path.join(targetDir, 'agents')), 'agents/ should remain');
-    assert.ok(fs.existsSync(path.join(targetDir, 'rules')), 'rules/ should remain');
-    assert.ok(fs.existsSync(path.join(targetDir, 'tools')), 'tools/ should remain');
-    assert.ok(fs.existsSync(path.join(targetDir, 'templates')), 'templates/ should remain');
+    assert.ok(
+      fs.existsSync(path.join(targetDir, 'hooks')),
+      'hooks/ should remain',
+    );
+    assert.ok(
+      fs.existsSync(path.join(targetDir, 'agents')),
+      'agents/ should remain',
+    );
+    assert.ok(
+      fs.existsSync(path.join(targetDir, 'rules')),
+      'rules/ should remain',
+    );
+    assert.ok(
+      fs.existsSync(path.join(targetDir, 'tools')),
+      'tools/ should remain',
+    );
+    assert.ok(
+      fs.existsSync(path.join(targetDir, 'templates')),
+      'templates/ should remain',
+    );
   });
 
   it('returns array of removed file paths', () => {
@@ -460,13 +618,20 @@ describe('removeDcFiles', () => {
       console.log = origLog;
     }
 
-    assert.ok(logs.some(l => l.includes('removed:')), 'Should print removed file paths');
+    assert.ok(
+      logs.some((l) => l.includes('removed:')),
+      'Should print removed file paths',
+    );
   });
 
   it('handles missing target directory gracefully', () => {
     const targetDir = path.join(tmpDir, '.claude-nonexistent');
     const removed = removeDcFiles(targetDir);
-    assert.deepStrictEqual(removed, [], 'Should return empty array for missing dir');
+    assert.deepStrictEqual(
+      removed,
+      [],
+      'Should return empty array for missing dir',
+    );
   });
 });
 
@@ -489,10 +654,17 @@ describe('removeHooks', () => {
     const settings = {
       hooks: {
         SessionStart: [
-          { hooks: [{ type: 'command', command: 'node dc-freshness-check.js' }] },
+          {
+            hooks: [{ type: 'command', command: 'node dc-freshness-check.js' }],
+          },
         ],
         PostToolUse: [
-          { matcher: 'Edit|Write|MultiEdit', hooks: [{ type: 'command', command: 'node dc-context-reminder.js' }] },
+          {
+            matcher: 'Edit|Write|MultiEdit',
+            hooks: [
+              { type: 'command', command: 'node dc-context-reminder.js' },
+            ],
+          },
         ],
       },
     };
@@ -503,14 +675,24 @@ describe('removeHooks', () => {
     assert.strictEqual(count, 2, 'Should remove 2 dc hook entries');
     const updated = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
     // Empty arrays should be cleaned up
-    assert.ok(!updated.hooks.SessionStart || updated.hooks.SessionStart.length === 0);
-    assert.ok(!updated.hooks.PostToolUse || updated.hooks.PostToolUse.length === 0);
+    assert.ok(
+      !updated.hooks.SessionStart || updated.hooks.SessionStart.length === 0,
+    );
+    assert.ok(
+      !updated.hooks.PostToolUse || updated.hooks.PostToolUse.length === 0,
+    );
   });
 
   it('preserves non-dc hook entries', () => {
     const settingsPath = path.join(tmpDir, 'settings.json');
-    const gsdHook = { hooks: [{ type: 'command', command: 'node .claude/hooks/gsd-check-update.js' }] };
-    const dcHook = { hooks: [{ type: 'command', command: 'node dc-freshness-check.js' }] };
+    const gsdHook = {
+      hooks: [
+        { type: 'command', command: 'node .claude/hooks/gsd-check-update.js' },
+      ],
+    };
+    const dcHook = {
+      hooks: [{ type: 'command', command: 'node dc-freshness-check.js' }],
+    };
     const settings = {
       hooks: {
         SessionStart: [gsdHook, dcHook],
@@ -530,7 +712,9 @@ describe('removeHooks', () => {
     const settings = {
       hooks: {
         SessionStart: [
-          { hooks: [{ type: 'command', command: 'node dc-freshness-check.js' }] },
+          {
+            hooks: [{ type: 'command', command: 'node dc-freshness-check.js' }],
+          },
         ],
       },
     };
@@ -552,11 +736,18 @@ describe('removeHooks', () => {
     const settings = {
       hooks: {
         SessionStart: [
-          { hooks: [{ type: 'command', command: 'node dc-freshness-check.js' }] },
+          {
+            hooks: [{ type: 'command', command: 'node dc-freshness-check.js' }],
+          },
           { hooks: [{ type: 'command', command: 'node gsd-check-update.js' }] },
         ],
         PostToolUse: [
-          { matcher: 'Edit|Write|MultiEdit', hooks: [{ type: 'command', command: 'node dc-context-reminder.js' }] },
+          {
+            matcher: 'Edit|Write|MultiEdit',
+            hooks: [
+              { type: 'command', command: 'node dc-context-reminder.js' },
+            ],
+          },
         ],
       },
     };
@@ -591,8 +782,14 @@ describe('Integration: uninstall', () => {
     updateSettings(settingsPath, dcEntries);
 
     // Add non-dc files
-    fs.writeFileSync(path.join(targetDir, 'hooks/gsd-check-update.js'), '// gsd');
-    fs.writeFileSync(path.join(targetDir, 'agents/custom-agent.md'), '# custom');
+    fs.writeFileSync(
+      path.join(targetDir, 'hooks/gsd-check-update.js'),
+      '// gsd',
+    );
+    fs.writeFileSync(
+      path.join(targetDir, 'agents/custom-agent.md'),
+      '# custom',
+    );
 
     // Uninstall
     removeDcFiles(targetDir);
@@ -600,12 +797,24 @@ describe('Integration: uninstall', () => {
 
     // Verify dc files gone
     const hookFiles = fs.readdirSync(path.join(targetDir, 'hooks'));
-    assert.ok(!hookFiles.some(f => f.startsWith('dc-')), 'No dc- hooks should remain');
-    assert.ok(hookFiles.includes('gsd-check-update.js'), 'GSD hook should survive');
+    assert.ok(
+      !hookFiles.some((f) => f.startsWith('dc-')),
+      'No dc- hooks should remain',
+    );
+    assert.ok(
+      hookFiles.includes('gsd-check-update.js'),
+      'GSD hook should survive',
+    );
 
     const agentFiles = fs.readdirSync(path.join(targetDir, 'agents'));
-    assert.ok(!agentFiles.some(f => f.startsWith('dc-')), 'No dc- agents should remain');
-    assert.ok(agentFiles.includes('custom-agent.md'), 'Custom agent should survive');
+    assert.ok(
+      !agentFiles.some((f) => f.startsWith('dc-')),
+      'No dc- agents should remain',
+    );
+    assert.ok(
+      agentFiles.includes('custom-agent.md'),
+      'Custom agent should survive',
+    );
 
     // settings.json still exists with hooks object
     assert.ok(fs.existsSync(settingsPath));
@@ -663,7 +872,10 @@ describe('Integration: success messages', () => {
     }
 
     const allOutput = logs.join('\n');
-    assert.ok(allOutput.includes('domain-context-cc installed'), `Should contain "domain-context-cc installed", got:\n${allOutput}`);
+    assert.ok(
+      allOutput.includes('domain-context-cc installed'),
+      `Should contain "domain-context-cc installed", got:\n${allOutput}`,
+    );
   });
 
   it('install prints next step mentioning /dc:init', () => {
@@ -680,7 +892,10 @@ describe('Integration: success messages', () => {
     }
 
     const allOutput = logs.join('\n');
-    assert.ok(allOutput.includes('/dc:init'), `Should mention /dc:init, got:\n${allOutput}`);
+    assert.ok(
+      allOutput.includes('/dc:init'),
+      `Should mention /dc:init, got:\n${allOutput}`,
+    );
   });
 
   it('uninstall prints message containing "domain-context-cc uninstalled"', () => {
@@ -697,7 +912,10 @@ describe('Integration: success messages', () => {
     }
 
     const allOutput = logs.join('\n');
-    assert.ok(allOutput.includes('domain-context-cc uninstalled'), `Should contain "domain-context-cc uninstalled", got:\n${allOutput}`);
+    assert.ok(
+      allOutput.includes('domain-context-cc uninstalled'),
+      `Should contain "domain-context-cc uninstalled", got:\n${allOutput}`,
+    );
   });
 
   it('uninstall prints count of removed files', () => {
@@ -714,7 +932,13 @@ describe('Integration: success messages', () => {
     }
 
     const allOutput = logs.join('\n');
-    assert.ok(allOutput.includes('7'), `Should contain file count, got:\n${allOutput}`);
-    assert.ok(allOutput.includes('2'), `Should contain hook count, got:\n${allOutput}`);
+    assert.ok(
+      allOutput.includes('7'),
+      `Should contain file count, got:\n${allOutput}`,
+    );
+    assert.ok(
+      allOutput.includes('2'),
+      `Should contain hook count, got:\n${allOutput}`,
+    );
   });
 });

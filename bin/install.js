@@ -13,11 +13,11 @@ const PKG_ROOT = path.resolve(__dirname, '..');
 
 const INSTALL_MAP = [
   { src: 'commands/dc', dest: 'commands/dc' },
-  { src: 'hooks', dest: 'hooks', filter: f => f.startsWith('dc-') },
-  { src: 'agents', dest: 'agents', filter: f => f.startsWith('dc-') },
-  { src: 'rules', dest: 'rules', filter: f => f.startsWith('dc-') },
+  { src: 'hooks', dest: 'hooks', filter: (f) => f.startsWith('dc-') },
+  { src: 'agents', dest: 'agents', filter: (f) => f.startsWith('dc-') },
+  { src: 'rules', dest: 'rules', filter: (f) => f.startsWith('dc-') },
   { src: 'templates', dest: 'templates' },
-  { src: 'tools', dest: 'tools', filter: f => f.startsWith('validate-') },
+  { src: 'tools', dest: 'tools', filter: (f) => f.startsWith('validate-') },
 ];
 
 // ---------------------------------------------------------------------------
@@ -44,7 +44,7 @@ function parseArgs(argv) {
  */
 function isDcHook(entry) {
   if (!entry.hooks || !Array.isArray(entry.hooks)) return false;
-  return entry.hooks.some(h => h.command && h.command.includes('dc-'));
+  return entry.hooks.some((h) => h.command && h.command.includes('dc-'));
 }
 
 /**
@@ -58,7 +58,7 @@ function mergeHooks(settings, dcEntries) {
   settings.hooks = settings.hooks || {};
   for (const [event, entries] of Object.entries(dcEntries)) {
     const existing = settings.hooks[event] || [];
-    const cleaned = existing.filter(e => !isDcHook(e));
+    const cleaned = existing.filter((e) => !isDcHook(e));
     settings.hooks[event] = [...cleaned, ...entries];
   }
   return settings;
@@ -76,19 +76,36 @@ function getDcHookEntries(targetDir, isLocal) {
   const quote = isLocal ? '' : '"';
 
   return {
-    SessionStart: [{
-      hooks: [{
-        type: 'command',
-        command: `node ${quote}${path.join(hooksDir, 'dc-freshness-check.js')}${quote}`,
-      }],
-    }],
-    PostToolUse: [{
-      matcher: 'Edit|Write|MultiEdit',
-      hooks: [{
-        type: 'command',
-        command: `node ${quote}${path.join(hooksDir, 'dc-context-reminder.js')}${quote}`,
-      }],
-    }],
+    SessionStart: [
+      {
+        hooks: [
+          {
+            type: 'command',
+            command: `node ${quote}${path.join(hooksDir, 'dc-freshness-check.js')}${quote}`,
+          },
+        ],
+      },
+    ],
+    PostToolUse: [
+      {
+        matcher: 'Edit|Write|MultiEdit',
+        hooks: [
+          {
+            type: 'command',
+            command: `node ${quote}${path.join(hooksDir, 'dc-context-reminder.js')}${quote}`,
+          },
+        ],
+      },
+      {
+        matcher: 'Edit|Write|MultiEdit',
+        hooks: [
+          {
+            type: 'command',
+            command: `node ${quote}${path.join(hooksDir, 'dc-lint-check.js')}${quote}`,
+          },
+        ],
+      },
+    ],
   };
 }
 
@@ -192,7 +209,7 @@ function removeDcFiles(targetDir) {
         console.log(`  removed: ${filePath}`);
       }
       // Remove the dc/ subdirectory itself
-      fs.rmdirSync(dir);
+      fs.rmSync(dir, { recursive: true, force: true });
     } else {
       // For filtered dirs, remove only matching files; for unfiltered (templates), remove all
       const files = fs.readdirSync(dir);
@@ -236,7 +253,7 @@ function removeHooks(settingsPath) {
     const entries = settings.hooks[event];
     if (!Array.isArray(entries)) continue;
 
-    const cleaned = entries.filter(e => {
+    const cleaned = entries.filter((e) => {
       if (isDcHook(e)) {
         removedCount++;
         return false;
@@ -291,11 +308,13 @@ function updateSettings(settingsPath, dcEntries) {
     const raw = fs.readFileSync(settingsPath, 'utf8');
     try {
       settings = JSON.parse(raw);
-    } catch (err) {
+    } catch (_err) {
       // Back up corrupt file and warn
       const bakPath = settingsPath + '.bak';
       fs.copyFileSync(settingsPath, bakPath);
-      console.warn(`Warning: Could not parse ${settingsPath}. Backed up to ${bakPath}`);
+      console.warn(
+        `Warning: Could not parse ${settingsPath}. Backed up to ${bakPath}`,
+      );
       settings = {};
     }
   }

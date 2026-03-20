@@ -35,6 +35,15 @@
             "command": "node hooks/dc-context-reminder.js"
           }
         ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node hooks/dc-lint-check.js"
+          }
+        ]
       }
     ]
   },

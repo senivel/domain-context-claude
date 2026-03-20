@@ -18,7 +18,7 @@ Domain Context for Claude Code (`domain-context-cc`) provides the tooling that m
 
 ## Data Flow
 
-```
+```text
 npx domain-context-cc
   → bin/install.js copies files to ~/.claude/ (or ./.claude/)
   → hooks registered in settings.json
