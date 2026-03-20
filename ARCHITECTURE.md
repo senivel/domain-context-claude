@@ -18,28 +18,17 @@ Domain Context for Claude Code (`domain-context-cc`) provides the tooling that m
 
 ## Data Flow
 
-```text
-npx domain-context-cc
-  → bin/install.js copies files to ~/.claude/ (or ./.claude/)
-  → hooks registered in settings.json
+![Data flow diagram](docs/public/diagrams/data-flow.svg)
 
-User runs /dc:init in a project
-  → Reads templates/ from install location
-  → Creates .context/, ARCHITECTURE.md, AGENTS.md, CLAUDE.md in target project
+> **Diagram source**: `docs/src/assets/diagrams/data-flow.drawio` (open in draw.io to edit, then re-export to `docs/public/diagrams/data-flow.svg`)
 
-Session starts
-  → hooks/dc-freshness-check.js reads .context/MANIFEST.md
-  → Warns about stale entries via additionalContext
+The full flow includes:
 
-User edits code
-  → hooks/dc-context-reminder.js checks for nearby CONTEXT.md
-  → Reminds to update if relevant
-
-User runs /dc:extract (GSD integration)
-  → Reads .planning/ artifacts from completed phases
-  → Cross-references against .context/
-  → Proposes new domain files, ADRs, CONTEXT.md updates
-```
+1. `npx domain-context-cc` → `bin/install.js` copies files to `~/.claude/` (or `./.claude/`) → hooks registered in `settings.json`
+2. User runs `/dc:init` → reads `templates/` → creates `.context/`, `ARCHITECTURE.md`, `AGENTS.md`, `CLAUDE.md` in target project
+3. Session starts → `hooks/dc-freshness-check.js` reads `.context/MANIFEST.md` → warns about stale entries
+4. User edits code → `hooks/dc-context-reminder.js` checks for nearby `CONTEXT.md` → reminds to update
+5. User runs `/dc:extract` → reads `.planning/` artifacts → cross-references against `.context/` → proposes updates
 
 ## Key Boundaries
 

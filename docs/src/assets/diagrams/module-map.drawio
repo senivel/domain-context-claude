@@ -1,0 +1,58 @@
+<mxfile host="app.diagrams.net" modified="2026-03-20T00:00:00.000Z" agent="domain-context-cc" version="24.0.0" type="device">
+  <diagram name="Module Map" id="module-map">
+    <mxGraphModel dx="1000" dy="600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="2" value="bin/install.js" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;fontFamily=Helvetica;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="250" y="20" width="160" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="3" value="commands/dc/" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="30" y="120" width="140" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="4" value="hooks/" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="200" y="120" width="100" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="5" value="agents/" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="330" y="120" width="100" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="6" value="rules/" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="460" y="120" width="100" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="7" value="templates/" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="10" y="224" width="110" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="8" value="tools/" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="140" y="224" width="90" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="9" value=".context/MANIFEST.md" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="260" y="224" width="200" height="40" as="geometry"/>
+        </mxCell>
+        <!-- Edges: install.js to modules -->
+        <mxCell id="e1" style="endArrow=classic;html=1;strokeColor=#666666;strokeWidth=2;" edge="1" source="2" target="3" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e2" style="endArrow=classic;html=1;strokeColor=#666666;strokeWidth=2;" edge="1" source="2" target="4" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e3" style="endArrow=classic;html=1;strokeColor=#666666;strokeWidth=2;" edge="1" source="2" target="5" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e4" style="endArrow=classic;html=1;strokeColor=#666666;strokeWidth=2;" edge="1" source="2" target="6" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <!-- Edges: commands to templates/tools -->
+        <mxCell id="e5" style="endArrow=classic;html=1;strokeColor=#666666;strokeWidth=2;" edge="1" source="3" target="7" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e6" style="endArrow=classic;html=1;strokeColor=#666666;strokeWidth=2;" edge="1" source="3" target="8" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <!-- Edge: hooks to MANIFEST.md -->
+        <mxCell id="e7" style="endArrow=classic;html=1;strokeColor=#666666;strokeWidth=2;" edge="1" source="4" target="9" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

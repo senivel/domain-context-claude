@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 180" width="1000" height="180" font-family="'Segoe UI', system-ui, -apple-system, sans-serif">
+  <defs>
+    <marker id="arrow-df" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#666"/>
+    </marker>
+    <marker id="arrow-df-left" markerWidth="10" markerHeight="7" refX="1" refY="3.5" orient="auto">
+      <polygon points="10 0, 0 3.5, 10 7" fill="#666"/>
+    </marker>
+  </defs>
+
+  <!-- Phase labels -->
+  <text x="105" y="12" text-anchor="middle" font-size="11" fill="#999" font-style="italic">Install</text>
+  <text x="595" y="12" text-anchor="middle" font-size="11" fill="#999" font-style="italic">Initialize</text>
+  <text x="325" y="102" text-anchor="middle" font-size="11" fill="#999" font-style="italic">Session lifecycle</text>
+
+  <!-- Row 1: Install flow (left to right) -->
+  <rect x="10" y="22" width="190" height="40" rx="8" fill="#dae8fc" stroke="#6c8ebf" stroke-width="2"/>
+  <text x="105" y="47" text-anchor="middle" font-size="12" font-weight="bold" fill="#333">npx domain-context-cc</text>
+
+  <rect x="240" y="22" width="130" height="40" rx="8" fill="#dae8fc" stroke="#6c8ebf" stroke-width="2"/>
+  <text x="305" y="47" text-anchor="middle" font-size="12" fill="#333">bin/install.js</text>
+
+  <rect x="410" y="22" width="150" height="40" rx="8" fill="#d5e8d4" stroke="#82b366" stroke-width="2"/>
+  <text x="485" y="47" text-anchor="middle" font-size="12" fill="#333">Files in ~/.claude/</text>
+
+  <rect x="600" y="22" width="150" height="40" rx="8" fill="#d5e8d4" stroke="#82b366" stroke-width="2"/>
+  <text x="675" y="47" text-anchor="middle" font-size="12" fill="#333">Hooks registered</text>
+
+  <!-- Transition to row 2 -->
+  <rect x="790" y="22" width="110" height="40" rx="8" fill="#e1d5e7" stroke="#9673a6" stroke-width="2"/>
+  <text x="845" y="47" text-anchor="middle" font-size="12" font-weight="bold" fill="#333">/dc:init</text>
+
+  <rect x="790" y="110" width="150" height="40" rx="8" fill="#e1d5e7" stroke="#9673a6" stroke-width="2"/>
+  <text x="865" y="135" text-anchor="middle" font-size="12" fill="#333">.context/ created</text>
+
+  <!-- Row 2: Session lifecycle (right to left) -->
+  <rect x="600" y="110" width="140" height="40" rx="8" fill="#fff2cc" stroke="#d6b656" stroke-width="2"/>
+  <text x="670" y="135" text-anchor="middle" font-size="12" font-weight="bold" fill="#333">Session start</text>
+
+  <rect x="420" y="110" width="140" height="40" rx="8" fill="#fff2cc" stroke="#d6b656" stroke-width="2"/>
+  <text x="490" y="135" text-anchor="middle" font-size="12" fill="#333">Freshness check</text>
+
+  <rect x="240" y="110" width="140" height="40" rx="8" fill="#fff2cc" stroke="#d6b656" stroke-width="2"/>
+  <text x="310" y="135" text-anchor="middle" font-size="12" font-weight="bold" fill="#333">Edit code</text>
+
+  <rect x="60" y="110" width="140" height="40" rx="8" fill="#fff2cc" stroke="#d6b656" stroke-width="2"/>
+  <text x="130" y="135" text-anchor="middle" font-size="12" fill="#333">Context reminder</text>
+
+  <!-- Arrows: row 1 (left to right) -->
+  <line x1="200" y1="42" x2="238" y2="42" stroke="#666" stroke-width="2" marker-end="url(#arrow-df)"/>
+  <line x1="370" y1="42" x2="408" y2="42" stroke="#666" stroke-width="2" marker-end="url(#arrow-df)"/>
+  <line x1="560" y1="42" x2="598" y2="42" stroke="#666" stroke-width="2" marker-end="url(#arrow-df)"/>
+  <line x1="750" y1="42" x2="788" y2="42" stroke="#666" stroke-width="2" marker-end="url(#arrow-df)"/>
+
+  <!-- Arrow: dc:init down to .context/ -->
+  <line x1="845" y1="62" x2="845" y2="108" stroke="#666" stroke-width="2" marker-end="url(#arrow-df)"/>
+
+  <!-- Arrow: .context/ left to Session start -->
+  <line x1="790" y1="130" x2="742" y2="130" stroke="#666" stroke-width="2" marker-end="url(#arrow-df-left)"/>
+
+  <!-- Arrows: row 2 (right to left) -->
+  <line x1="600" y1="130" x2="562" y2="130" stroke="#666" stroke-width="2" marker-end="url(#arrow-df-left)"/>
+  <line x1="420" y1="130" x2="382" y2="130" stroke="#666" stroke-width="2" marker-end="url(#arrow-df-left)"/>
+  <line x1="240" y1="130" x2="202" y2="130" stroke="#666" stroke-width="2" marker-end="url(#arrow-df-left)"/>
+</svg>
