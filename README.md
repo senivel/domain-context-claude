@@ -67,7 +67,7 @@ No GSD configuration changes needed.
 ## What Gets Installed
 
 - **Skills**: `.claude/commands/dc/` -- the six commands above
-- **Hooks**: session-start freshness warnings, edit-time CONTEXT.md reminders
+- **Hooks**: session-start freshness warnings, edit-time CONTEXT.md reminders, post-edit lint checks
 - **Agent**: domain validator for checking code against business rules
 - **Rules**: formatting guidance when editing `.context/` files
 - **Templates**: scaffolding files used by `/dc:init`

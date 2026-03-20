@@ -119,5 +119,6 @@ Domain Context includes hooks that work automatically after installation -- no c
 
 - **Session-start freshness check** -- when you open Claude Code, a hook reads `.context/MANIFEST.md` and warns about stale entries
 - **Edit-time CONTEXT.md reminders** -- when you edit files near a `CONTEXT.md`, a hook reminds you to keep it up to date
+- **Post-edit lint check** -- when you edit a JS file, a hook runs ESLint and surfaces violations as context for Claude
 
 These hooks run silently in the background. They never block your workflow -- if anything goes wrong, they degrade gracefully and exit without errors.

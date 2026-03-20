@@ -33,7 +33,7 @@ Domain Context organizes project knowledge into three complementary concerns:
 | Module | Purpose |
 |--------|---------|
 | commands/dc/ | Six slash commands for managing domain context |
-| hooks/ | Session-start freshness check, edit-time reminders |
+| hooks/ | Session-start freshness check, edit-time reminders, post-edit lint check |
 | agents/ | Domain validator subagent |
 | rules/ | Formatting guidance for .context/ files |
 | templates/ | Scaffolding files for /dc:init |
@@ -49,13 +49,15 @@ The install-to-session lifecycle shows how Domain Context flows from initial set
 
 ## Hook lifecycle
 
-Domain Context includes two hooks that run automatically after installation -- no configuration needed.
+Domain Context includes three hooks that run automatically after installation -- no configuration needed.
 
 **On session start**, the freshness check hook scans `.context/MANIFEST.md` for verified dates. If any entries are older than 90 days, it adds a warning to Claude's context so stale knowledge gets flagged early.
 
 **On file edit**, the context reminder hook checks whether the edited file is near a `CONTEXT.md`. If so, it reminds you to review and update the context file if your changes affect domain knowledge.
 
-Both hooks degrade gracefully -- if anything goes wrong (missing files, parse errors, timeouts), they exit silently without blocking your session.
+**On JS file edit**, the lint check hook runs ESLint on the edited file and surfaces any violations as additional context, giving Claude immediate feedback before lint errors accumulate.
+
+All three hooks degrade gracefully -- if anything goes wrong (missing files, parse errors, timeouts), they exit silently without blocking your session.
 
 ## .context/ directory structure
 

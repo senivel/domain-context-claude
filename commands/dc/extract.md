@@ -1,6 +1,6 @@
 ---
 name: dc:extract
-description: Extract domain knowledge from completed GSD phases into .context/ entries. Scans planning artifacts, classifies findings, and lets you selectively create domain concepts, decisions, and constraints.
+description: Extract domain knowledge from completed GSD phases into .context/ entries.
 allowed-tools:
   - Read
   - Write

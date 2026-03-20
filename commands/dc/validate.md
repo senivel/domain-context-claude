@@ -1,6 +1,6 @@
 ---
 name: dc:validate
-description: Check structural integrity of domain context. Reports broken links, orphan files, stale entries, and AGENTS.md imports. Offers to fix issues found.
+description: Check structural integrity of domain context and fix issues found.
 allowed-tools:
   - Read
   - Glob

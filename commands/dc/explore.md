@@ -1,6 +1,6 @@
 ---
 name: dc:explore
-description: Browse and search domain context in the current project. Shows summary of all entries with freshness status, supports keyword search, and lets you drill into specific entries. Use when you want to understand what domain knowledge exists.
+description: Browse and search domain context entries in the current project.
 allowed-tools:
   - Read
   - Glob

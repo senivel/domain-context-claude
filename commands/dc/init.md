@@ -1,6 +1,6 @@
 ---
 name: dc:init
-description: Initialize Domain Context in the current project. Creates .context/ directory with MANIFEST.md, domain/, decisions/, and constraints/ subdirectories. Scaffolds ARCHITECTURE.md, wires AGENTS.md with domain-context snippet, and creates CLAUDE.md with @AGENTS.md pointer. Use when setting up domain context on a new or existing project.
+description: Initialize Domain Context in a project. Creates .context/ structure, ARCHITECTURE.md, AGENTS.md, and CLAUDE.md.
 allowed-tools:
   - Read
   - Write

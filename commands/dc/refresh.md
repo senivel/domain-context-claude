@@ -1,6 +1,6 @@
 ---
 name: dc:refresh
-description: Review stale domain context entries and update them based on current code reality. Identifies entries older than 90 days, assesses accuracy against source code, and proposes updates.
+description: Review stale domain context entries and update them based on current code.
 allowed-tools:
   - Read
   - Write
