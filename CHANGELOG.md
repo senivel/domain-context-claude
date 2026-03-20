@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.1](https://github.com/senivel/domain-context-claude/compare/domain-context-cc-v1.5.0...domain-context-cc-v1.5.1) (2026-03-20)
+
+
+### Bug Fixes
+
+* upgrade npm in publish workflow for trusted publishers support ([b91ee89](https://github.com/senivel/domain-context-claude/commit/b91ee89252e03cc033ea2967beda2f973422a5b0))
+
 ## [1.5.0](https://github.com/senivel/domain-context-claude/compare/domain-context-cc-v1.4.0...domain-context-cc-v1.5.0) (2026-03-20)
 
 
