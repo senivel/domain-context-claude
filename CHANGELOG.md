@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.5.2](https://github.com/senivel/domain-context-claude/compare/domain-context-cc-v1.5.1...domain-context-cc-v1.5.2) (2026-03-20)
+
+
+### Documentation
+
+* expand landing page and spec overview with problem statement and concepts ([6e55089](https://github.com/senivel/domain-context-claude/commit/6e55089581ee97b14e78b69a5ecbcb3d311b0d45))
+* replace Mermaid diagrams with draw.io SVGs ([034db0d](https://github.com/senivel/domain-context-claude/commit/034db0de10845e933f54535e2110f9604b338345))
+
 ## [1.5.1](https://github.com/senivel/domain-context-claude/compare/domain-context-cc-v1.5.0...domain-context-cc-v1.5.1) (2026-03-20)
 
 

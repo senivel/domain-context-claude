@@ -1,6 +1,6 @@
 {
   "name": "domain-context-cc",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "description": "Domain Context tooling for Claude Code — skills, hooks, agents, and installer",
   "type": "commonjs",
   "scripts": {
