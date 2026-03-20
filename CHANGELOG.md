@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.6.0](https://github.com/senivel/domain-context-claude/compare/domain-context-cc-v1.5.2...domain-context-cc-v1.6.0) (2026-03-20)
+
+
+### Features
+
+* add --link flag for symlinked dev installs ([2bd2434](https://github.com/senivel/domain-context-claude/commit/2bd2434ce9ddcdfcfb14fc510b76fec9056b4db2))
+
+
+### Bug Fixes
+
+* incorrect tool name ([c9b62c2](https://github.com/senivel/domain-context-claude/commit/c9b62c269feefc17ce9bdaf917eb2d459fad12b0))
+* namespace templates under domain-context/ to avoid collisions ([5ef09ad](https://github.com/senivel/domain-context-claude/commit/5ef09ad06c215447fe3e5e533648f8157e6cee5f))
+* track docs-drift-reminder hook and update contributing guide ([e7cbb3a](https://github.com/senivel/domain-context-claude/commit/e7cbb3a2f0c83a2c2eb3db0aa5fc815503c0cf40))
+* update tests for --link and templates path, align pre-commit with CI ([5c7571c](https://github.com/senivel/domain-context-claude/commit/5c7571c5114f20593b70edbcbedf5691722d7edb))
+
+
+### Documentation
+
+* shorten skill descriptions and document lint check hook ([eff014a](https://github.com/senivel/domain-context-claude/commit/eff014aeb15ce807f3c16fdf27c2d15c9204cccd))
+
 ## [1.5.2](https://github.com/senivel/domain-context-claude/compare/domain-context-cc-v1.5.1...domain-context-cc-v1.5.2) (2026-03-20)
 
 
