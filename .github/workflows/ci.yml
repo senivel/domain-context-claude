@@ -38,7 +38,7 @@ jobs:
         run: npm run lint:md
 
       - name: Tests
-        run: node --test tests/
+        run: node --test tests/*.test.js
 
       - name: Validate templates
         run: bash tools/validate-templates.sh

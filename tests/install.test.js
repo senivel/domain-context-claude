@@ -15,6 +15,7 @@ const {
   getTargetDir,
   INSTALL_MAP,
   copyFiles,
+  linkFiles,
   updateSettings,
   removeDcFiles,
   removeHooks,
@@ -26,22 +27,56 @@ const {
 describe('parseArgs', () => {
   it('returns defaults for empty args', () => {
     const result = parseArgs([]);
-    assert.deepStrictEqual(result, { isLocal: false, isUninstall: false });
+    assert.deepStrictEqual(result, {
+      isLocal: false,
+      isUninstall: false,
+      isLink: false,
+    });
   });
 
   it('parses --local', () => {
     const result = parseArgs(['--local']);
-    assert.deepStrictEqual(result, { isLocal: true, isUninstall: false });
+    assert.deepStrictEqual(result, {
+      isLocal: true,
+      isUninstall: false,
+      isLink: false,
+    });
   });
 
   it('parses --uninstall', () => {
     const result = parseArgs(['--uninstall']);
-    assert.deepStrictEqual(result, { isLocal: false, isUninstall: true });
+    assert.deepStrictEqual(result, {
+      isLocal: false,
+      isUninstall: true,
+      isLink: false,
+    });
   });
 
   it('parses --uninstall --local together', () => {
     const result = parseArgs(['--uninstall', '--local']);
-    assert.deepStrictEqual(result, { isLocal: true, isUninstall: true });
+    assert.deepStrictEqual(result, {
+      isLocal: true,
+      isUninstall: true,
+      isLink: false,
+    });
+  });
+
+  it('parses --link', () => {
+    const result = parseArgs(['--link']);
+    assert.deepStrictEqual(result, {
+      isLocal: false,
+      isUninstall: false,
+      isLink: true,
+    });
+  });
+
+  it('parses --link --local together', () => {
+    const result = parseArgs(['--link', '--local']);
+    assert.deepStrictEqual(result, {
+      isLocal: true,
+      isUninstall: false,
+      isLink: true,
+    });
   });
 });
 
@@ -250,7 +285,7 @@ describe('INSTALL_MAP', () => {
     assert.ok(dests.includes('hooks'));
     assert.ok(dests.includes('agents'));
     assert.ok(dests.includes('rules'));
-    assert.ok(dests.includes('templates'));
+    assert.ok(dests.includes('domain-context/templates'));
     assert.ok(dests.includes('tools'));
   });
 
@@ -291,7 +326,11 @@ describe('Integration: file copying', () => {
     assert.ok(
       fs.existsSync(path.join(targetDir, 'rules/dc-context-editing.md')),
     );
-    assert.ok(fs.existsSync(path.join(targetDir, 'templates/manifest.md')));
+    assert.ok(
+      fs.existsSync(
+        path.join(targetDir, 'domain-context/templates/manifest.md'),
+      ),
+    );
     assert.ok(
       fs.existsSync(path.join(targetDir, 'tools/validate-templates.sh')),
     );
@@ -321,7 +360,11 @@ describe('Integration: file copying', () => {
     assert.ok(
       fs.existsSync(path.join(targetDir, 'hooks/dc-context-reminder.js')),
     );
-    assert.ok(fs.existsSync(path.join(targetDir, 'templates/architecture.md')));
+    assert.ok(
+      fs.existsSync(
+        path.join(targetDir, 'domain-context/templates/architecture.md'),
+      ),
+    );
   });
 
   it('local install: settings.json has dc hook entries with relative paths', () => {
@@ -511,19 +554,17 @@ describe('removeDcFiles', () => {
     );
   });
 
-  it('removes templates/ contents but not the directory', () => {
+  it('removes domain-context/templates/ directory and contents', () => {
     const targetDir = path.join(tmpDir, '.claude');
     copyFiles(targetDir);
 
     removeDcFiles(targetDir);
 
-    const templatesDir = path.join(targetDir, 'templates');
+    const templatesDir = path.join(targetDir, 'domain-context/templates');
     assert.ok(
-      fs.existsSync(templatesDir),
-      'templates/ directory should remain',
+      !fs.existsSync(templatesDir),
+      'domain-context/templates/ should be removed',
     );
-    const remaining = fs.readdirSync(templatesDir);
-    assert.strictEqual(remaining.length, 0, 'templates/ should be empty');
   });
 
   it('removes tools/validate-templates.sh', () => {
@@ -586,8 +627,8 @@ describe('removeDcFiles', () => {
       'tools/ should remain',
     );
     assert.ok(
-      fs.existsSync(path.join(targetDir, 'templates')),
-      'templates/ should remain',
+      fs.existsSync(path.join(targetDir, 'domain-context')),
+      'domain-context/ parent should remain',
     );
   });
 
@@ -940,5 +981,59 @@ describe('Integration: success messages', () => {
       allOutput.includes('2'),
       `Should contain hook count, got:\n${allOutput}`,
     );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Integration Tests: linkFiles
+// ---------------------------------------------------------------------------
+describe('Integration: linkFiles', () => {
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'dc-link-test-'));
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it('creates directory symlink for unfiltered mappings', () => {
+    const targetDir = path.join(tmpDir, '.claude');
+    linkFiles(targetDir);
+
+    const dcDir = path.join(targetDir, 'commands/dc');
+    const stat = fs.lstatSync(dcDir);
+    assert.ok(stat.isSymbolicLink(), 'commands/dc should be a symlink');
+    assert.ok(
+      fs.existsSync(path.join(dcDir, 'init.md')),
+      'Should resolve to source files',
+    );
+  });
+
+  it('creates per-file symlinks for filtered mappings', () => {
+    const targetDir = path.join(tmpDir, '.claude');
+    linkFiles(targetDir);
+
+    const hookFile = path.join(targetDir, 'hooks/dc-freshness-check.js');
+    const stat = fs.lstatSync(hookFile);
+    assert.ok(stat.isSymbolicLink(), 'Hook file should be a symlink');
+  });
+
+  it('uninstall removes symlinks without destroying source files', () => {
+    const targetDir = path.join(tmpDir, '.claude');
+    linkFiles(targetDir);
+
+    removeDcFiles(targetDir);
+
+    // Symlinks should be gone
+    assert.ok(
+      !fs.existsSync(path.join(targetDir, 'commands/dc')),
+      'commands/dc symlink should be removed',
+    );
+
+    // Source files must still exist
+    const srcInit = path.join(__dirname, '..', 'commands/dc/init.md');
+    assert.ok(fs.existsSync(srcInit), 'Source files must survive uninstall');
   });
 });
