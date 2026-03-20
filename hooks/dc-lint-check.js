@@ -34,22 +34,25 @@ process.stdin.on('end', () => {
       process.exit(0);
     }
 
-    // Extract file path from tool input
-    let filePath = data.tool_input && data.tool_input.file_path;
-    if (
-      !filePath &&
+    // Extract file path(s) from tool input
+    let filePaths = [];
+    if (data.tool_input && data.tool_input.file_path) {
+      filePaths = [data.tool_input.file_path];
+    } else if (
       data.tool_input &&
       Array.isArray(data.tool_input.edits) &&
       data.tool_input.edits.length > 0
     ) {
-      filePath = data.tool_input.edits[0].file_path;
-    }
-    if (!filePath) {
-      process.exit(0);
+      filePaths = [
+        ...new Set(
+          data.tool_input.edits.map((e) => e.file_path).filter(Boolean),
+        ),
+      ];
     }
 
     // JS file filter: only lint .js files
-    if (!filePath.endsWith('.js')) {
+    filePaths = filePaths.filter((fp) => fp.endsWith('.js'));
+    if (filePaths.length === 0) {
       process.exit(0);
     }
 
@@ -62,7 +65,7 @@ process.stdin.on('end', () => {
     try {
       execFileSync(
         eslintBin,
-        [filePath, '--format', 'stylish', '--no-warn-ignored'],
+        [...filePaths, '--format', 'stylish', '--no-warn-ignored'],
         {
           timeout: 5000,
           encoding: 'utf8',
