@@ -64,7 +64,7 @@ jobs:
             | tar xz -C /usr/local/bin
 
       - name: Check links
-        run: lychee --offline --base ./dist --no-progress './dist/**/*.html'
+        run: lychee --offline --root-dir ./dist --no-progress './dist/**/*.html'
 
   deploy:
     needs: [build, check-links]
