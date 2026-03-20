@@ -44,6 +44,15 @@
             "command": "node hooks/dc-lint-check.js"
           }
         ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/docs-drift-reminder.js"
+          }
+        ]
       }
     ]
   },

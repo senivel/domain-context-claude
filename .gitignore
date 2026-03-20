@@ -1,7 +1,10 @@
 .context.local/
 .DS_Store
 
-.claude/**
+.claude/*
+!.claude/hooks/
+.claude/hooks/*
+!.claude/hooks/docs-drift-reminder.js
 .planning/
 .planning/**
 

@@ -16,13 +16,17 @@ Contributions are welcome -- whether it's a bug fix, a new feature, or an improv
    cd domain-context-claude
    ```
 
-2. **Install skills and hooks locally**
+2. **Link skills and hooks for development**
 
    ```bash
-   node bin/install.js --local
+   node bin/install.js --link
    ```
 
-   This copies skills, hooks, agents, rules, and templates into the project's `.claude/` directory so you can test changes immediately.
+   Creates symlinks from `~/.claude/` to your local source files. Edits to skills, hooks, and templates are immediately live -- no re-install needed. Use `--link --local` for project-scoped installs.
+
+   :::tip
+   Without `--link`, the installer copies files, so you'd need to re-run it after every change. Always use `--link` during development.
+   :::
 
 3. **Run the context validator**
 
